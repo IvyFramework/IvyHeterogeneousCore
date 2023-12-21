@@ -4,10 +4,7 @@
 
 #ifdef __USE_CUDA__
 
-#ifndef CUDA_RT_INCLUDED
-#define CUDA_RT_INCLUDED
 #include "cuda_runtime.h"
-#endif
 
 #include "IvyAllocator.hh"
 

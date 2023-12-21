@@ -34,17 +34,17 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ pointer address(reference x) const{ return &x; }
     __CUDA_HOST_DEVICE__ const_pointer address(const_reference x) const{ return &x; }
 
-    __CUDA_HOST_DEVICE__ pointer allocate(size_type n, bool use_cuda_device_mem = false){
-      pointer ret;
-      IvyMemoryHelpers::allocate_memory(ret, n, use_cuda_device_mem);
+    __CUDA_HOST_DEVICE__ pointer allocate(size_type n, bool use_cuda_device_mem = false, cudaStream_t stream = cudaStreamLegacy){
+      pointer ret = nullptr;
+      IvyMemoryHelpers::allocate_memory(ret, n, use_cuda_device_mem, stream);
       return ret;
     }
-    __CUDA_HOST_DEVICE__ void deallocate(pointer p, size_type n, bool use_cuda_device_mem = false){
-      IvyMemoryHelpers::free_memory(p, n, use_cuda_device_mem);
+    __CUDA_HOST_DEVICE__ void deallocate(pointer& p, size_type n, bool use_cuda_device_mem = false, cudaStream_t stream = cudaStreamLegacy){
+      IvyMemoryHelpers::free_memory(p, n, use_cuda_device_mem, stream);
     }
 
-    __CUDA_HOST__ bool transfer(pointer tgt, pointer src, size_t n, bool device_to_host){
-      return IvyMemoryHelpers::transfer_memory(tgt, src, n, device_to_host);
+    __CUDA_HOST__ bool transfer(pointer& tgt, pointer const& src, size_t n, bool device_to_host, cudaStream_t stream = cudaStreamLegacy){
+      return IvyMemoryHelpers::transfer_memory(tgt, src, n, device_to_host, stream);
     }
 
     static __CUDA_HOST_DEVICE__ size_type max_size() noexcept{
@@ -67,11 +67,11 @@ namespace std_ivy{
     typedef typename allocator_type::difference_type difference_type;
     typedef typename allocator_type::size_type size_type;
 
-    static pointer allocate(allocator_type& a, size_type n, bool use_cuda_device_mem = false){
-      return a.allocate(n, use_cuda_device_mem);
+    static pointer allocate(allocator_type& a, size_type n, bool use_cuda_device_mem = false, cudaStream_t stream = cudaStreamLegacy){
+      return a.allocate(n, use_cuda_device_mem, stream);
     }
-    static void deallocate(allocator_type& a, pointer p, size_type n, bool use_cuda_device_mem = false){
-      a.deallocate(p, n, use_cuda_device_mem);
+    static void deallocate(allocator_type& a, pointer& p, size_type n, bool use_cuda_device_mem = false, cudaStream_t stream = cudaStreamLegacy){
+      a.deallocate(p, n, use_cuda_device_mem, stream);
     }
 
     static size_type max_size(const allocator_type& a) noexcept{
