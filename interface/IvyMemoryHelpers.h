@@ -2,7 +2,7 @@
 #define IVYMEMORYHELPERS_H
 
 #include "IvyCompilerFlags.h"
-#include "IvyCudaFlags.h"
+#include "IvyCudaConfig.h"
 #ifdef __USE_CUDA__
 #include "cuda_runtime.h"
 #endif
