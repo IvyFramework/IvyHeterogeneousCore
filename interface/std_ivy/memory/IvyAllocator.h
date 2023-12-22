@@ -1,5 +1,5 @@
-#ifndef IVYALLOCATOR_HH
-#define IVYALLOCATOR_HH
+#ifndef IVYALLOCATOR_H
+#define IVYALLOCATOR_H
 
 
 #include "IvyCompilerFlags.h"
@@ -8,8 +8,8 @@
 
 #ifdef __USE_CUDA__
 
-#include "IvyUtility.h"
-#include "IvyLimits.h"
+#include "std_ivy/IvyUtility.h"
+#include "std_ivy/IvyLimits.h"
 #include "IvyMemoryHelpers.h"
 
 
