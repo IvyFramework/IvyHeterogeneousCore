@@ -10,34 +10,65 @@
 #include "std_ivy/memory/IvyAllocator.h"
 
 
-template<typename T> class IvySharedPtr{
-public:
-  typedef T element_type;
-  typedef T* pointer;
-  typedef T& reference;
-  typedef unsigned long long int counter_type;
+namespace std_ivy{
+  template<typename T> class IvySharedPtr{
+  public:
+    typedef T element_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef unsigned long long int counter_type;
 
-protected:
-  bool* is_on_device_;
-  pointer ptr_;
-  counter_type* ref_count_;
-  cudaStream_t* stream_;
+  protected:
+    bool* is_on_device_;
+    pointer ptr_;
+    counter_type* ref_count_;
+    cudaStream_t* stream_;
 
-  __CUDA_HOST_DEVICE__ void init_members(bool is_on_device);
-  __CUDA_HOST_DEVICE__ void release();
-  __CUDA_HOST_DEVICE__ void dump();
+    __CUDA_HOST_DEVICE__ void init_members(bool is_on_device);
+    __CUDA_HOST_DEVICE__ void release();
+    __CUDA_HOST_DEVICE__ void dump();
 
-public:
-  __CUDA_HOST_DEVICE__ IvySharedPtr();
-  __CUDA_HOST_DEVICE__ IvySharedPtr(std_cstddef::nullptr_t);
-  __CUDA_HOST_DEVICE__ IvySharedPtr(element_type* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
-  template<typename U> explicit __CUDA_HOST_DEVICE__ IvySharedPtr(U* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
-  template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U> const& r);
-  template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U>&& r);
-  __CUDA_HOST_DEVICE__ ~IvySharedPtr();
+  public:
+    __CUDA_HOST_DEVICE__ IvySharedPtr();
+    __CUDA_HOST_DEVICE__ IvySharedPtr(std_cstddef::nullptr_t);
+    template<typename U> explicit __CUDA_HOST_DEVICE__ IvySharedPtr(U* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
+    template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U> const& other);
+    template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U>&& other);
+    __CUDA_HOST_DEVICE__ ~IvySharedPtr();
 
-};
-template<typename T> using shared_ptr = IvySharedPtr<T>;
+    template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>& operator=(IvySharedPtr<U> const& other);
+
+    __CUDA_HOST_DEVICE__ pointer get() const noexcept;
+    __CUDA_HOST_DEVICE__ reference operator*() const noexcept;
+    __CUDA_HOST_DEVICE__ pointer operator->() const noexcept;
+
+    __CUDA_HOST_DEVICE__ void reset();
+    __CUDA_HOST_DEVICE__ void reset(std_cstddef::nullptr_t);
+    template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, bool is_on_device, cudaStream_t* newstream = nullptr);
+
+    template<typename U> __CUDA_HOST_DEVICE__ void swap(IvySharedPtr<U>& other) noexcept;
+
+    __CUDA_HOST_DEVICE__ counter_type use_count() const noexcept;
+    __CUDA_HOST_DEVICE__ bool unique() const noexcept;
+    __CUDA_HOST_DEVICE__ explicit operator bool() const noexcept;
+  };
+
+  template<typename T> using shared_ptr = IvySharedPtr<T>;
+
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ bool operator==(IvySharedPtr<T> const& a, IvySharedPtr<U> const& b) noexcept;
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ bool operator!=(IvySharedPtr<T> const& a, IvySharedPtr<U> const& b) noexcept;
+
+  template<typename T> __CUDA_HOST_DEVICE__ bool operator==(IvySharedPtr<T> const& a, std_cstddef::nullptr_t) noexcept;
+  template<typename T> __CUDA_HOST_DEVICE__ bool operator!=(IvySharedPtr<T> const& a, std_cstddef::nullptr_t) noexcept;
+
+  template<typename T> __CUDA_HOST_DEVICE__ bool operator==(std_cstddef::nullptr_t, IvySharedPtr<T> const& a) noexcept;
+  template<typename T> __CUDA_HOST_DEVICE__ bool operator!=(std_cstddef::nullptr_t, IvySharedPtr<T> const& a) noexcept;
+
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ void swap(IvySharedPtr<T> const& a, IvySharedPtr<U> const& b) noexcept;
+
+  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvySharedPtr<T> make_shared(bool is_on_device, cudaStream_t* stream, Args&&... args);
+
+}
 
 #endif
 
