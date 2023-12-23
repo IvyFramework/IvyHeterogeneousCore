@@ -33,18 +33,30 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvySharedPtr(std_cstddef::nullptr_t);
     template<typename U> explicit __CUDA_HOST_DEVICE__ IvySharedPtr(U* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
     template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U> const& other);
+    __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr const& other);
     template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr<U>&& other);
+    __CUDA_HOST_DEVICE__ IvySharedPtr(IvySharedPtr&& other);
     __CUDA_HOST_DEVICE__ ~IvySharedPtr();
 
     template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>& operator=(IvySharedPtr<U> const& other);
+    __CUDA_HOST_DEVICE__ IvySharedPtr<T>& operator=(IvySharedPtr const& other);
 
+    __CUDA_HOST_DEVICE__ bool* use_gpu() const noexcept;
+    __CUDA_HOST_DEVICE__ cudaStream_t* gpu_stream() const noexcept;
+    __CUDA_HOST_DEVICE__ counter_type* counter() const noexcept;
     __CUDA_HOST_DEVICE__ pointer get() const noexcept;
+
+    __CUDA_HOST_DEVICE__ bool*& use_gpu() noexcept;
+    __CUDA_HOST_DEVICE__ cudaStream_t*& gpu_stream() noexcept;
+    __CUDA_HOST_DEVICE__ counter_type*& counter() noexcept;
+    __CUDA_HOST_DEVICE__ pointer& get() noexcept;
+
     __CUDA_HOST_DEVICE__ reference operator*() const noexcept;
     __CUDA_HOST_DEVICE__ pointer operator->() const noexcept;
 
     __CUDA_HOST_DEVICE__ void reset();
     __CUDA_HOST_DEVICE__ void reset(std_cstddef::nullptr_t);
-    template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, bool is_on_device, cudaStream_t* newstream = nullptr);
+    template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
 
     template<typename U> __CUDA_HOST_DEVICE__ void swap(IvySharedPtr<U>& other) noexcept;
 

@@ -23,14 +23,27 @@ namespace std_ivy{
     stream_(nullptr)
   {}
   template<typename T> template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::IvySharedPtr(U* ptr, bool is_on_device, cudaStream_t* stream){
-    ptr_ = dynamic_cast<pointer>(ptr);
+    ptr_ = __STATIC_CAST__(pointer, ptr);
     if (ptr_){
       stream_ = stream;
       this->init_members(is_on_device);
     }
   }
   template<typename T> template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::IvySharedPtr(IvySharedPtr<U> const& other){
-    ptr_ = dynamic_cast<pointer>(other.ptr_);
+    ptr_ = __STATIC_CAST__(pointer, other.get());
+    if (ptr_){
+      is_on_device_ = other.use_gpu();
+      ref_count_ = other.counter();
+      stream_ = other.gpu_stream();
+      if (ref_count_) ++(*ref_count_);
+    }
+    else{
+      printf("IvySharedPtr copy constructor failed: Incompatible types\n");
+      assert(false);
+    }
+  }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::IvySharedPtr(IvySharedPtr<T> const& other){
+    ptr_ = other.ptr_;
     if (ptr_){
       is_on_device_ = other.is_on_device_;
       ref_count_ = other.ref_count_;
@@ -38,11 +51,19 @@ namespace std_ivy{
       if (ref_count_) ++(*ref_count_);
     }
     else{
-      printf("IvySharedPtr::swap() failed: Incompatible types\n");
+      printf("IvySharedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
   }
   template<typename T> template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::IvySharedPtr(IvySharedPtr<U>&& other) :
+    is_on_device_(std_util::move(other.use_gpu())),
+    ptr_(std_util::move(other.get())),
+    ref_count_(std_util::move(other.counter())),
+    stream_(std_util::move(other.gpu_stream()))
+  {
+    other.dump();
+  }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::IvySharedPtr(IvySharedPtr&& other) :
     is_on_device_(std_util::move(other.is_on_device_)),
     ptr_(std_util::move(other.ptr_)),
     ref_count_(std_util::move(other.ref_count_)),
@@ -57,12 +78,24 @@ namespace std_ivy{
   template<typename T> template<typename U> __CUDA_HOST_DEVICE__ IvySharedPtr<T>& IvySharedPtr<T>::operator=(IvySharedPtr<U> const& other){
     if (*this != other){
       this->release();
+      is_on_device_ = other.use_gpu();
+      ptr_ = __STATIC_CAST__(pointer, other.get());
+      ref_count_ = other.counter();
+      stream_ = other.gpu_stream();
+      if (ref_count_) ++(*ref_count_);
+    }
+    return *this;
+  }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>& IvySharedPtr<T>::operator=(IvySharedPtr const& other){
+    if (*this != other){
+      this->release();
       is_on_device_ = other.is_on_device_;
       ptr_ = other.ptr_;
       ref_count_ = other.ref_count_;
       stream_ = other.stream_;
       if (ref_count_) ++(*ref_count_);
     }
+    return *this;
   }
 
   template<typename T> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::init_members(bool is_on_device){
@@ -94,22 +127,32 @@ namespace std_ivy{
     stream_ = nullptr;
   }
 
+  template<typename T> __CUDA_HOST_DEVICE__ bool* IvySharedPtr<T>::use_gpu() const noexcept{ return this->is_on_device_; }
+  template<typename T> __CUDA_HOST_DEVICE__ cudaStream_t* IvySharedPtr<T>::gpu_stream() const noexcept{ return this->stream_; }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::counter_type* IvySharedPtr<T>::counter() const noexcept{ return this->ref_count_; }
   template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::pointer IvySharedPtr<T>::get() const noexcept{ return this->ptr_; }
+
+  template<typename T> __CUDA_HOST_DEVICE__ bool*& IvySharedPtr<T>::use_gpu() noexcept{ return this->is_on_device_; }
+  template<typename T> __CUDA_HOST_DEVICE__ cudaStream_t*& IvySharedPtr<T>::gpu_stream() noexcept{ return this->stream_; }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::counter_type*& IvySharedPtr<T>::counter() noexcept{ return this->ref_count_; }
+  template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::pointer& IvySharedPtr<T>::get() noexcept{ return this->ptr_; }
+
   template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::reference IvySharedPtr<T>::operator*() const noexcept{ return *(this->ptr_); }
   template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::pointer IvySharedPtr<T>::operator->() const noexcept{ return this->ptr_; }
 
-  template<typename T> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(){ this->release(); }
-  template<typename T> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(std_cstddef::nullptr_t){ this->release(); }
-  template<typename T> template<typename U> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(U* ptr, bool is_on_device, cudaStream_t* newstream){
+  template<typename T> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(){ this->release(); this->dump(); }
+  template<typename T> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(std_cstddef::nullptr_t){ this->release(); this->dump(); }
+  template<typename T> template<typename U> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::reset(U* ptr, bool is_on_device, cudaStream_t* stream){
     bool const is_same = (ptr_ == ptr);
     if (!is_same){
       this->release();
-      if (newstream) stream_ = newstream;
-      ptr_ = dynamic_cast<pointer>(ptr);
+      this->dump();
+      stream_ = stream;
+      ptr_ = __STATIC_CAST__(pointer, ptr);
       if (ptr_) this->init_members(is_on_device);
     }
     else{
-      if (newstream) stream_ = newstream;
+      if (stream) stream_ = stream;
       if (*is_on_device_ != is_on_device){
         printf("IvySharedPtr::reset() failed: Incompatible is_on_device flags.\n");
         assert(false);
@@ -118,15 +161,17 @@ namespace std_ivy{
   }
 
   template<typename T> template<typename U> __CUDA_HOST_DEVICE__ void IvySharedPtr<T>::swap(IvySharedPtr<U>& other) noexcept{
-    bool inull = (ptr_==nullptr), onull = (other.ptr_==nullptr);
-    pointer tmp_ptr = ptr_; ptr_ = dynamic_cast<pointer>(other.ptr_); other.ptr_ = dynamic_cast<typename IvySharedPtr<U>::pointer>(tmp_ptr);
+    bool inull = (ptr_==nullptr), onull = (other.get()==nullptr);
+    pointer tmp_ptr = ptr_;
+    ptr_ = __STATIC_CAST__(pointer, other.get());
+    other.get() = __STATIC_CAST__(typename IvySharedPtr<U>::pointer, tmp_ptr);
     if ((inull != (other.ptr_==nullptr)) || (onull != (ptr_==nullptr))){
       printf("IvySharedPtr::swap() failed: Incompatible types\n");
       assert(false);
     }
-    std_util::swap(ref_count_, other.ref_count_);
-    std_util::swap(is_on_device_, other.is_on_device_);
-    std_util::swap(stream_, other.stream_);
+    std_util::swap(ref_count_, other.counter());
+    std_util::swap(is_on_device_, other.use_gpu());
+    std_util::swap(stream_, other.gpu_stream());
   }
 
   template<typename T> __CUDA_HOST_DEVICE__ IvySharedPtr<T>::counter_type IvySharedPtr<T>::use_count() const noexcept{ return (ref_count_ ? *ref_count_ : static_cast<counter_type>(0)); }
@@ -157,6 +202,7 @@ namespace std_ivy{
       typename IvySharedPtr<T>::pointer d_ptr = a.allocate(1, is_on_device, ref_stream);
       a.transfer(d_ptr, h_ptr, 1, false, ref_stream);
       ptr = d_ptr;
+      a.deallocate(h_ptr, 1, false, ref_stream);
     }
     else
 #endif

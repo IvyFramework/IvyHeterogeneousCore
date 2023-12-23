@@ -20,6 +20,41 @@ namespace IvyMemoryHelpers{
     , bool use_cuda_device_mem = false
     , cudaStream_t stream = cudaStreamLegacy
 #endif
+  );
+
+  template<typename T> __CUDA_HOST_DEVICE__ bool free_memory(
+    T*& data,
+    IvyMemoryHelpers::size_t n
+#ifdef __USE_CUDA__
+    , bool use_cuda_device_mem = false
+    , cudaStream_t stream = cudaStreamLegacy
+#endif
+  );
+
+#ifdef __USE_CUDA__
+  template<typename T> __CUDA_HOST__ bool transfer_memory(T*& tgt, T* const& src, IvyMemoryHelpers::size_t n, bool device_to_host, cudaStream_t stream = cudaStreamLegacy);
+
+  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, IvyMemoryHelpers::size_t n);
+#endif
+
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ bool copy_data(
+    T*& target, U* const& source,
+    IvyMemoryHelpers::size_t n_tgt_init, IvyMemoryHelpers::size_t n_src
+#ifdef __USE_CUDA__
+    , cudaStream_t stream = cudaStreamLegacy
+#endif
+  );
+}
+
+
+namespace IvyMemoryHelpers{
+  template<typename T> __CUDA_HOST_DEVICE__ bool allocate_memory(
+    T*& data,
+    IvyMemoryHelpers::size_t n
+#ifdef __USE_CUDA__
+    , bool use_cuda_device_mem
+    , cudaStream_t stream
+#endif
   ){
     if (n==0 || data) return false;
 #ifdef __USE_CUDA__
@@ -41,12 +76,13 @@ namespace IvyMemoryHelpers{
     else data = new T[n];
     return true;
   }
+
   template<typename T> __CUDA_HOST_DEVICE__ bool free_memory(
     T*& data,
     IvyMemoryHelpers::size_t n
 #ifdef __USE_CUDA__
-    , bool use_cuda_device_mem = false
-    , cudaStream_t stream = cudaStreamLegacy
+    , bool use_cuda_device_mem
+    , cudaStream_t stream
 #endif
   ){
     if (!data) return true;
@@ -75,7 +111,7 @@ namespace IvyMemoryHelpers{
   }
 
 #ifdef __USE_CUDA__
-  template<typename T> __CUDA_HOST__ bool transfer_memory(T*& tgt, T* const& src, IvyMemoryHelpers::size_t n, bool device_to_host, cudaStream_t stream = cudaStreamLegacy){
+  template<typename T> __CUDA_HOST__ bool transfer_memory(T*& tgt, T* const& src, IvyMemoryHelpers::size_t n, bool device_to_host, cudaStream_t stream){
     if (!tgt || !src) return false;
     if (device_to_host){
       if (stream==cudaStreamLegacy){
@@ -101,10 +137,27 @@ namespace IvyMemoryHelpers{
     if (i<n) target[i] = source[i];
   }
 #endif
-  template<typename T, typename U> __CUDA_HOST_DEVICE__ bool copy_data(T*& target, U* const& source, IvyMemoryHelpers::size_t n_tgt_init, IvyMemoryHelpers::size_t n_src, cudaStream_t stream = cudaStreamLegacy){
+
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ bool copy_data(
+    T*& target, U* const& source,
+    IvyMemoryHelpers::size_t n_tgt_init, IvyMemoryHelpers::size_t n_src
+#ifdef __USE_CUDA__
+    , cudaStream_t stream
+#endif
+  ){
     bool res = true;
-    res &= free_memory(target, n_tgt_init, false, stream);
-    res &= allocate_memory(target, n_src, false, stream);
+    res &= free_memory(
+      target, n_tgt_init
+#ifdef __USE_CUDA__
+      , false, stream
+#endif
+    );
+    res &= allocate_memory(
+      target, n_src
+#ifdef __USE_CUDA__
+      , false, stream
+#endif
+    );
     if (res){
 #ifdef __USE_CUDA__
       unsigned int nreq_blocks, nreq_threads_per_block;

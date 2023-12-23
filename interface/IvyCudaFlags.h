@@ -15,6 +15,14 @@
 #define __CUDA_DEVICE_CODE__
 #endif
 
+#ifdef __CUDA_DEVICE_CODE__
+#define __DYNAMIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#else
+#define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
+#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#endif
+
 typedef unsigned long long int IvyBlockThread_t;
 
 #else

@@ -10,6 +10,18 @@ __CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyBlockThread_t n, unsigne
   }
 }
 
+class dummy_B{
+public:
+  dummy_B() = default;
+};
+class dummy_D : public dummy_B{
+public:
+  double a;
+  __CUDA_HOST_DEVICE__ dummy_D() : dummy_B(){}
+  __CUDA_HOST_DEVICE__ dummy_D(double a_) : dummy_B(), a(a_){}
+  __CUDA_HOST_DEVICE__ dummy_D(dummy_D const& other) : a(other.a){}
+};
+
 int main(){
   constexpr unsigned char nStreams = 3;
   constexpr unsigned int nvars = 1000;
@@ -22,6 +34,11 @@ int main(){
 
   for (unsigned char i = 0; i < nStreams; i++){
     printf("Stream %i (%p) computing...\n", i, streams[i].stream());
+
+    std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(true, &(streams[i].stream()), 1.);
+    std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
+    printf("ptr_shared no. of copies: %i\n", ptr_shared.use_count());
+    printf("ptr_shared_copy no. of copies: %i\n", ptr_shared.use_count());
 
     IvyCudaEvent ev_allocate;
     IvyCudaEvent ev_set;
