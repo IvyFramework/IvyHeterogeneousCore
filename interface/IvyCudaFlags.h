@@ -16,14 +16,12 @@
 #endif
 
 #ifdef __CUDA_DEVICE_CODE__
+#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
-#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #else
-#define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
 #endif
-
-typedef unsigned long long int IvyBlockThread_t;
 
 #else
 
@@ -32,6 +30,9 @@ typedef unsigned long long int IvyBlockThread_t;
 #define __CUDA_GLOBAL__
 #define __CUDA_HOST_DEVICE__ __CUDA_HOST__ __CUDA_DEVICE_
 #define __CUDA_DEVICE_HOST__ __CUDA_DEVICE_ __CUDA_HOST__
+
+#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
 
 #endif
 

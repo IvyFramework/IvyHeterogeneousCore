@@ -7,32 +7,34 @@
 #include "cuda_runtime.h"
 #endif
 #include "IvyException.h"
+#include "std_ivy/IvyUtility.h"
 
 
 namespace IvyMemoryHelpers{
   typedef unsigned long long int size_t;
   typedef long long int ptrdiff_t;
 
-  template<typename T> __CUDA_HOST_DEVICE__ bool allocate_memory(
+  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool allocate_memory(
     T*& data,
     IvyMemoryHelpers::size_t n
 #ifdef __USE_CUDA__
-    , bool use_cuda_device_mem = false
-    , cudaStream_t stream = cudaStreamLegacy
+    , bool use_cuda_device_mem
+    , cudaStream_t stream
 #endif
+    , Args&&... args
   );
 
   template<typename T> __CUDA_HOST_DEVICE__ bool free_memory(
     T*& data,
     IvyMemoryHelpers::size_t n
 #ifdef __USE_CUDA__
-    , bool use_cuda_device_mem = false
-    , cudaStream_t stream = cudaStreamLegacy
+    , bool use_cuda_device_mem
+    , cudaStream_t stream
 #endif
   );
 
 #ifdef __USE_CUDA__
-  template<typename T> __CUDA_HOST__ bool transfer_memory(T*& tgt, T* const& src, IvyMemoryHelpers::size_t n, bool device_to_host, cudaStream_t stream = cudaStreamLegacy);
+  template<typename T> __CUDA_HOST__ bool transfer_memory(T*& tgt, T* const& src, IvyMemoryHelpers::size_t n, bool device_to_host, cudaStream_t stream);
 
   template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, IvyMemoryHelpers::size_t n);
 #endif
@@ -41,20 +43,21 @@ namespace IvyMemoryHelpers{
     T*& target, U* const& source,
     IvyMemoryHelpers::size_t n_tgt_init, IvyMemoryHelpers::size_t n_src
 #ifdef __USE_CUDA__
-    , cudaStream_t stream = cudaStreamLegacy
+    , cudaStream_t stream
 #endif
   );
 }
 
 
 namespace IvyMemoryHelpers{
-  template<typename T> __CUDA_HOST_DEVICE__ bool allocate_memory(
+  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool allocate_memory(
     T*& data,
     IvyMemoryHelpers::size_t n
 #ifdef __USE_CUDA__
     , bool use_cuda_device_mem
     , cudaStream_t stream
 #endif
+    , Args&&... args
   ){
     if (n==0 || data) return false;
 #ifdef __USE_CUDA__
@@ -69,11 +72,21 @@ namespace IvyMemoryHelpers{
 #else
       __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMalloc((void**) &data, n*sizeof(T)));
 #endif
+      if (sizeof...(Args)>0){
+        T* temp = nullptr;
+        allocate_memory(temp, n, false, stream, args...);
+#ifndef __CUDA_DEVICE_CODE__
+        transfer_memory(data, temp, n, false, stream);
+#else
+        for (IvyMemoryHelpers::size_t i=0; i<n; i++) data[i] = temp[i];
+#endif
+        free_memory(temp, n, false, stream);
+      }
       return true;
     }
 #endif
-    if (n==1) data = new T;
-    else data = new T[n];
+    if (n==1) data = new T(std_util::forward<Args>(args)...);
+    else data = new T[n]{ std_util::forward<Args>(args)... };
     return true;
   }
 
