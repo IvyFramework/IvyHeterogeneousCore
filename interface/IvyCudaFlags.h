@@ -15,12 +15,13 @@
 #define __CUDA_DEVICE_CODE__
 #endif
 
+#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #ifdef __CUDA_DEVICE_CODE__
-#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
+#define __CONST_CAST__(TYPE, PTR) const_cast<TYPE>(PTR)
 #else
-#define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
+#define __CONST_CAST__(TYPE, PTR) const_cast<TYPE>(PTR)
 #endif
 
 #else
@@ -33,6 +34,7 @@
 
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)
+#define __CONST_CAST__(TYPE, PTR) const_cast<TYPE>(PTR)
 
 #endif
 

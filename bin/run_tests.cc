@@ -59,6 +59,14 @@ int main(){
     kernel_print_dummy_D<<<1, 1, 0, streams[i]>>>(ptr_shared.get());
     kernel_print_dummy_B_as_D<<<1, 1, 0, streams[i]>>>(ptr_shared_copy.get());
 
+    std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(true, &(streams[i].stream()), 1.);
+    std_mem::unique_ptr<dummy_B> ptr_unique_copy = ptr_unique;
+    printf("ptr_unique no. of copies: %i\n", ptr_unique.use_count());
+    printf("ptr_unique_copy no. of copies: %i\n", ptr_unique_copy.use_count());
+    kernel_print_dummy_B_as_D<<<1, 1, 0, streams[i]>>>(ptr_shared_copy.get());
+    ptr_unique_copy.reset();
+    printf("ptr_unique_copy no. of copies after reset: %i\n", ptr_unique_copy.use_count());
+
     IvyCudaEvent ev_allocate;
     IvyCudaEvent ev_set;
     IvyCudaEvent ev_transfer;
