@@ -8,6 +8,7 @@
 #include "IvyCudaFlags.h"
 #include "std_ivy/IvyCstddef.h"
 #include "std_ivy/memory/IvyAllocator.h"
+#include "std_ivy/IvyFunctional.h"
 
 
 namespace std_ivy{
@@ -77,6 +78,12 @@ namespace std_ivy{
   template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) noexcept;
   template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) noexcept;
 
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, T* ptr) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, T* ptr) noexcept;
+
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(T* ptr, IvyUnifiedPtr<T, IPT> const& a) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(T* ptr, IvyUnifiedPtr<T, IPT> const& a) noexcept;
+
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) noexcept;
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) noexcept;
 
@@ -94,6 +101,20 @@ namespace std_ivy{
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(bool is_on_device, cudaStream_t* stream, Args&&... args);
 
 }
+
+// Extension of std_fcnal::hash
+// Current CUDA C++ library omits hashes, so we defer it as well.
+/*
+namespace std_fcnal{
+  template<typename T, std_ivy::IvyPointerType IPT> struct hash<std_ivy::IvyUnifiedPtr<T, IPT>>{
+    using argument_type = std_ivy::IvyUnifiedPtr<T, IPT>;
+    using arg_ptr_t = typename std_ivy::IvyUnifiedPtr<T, IPT>::pointer;
+    using result_type = typename hash<arg_ptr_t>::result_type;
+
+    __CUDA_HOST_DEVICE__ result_type operator()(argument_type const& arg) const{ return hash<arg_ptr_t>{}(arg.get()); }
+  };
+}
+*/
 
 #endif
 

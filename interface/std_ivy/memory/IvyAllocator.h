@@ -92,7 +92,7 @@ namespace std_ivy{
   allocator_arg_t
   */
   struct allocator_arg_t { explicit /*__CUDA_HOST_DEVICE__*/ allocator_arg_t() = default; };
-#define allocator_arg std_ivy::allocator_arg_t();
+  inline constexpr allocator_arg_t allocator_arg;
 
   /*
   
