@@ -85,6 +85,10 @@ namespace std_ivy{
 
   template<typename T, typename U, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPT> const& b) noexcept;
 
+  template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> allocate_shared(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> allocate_unique(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args);
+
   template<typename T, IvyPointerType IPT, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(bool is_on_device, cudaStream_t* stream, Args&&... args);
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(bool is_on_device, cudaStream_t* stream, Args&&... args);
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(bool is_on_device, cudaStream_t* stream, Args&&... args);

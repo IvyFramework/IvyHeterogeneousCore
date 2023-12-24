@@ -208,10 +208,16 @@ namespace std_ivy{
 
   template<typename T, typename U, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPT> const& b) noexcept{ a.swap(b); }
 
-  template<typename T, IvyPointerType IPT, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(bool is_on_device, cudaStream_t* stream, Args&&... args){
+  template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args){
     cudaStream_t ref_stream = IvyCudaConfig::get_gpu_stream_from_pointer(stream);
-    typename IvyUnifiedPtr<T, IPT>::pointer ptr = std_ivy::allocator<T>::allocate(1, is_on_device, ref_stream, args...);
+    typename IvyUnifiedPtr<T, IPT>::pointer ptr = a.allocate(1, is_on_device, ref_stream, args...);
     return IvyUnifiedPtr<T, IPT>(ptr, is_on_device, stream);
+  }
+  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> allocate_shared(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args){ return allocate_unified<T, Allocator_t, IvyPointerType::shared>(a, is_on_device, stream, args...); }
+  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> allocate_unique(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args){ return allocate_unified<T, Allocator_t, IvyPointerType::unique>(a, is_on_device, stream, args...); }
+
+  template<typename T, IvyPointerType IPT, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(bool is_on_device, cudaStream_t* stream, Args&&... args){
+    return allocate_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), is_on_device, stream, args...);
   }
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(bool is_on_device, cudaStream_t* stream, Args&&... args){ return make_unified<T, IvyPointerType::shared>(is_on_device, stream, args...); }
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(bool is_on_device, cudaStream_t* stream, Args&&... args){ return make_unified<T, IvyPointerType::unique>(is_on_device, stream, args...); }
