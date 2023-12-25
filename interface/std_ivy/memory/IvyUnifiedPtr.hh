@@ -7,6 +7,7 @@
 #include "IvyCompilerFlags.h"
 #include "IvyCudaFlags.h"
 #include "std_ivy/IvyCstddef.h"
+#include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/IvyFunctional.h"
 
@@ -39,14 +40,16 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(std_cstddef::nullptr_t);
     template<typename U> explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, bool is_on_device, cudaStream_t* stream = nullptr);
-    template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPT> const& other);
+    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true> __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other);
-    template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPT>&& other);
+    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true> __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr&& other);
     __CUDA_HOST_DEVICE__ ~IvyUnifiedPtr();
 
-    template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPT> const& other);
+    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPU> const& other);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr const& other);
+    template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(U* ptr);
+    __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);
 
     __CUDA_HOST_DEVICE__ bool* use_gpu() const noexcept;
     __CUDA_HOST_DEVICE__ cudaStream_t* gpu_stream() const noexcept;
