@@ -7,6 +7,7 @@
 #include "cuda_runtime.h"
 
 #include "std_ivy/memory/IvyAllocator.h"
+#include "std_ivy/memory/IvyAddressof.h"
 #include "std_ivy/memory/IvyUnifiedPtr.h"
 
 #ifndef std_mem

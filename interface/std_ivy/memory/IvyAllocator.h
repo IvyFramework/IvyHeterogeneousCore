@@ -63,8 +63,8 @@ namespace std_ivy{
     typedef typename allocator_type::value_type value_type;
     typedef typename allocator_type::pointer pointer;
     typedef typename allocator_type::const_pointer const_pointer;
-    typedef typename allocator_type::difference_type difference_type;
     typedef typename allocator_type::size_type size_type;
+    typedef typename allocator_type::difference_type difference_type;
 
     template<typename... Args> static __CUDA_HOST_DEVICE__ pointer allocate(allocator_type const& a, size_type n, bool use_cuda_device_mem, cudaStream_t stream, Args&&... args){
       return a.allocate(n, use_cuda_device_mem, stream, args...);
