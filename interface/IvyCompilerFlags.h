@@ -53,6 +53,13 @@ Compiler types and compiler-dependent macros
 
 
 /*
+Encapsulator for a set of arguments.
+Needed to distinguish a macro argument with commas.
+*/
+#define __ENCAPSULATE__(...) __VA_ARGS__
+
+
+/*
 Common compiler flags.
 These are adapted from cuda/std/detail/libcxx/include/__config.
 They allow finer control over the available features in the compilers.

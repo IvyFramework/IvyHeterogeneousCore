@@ -41,10 +41,7 @@ namespace std_ivy{
       printf("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
-    if (IPU==IvyPointerType::unique){
-      typedef IvyUnifiedPtr<U, IPU>& uptr_t;
-      __CONST_CAST__(uptr_t, other).reset();
-    }
+    if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
   }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other){
     ptr_ = other.ptr_;
@@ -58,10 +55,7 @@ namespace std_ivy{
       printf("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
-    if (IPT==IvyPointerType::unique){
-      typedef IvyUnifiedPtr<T, IPT>& uptr_t;
-      __CONST_CAST__(uptr_t, other).reset();
-    }
+    if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
   }
   template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other) :
     is_on_device_(std_util::move(other.use_gpu())),
@@ -92,10 +86,7 @@ namespace std_ivy{
       stream_ = other.gpu_stream();
       if (ref_count_) ++(*ref_count_);
     }
-    if (IPU==IvyPointerType::unique){
-      typedef IvyUnifiedPtr<U, IPU>& uptr_t;
-      __CONST_CAST__(uptr_t, other).reset();
-    }
+    if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
     return *this;
   }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(IvyUnifiedPtr const& other){
@@ -107,10 +98,7 @@ namespace std_ivy{
       stream_ = other.stream_;
       if (ref_count_) ++(*ref_count_);
     }
-    if (IPT==IvyPointerType::unique){
-      typedef IvyUnifiedPtr<T, IPT>& uptr_t;
-      __CONST_CAST__(uptr_t, other).reset();
-    }
+    if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
     return *this;
   }
   template<typename T, IvyPointerType IPT> template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(U* ptr){ this->reset(ptr); return *this; }
@@ -180,11 +168,10 @@ namespace std_ivy{
   }
 
   template<typename T, IvyPointerType IPT> template<typename U> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::swap(IvyUnifiedPtr<U, IPT>& other) noexcept{
-    typedef typename IvyUnifiedPtr<U, IPT>::pointer uptr_t;
     bool inull = (ptr_==nullptr), onull = (other.get()==nullptr);
     pointer tmp_ptr = ptr_;
     ptr_ = __DYNAMIC_CAST__(pointer, other.get());
-    other.get() = __DYNAMIC_CAST__(uptr_t, tmp_ptr);
+    other.get() = __DYNAMIC_CAST__(__ENCAPSULATE__(typename IvyUnifiedPtr<U, IPT>::pointer), tmp_ptr);
     if ((inull != (other.ptr_==nullptr)) || (onull != (ptr_==nullptr))){
       printf("IvyUnifiedPtr::swap() failed: Incompatible types\n");
       assert(false);

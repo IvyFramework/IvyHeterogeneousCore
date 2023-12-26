@@ -17,7 +17,7 @@ namespace std_ivy{
   template<typename T> inline __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__
     T*
     addressof(T& v) __NOEXCEPT__{
-    __builtin_addressof(v);
+    return __builtin_addressof(v);
   }
 #else
   template<typename T>

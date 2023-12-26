@@ -1,5 +1,7 @@
 #include <std_ivy/IvyMemory.h>
+#include <std_ivy/IvyIterator.h>
 #include "IvyCudaStream.h"
+#include <typeinfo>
 
 
 class dummy_B{
