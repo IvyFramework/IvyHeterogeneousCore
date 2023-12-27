@@ -14,6 +14,8 @@
 #define __CUDA_DEVICE_CODE__
 #endif
 
+#define __CUDA_CHECK_SUCCESS__(CALL) ((CALL) == cudaSuccess)
+
 #define __CUDA_MANAGED__ __managed__
 #define __CUDA_CONSTANT__ __constant__
 #define __CUDA_SHARED__ __shared__

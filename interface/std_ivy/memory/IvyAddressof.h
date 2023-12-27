@@ -2,8 +2,7 @@
 #define IVYADDRESSOF_H
 
 
-#include "IvyCompilerFlags.h"
-#include "IvyCudaFlags.h"
+#include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyTypeTraits.h"
 
 

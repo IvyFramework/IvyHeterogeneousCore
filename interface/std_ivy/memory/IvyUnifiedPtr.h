@@ -4,7 +4,7 @@
 
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyCstdio.h"
-#include "IvyUnifiedPtr.hh"
+#include "std_ivy/memory/IvyUnifiedPtr.hh"
 
 
 #ifdef __USE_CUDA__
@@ -105,7 +105,7 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(std_cstddef::nullptr_t){ this->reset(nullptr); return *this; }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::init_members(bool is_on_device){
-    cudaStream_t ref_stream = IvyCudaConfig::get_gpu_stream_from_pointer(stream_);
+    cudaStream_t ref_stream = IvyCudaConfig::get_GPU_stream_from_pointer(stream_);
     std_ivy::allocator<counter_type> alloc_ctr;
     ref_count_ = alloc_ctr.allocate(1, false, ref_stream);
     *ref_count_ = 1;
@@ -117,7 +117,7 @@ namespace std_ivy{
     if (ref_count_){
       if (*ref_count_>0) --(*ref_count_);
       if (*ref_count_ == 0){
-        cudaStream_t ref_stream = IvyCudaConfig::get_gpu_stream_from_pointer(stream_);
+        cudaStream_t ref_stream = IvyCudaConfig::get_GPU_stream_from_pointer(stream_);
         std_ivy::allocator<element_type> alloc_ptr;
         alloc_ptr.deallocate(ptr_, 1, *is_on_device_, ref_stream);
         std_ivy::allocator<counter_type> alloc_ctr;
@@ -204,7 +204,7 @@ namespace std_ivy{
   template<typename T, typename U, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPT> const& b) noexcept{ a.swap(b); }
 
   template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, bool is_on_device, cudaStream_t* stream, Args&&... args){
-    cudaStream_t ref_stream = IvyCudaConfig::get_gpu_stream_from_pointer(stream);
+    cudaStream_t ref_stream = IvyCudaConfig::get_GPU_stream_from_pointer(stream);
     typename IvyUnifiedPtr<T, IPT>::pointer ptr = a.allocate(1, is_on_device, ref_stream, args...);
     return IvyUnifiedPtr<T, IPT>(ptr, is_on_device, stream);
   }

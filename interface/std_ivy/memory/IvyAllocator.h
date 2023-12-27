@@ -2,9 +2,7 @@
 #define IVYALLOCATOR_H
 
 
-#include "IvyCompilerFlags.h"
-#include "IvyCudaFlags.h"
-
+#include "config/IvyCompilerConfig.h"
 
 #ifdef __USE_CUDA__
 

@@ -4,8 +4,7 @@
 
 #ifdef __USE_CUDA__
 
-#include "IvyCompilerFlags.h"
-#include "IvyCudaFlags.h"
+#include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyCstddef.h"
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"

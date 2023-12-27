@@ -2,7 +2,7 @@
 #define IVYEXCEPTION_H
 
 
-#include "IvyCudaFlags.h"
+#include "config/IvyCudaFlags.h"
 
 
 #ifndef __USE_CUDA__

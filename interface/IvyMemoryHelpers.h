@@ -1,8 +1,7 @@
 #ifndef IVYMEMORYHELPERS_H
 #define IVYMEMORYHELPERS_H
 
-#include "IvyCompilerFlags.h"
-#include "IvyCudaConfig.h"
+#include "config/IvyConfig.h"
 #ifdef __USE_CUDA__
 #include "cuda_runtime.h"
 #endif
@@ -173,7 +172,7 @@ namespace IvyMemoryHelpers{
     );
     if (res){
 #ifdef __USE_CUDA__
-      unsigned int nreq_blocks, nreq_threads_per_block;
+      IvyBlockThread_t nreq_blocks, nreq_threads_per_block;
       if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
         U* d_source = nullptr;
         T* d_target = nullptr;
