@@ -5,7 +5,6 @@
 #ifdef __USE_CUDA__
 
 #include "cuda_runtime.h"
-
 #include "std_ivy/memory/IvyAddressof.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"

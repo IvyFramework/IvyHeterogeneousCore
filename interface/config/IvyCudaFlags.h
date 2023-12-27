@@ -20,6 +20,8 @@
 #define __CUDA_CONSTANT__ __constant__
 #define __CUDA_SHARED__ __shared__
 
+#define __RESTRICT__ __restrict__
+
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __CONST_CAST__(TYPE, PTR) const_cast<TYPE>(PTR)
 #define __REINTERPRET_CAST__(TYPE, PTR) reinterpret_cast<TYPE>(PTR)
@@ -49,6 +51,8 @@
 #define __CUDA_MANAGED__
 #define __CUDA_CONSTANT__
 #define __CUDA_SHARED__
+
+#define __RESTRICT__ restrict
 
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)

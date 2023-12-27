@@ -22,8 +22,8 @@ namespace std_ivy{
     typedef T const* const_pointer;
     typedef T& reference;
     typedef T const& const_reference;
-    typedef IvyMemoryHelpers::size_t size_type;
-    typedef IvyMemoryHelpers::ptrdiff_t difference_type;
+    typedef IvyTypes::size_t size_type;
+    typedef IvyTypes::ptrdiff_t difference_type;
 
     __CUDA_HOST_DEVICE__ allocator() noexcept{}
     __CUDA_HOST_DEVICE__ allocator(allocator const& other) noexcept{}

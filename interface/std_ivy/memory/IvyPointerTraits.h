@@ -3,8 +3,7 @@
 
 
 #include "config/IvyCompilerConfig.h"
-#include "IvyMemoryHelpers.h"
-#include "std_ivy/IvyTypeTraits.h"
+#include "IvyBasicTypes.h"
 #include "std_ivy/memory/IvyAddressof.h"
 
 
@@ -13,7 +12,7 @@
 namespace std_ivy{
 #define POINTER_TRAIT_CMDS \
 POINTER_TRAIT_CMD(element_type, T) \
-POINTER_TRAIT_CMD(difference_type, IvyMemoryHelpers::ptrdiff_t)
+POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
 #define POINTER_TRAIT_CMD(TRAIT, DEFTYPE) \
   DEFINE_HAS_TRAIT(TRAIT); \
   template <typename T, bool = has_##TRAIT##_v<T>> struct pointer_traits_##TRAIT{ typedef DEFTYPE type; }; \
@@ -59,7 +58,7 @@ POINTER_TRAIT_CMD(difference_type, IvyMemoryHelpers::ptrdiff_t)
   protected:
     typedef T* pointer;
     typedef T element_type;
-    typedef IvyMemoryHelpers::ptrdiff_t difference_type;
+    typedef IvyTypes::ptrdiff_t difference_type;
     template<typename U> using rebind = U*;
   private:
     struct nat{};

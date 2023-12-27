@@ -152,4 +152,14 @@ __OBJC_POINTER_CMD__(__autoreleasing)
 #endif
 
 
+/*
+CUDA does not support long double, so we need to implement workarounds.
+We also always forbid long int.
+*/
+#ifdef __USE_CUDA__
+#define __LONG_DOUBLE_FORBIDDEN__
+#endif
+#define __LONG_INT_FORBIDDEN__
+
+
 #endif
