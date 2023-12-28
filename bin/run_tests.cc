@@ -1,7 +1,7 @@
-#include <std_ivy/IvyMemory.h>
-#include <std_ivy/IvyIterator.h>
-#include "IvyCudaStream.h"
-#include <typeinfo>
+#include "std_ivy/IvyTypeInfo.h"
+#include "std_ivy/IvyMemory.h"
+#include "std_ivy/IvyIterator.h"
+#include "stream/IvyStream.h"
 
 
 class dummy_B{
@@ -45,10 +45,10 @@ int main(){
   constexpr unsigned char nStreams = 3;
   constexpr unsigned int nvars = 1000;
   auto obj_allocator = std_mem::allocator<double>();
-  IvyCudaStream streams[nStreams]{
-    IvyCudaStream(cudaStreamLegacy, false),
-    IvyCudaStream(),
-    IvyCudaStream()
+  IvyGPUStream streams[nStreams]{
+    GlobalGPUStream,
+    IvyGPUStream(),
+    IvyGPUStream()
   };
 
   for (unsigned char i = 0; i < nStreams; i++){
@@ -69,10 +69,10 @@ int main(){
     ptr_unique_copy.reset();
     printf("ptr_unique_copy no. of copies after reset: %i\n", ptr_unique_copy.use_count());
 
-    IvyCudaEvent ev_allocate;
-    IvyCudaEvent ev_set;
-    IvyCudaEvent ev_transfer;
-    IvyCudaEvent ev_deallocate;
+    IvyGPUEvent ev_allocate;
+    IvyGPUEvent ev_set;
+    IvyGPUEvent ev_transfer;
+    IvyGPUEvent ev_deallocate;
 
     auto ptr_h = obj_allocator.allocate(nvars, false, streams[i]);
     printf("ptr_h = %p\n", ptr_h);
@@ -92,7 +92,7 @@ int main(){
     kernel_set_doubles<<<1, nvars, 0, streams[i]>>>(ptr_d, nvars, i);
     ev_set.record(streams[i]);
     streams[i].wait(ev_set);
-    obj_allocator.transfer(ptr_h, ptr_d, nvars, true, streams[i]);
+    obj_allocator.transfer(ptr_h, ptr_d, nvars, IvyMemoryHelpers::TransferDirection::DeviceToHost, streams[i]);
     ev_transfer.record(streams[i]);
     streams[i].wait(ev_transfer);
     printf("ptr_h new values: %f, %f, %f\n", ptr_h[0], ptr_h[1], ptr_h[2]);

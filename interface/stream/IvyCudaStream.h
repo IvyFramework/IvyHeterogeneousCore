@@ -2,17 +2,21 @@
 #define IVYCUDASTREAM_H
 
 
-#include "IvyCudaStream.hh"
-#include "IvyCudaEvent.h"
+#include "stream/IvyCudaStream.hh"
+#include "stream/IvyCudaEvent.h"
 
 
 #ifdef __USE_CUDA__
 
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
 #include "IvyException.h"
 
 
-__CUDA_HOST__ IvyCudaStream::IvyCudaStream(unsigned int flags, int priority) : is_owned_(true), flags_(flags), priority_(priority){
+__CUDA_HOST__ IvyCudaStream::IvyCudaStream(StreamFlags flags, int priority) :
+  is_owned_(true),
+  flags_(get_stream_flags(flags)),
+  priority_(priority)
+{
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamCreateWithPriority(&stream_, flags_, priority_));
 }
 __CUDA_HOST__ IvyCudaStream::IvyCudaStream(cudaStream_t st, bool do_own) : is_owned_(do_own), stream_(st){
@@ -38,12 +42,25 @@ __CUDA_HOST__ IvyCudaStream::operator cudaStream_t& (){ return stream_; }
 __CUDA_HOST__ void IvyCudaStream::synchronize(){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamSynchronize(stream_));
 }
-__CUDA_HOST__ void IvyCudaStream::wait(IvyCudaEvent& event, unsigned int wait_flags){
-  __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamWaitEvent(stream_, event.event(), wait_flags));
+__CUDA_HOST__ void IvyCudaStream::wait(IvyCudaEvent& event, IvyCudaEvent::WaitFlags wait_flags){
+  __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamWaitEvent(stream_, event.event(), IvyCudaEvent::get_wait_flags(wait_flags)));
 }
 
 __CUDA_HOST__ void IvyCudaStream::add_callback(fcn_callback_t fcn, void* user_data, unsigned int cb_flags){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamAddCallback(stream_, fcn, user_data, cb_flags));
+}
+
+__CUDA_HOST_DEVICE__ unsigned int IvyCudaStream::get_stream_flags(StreamFlags const& flags){
+  switch (flags){
+  case StreamFlags::Default:
+    return cudaStreamDefault;
+  case StreamFlags::NonBlocking:
+    return cudaStreamNonBlocking;
+  default:
+    printf("IvyCudaStream::get_stream_flags: Unknown flag option...");
+    assert(0);
+  }
+  return cudaStreamDefault;
 }
 
 

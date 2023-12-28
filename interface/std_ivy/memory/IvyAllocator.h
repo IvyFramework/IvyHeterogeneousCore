@@ -41,8 +41,8 @@ namespace std_ivy{
       IvyMemoryHelpers::free_memory(p, n, use_cuda_device_mem, stream);
     }
 
-    static __CUDA_HOST__ bool transfer(pointer& tgt, pointer const& src, size_t n, bool device_to_host, cudaStream_t stream){
-      return IvyMemoryHelpers::transfer_memory(tgt, src, n, device_to_host, stream);
+    static __CUDA_HOST__ bool transfer(pointer& tgt, pointer const& src, size_t n, IvyMemoryHelpers::TransferDirection direction, cudaStream_t stream){
+      return IvyMemoryHelpers::transfer_memory(tgt, src, n, direction, stream);
     }
 
     static __CUDA_HOST_DEVICE__ size_type max_size() noexcept{

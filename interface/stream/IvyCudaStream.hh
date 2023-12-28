@@ -4,9 +4,9 @@
 
 #ifdef __USE_CUDA__
 
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
 #include "IvyException.h"
-#include "IvyCudaEvent.hh"
+#include "stream/IvyCudaEvent.hh"
 
 
 /*
@@ -19,7 +19,7 @@
     If it is not owned, the stream will persist outside of the class.
   - The flags_ member is used to specify the behavior of the stream as in CUDA definitions.
     It is set to cudaStreamDefault by default, which is the same as the default CUDA choice.
-    The available choices in CUDA are cudaStreamDefault and cudaStreamNonblocking.
+    The available choices in CUDA are cudaStreamDefault and cudaStreamNonBlocking.
   - The priority_ member is used to specify the priority of the stream. 0 is the default priority, which is the default parameter.
   - The stream_ member is the actual cudaStream_t object wrapped.
 
@@ -35,13 +35,20 @@
     The callback is a function pointer of type cudaStreamCallback_t.
     The user_data argument is a pointer to the data that will be passed to the callback.
     The cb_flags argument should be kept at 0 for now (per note on CUDA documentation).
-    The callback function fcm\n will be called when the stream is complete.
+    The callback function fcn will be called when the stream is complete.
 */
 
 
 class IvyCudaStream{
 public:
   typedef cudaStreamCallback_t fcn_callback_t;
+
+  enum class StreamFlags{
+    Default,
+    NonBlocking
+  };
+
+  static __CUDA_HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags);
 
 protected:
   bool is_owned_;
@@ -50,7 +57,7 @@ protected:
   cudaStream_t stream_;
 
 public:
-  __CUDA_HOST__ IvyCudaStream(unsigned int flags = cudaStreamDefault, int priority = 0);
+  __CUDA_HOST__ IvyCudaStream(StreamFlags flags = StreamFlags::Default, int priority = 0);
   __CUDA_HOST__ IvyCudaStream(cudaStream_t st, bool do_own);
   __CUDA_HOST__ IvyCudaStream(IvyCudaStream const&) = delete;
   __CUDA_HOST__ IvyCudaStream(IvyCudaStream const&&) = delete;
@@ -67,7 +74,7 @@ public:
   __CUDA_HOST__ operator cudaStream_t& ();
 
   // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
-  __CUDA_HOST__ void wait(IvyCudaEvent& event, unsigned int wait_flags = cudaEventWaitDefault);
+  __CUDA_HOST__ void wait(IvyCudaEvent& event, IvyCudaEvent::WaitFlags wait_flags = IvyCudaEvent::WaitFlags::Default);
 
   __CUDA_HOST__ void synchronize();
 
