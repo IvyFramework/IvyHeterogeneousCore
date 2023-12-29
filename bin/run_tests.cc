@@ -43,13 +43,15 @@ __CUDA_GLOBAL__ void kernel_print_dummy_B_as_D(dummy_B* ptr){
 
 int main(){
   constexpr unsigned char nStreams = 3;
-  constexpr unsigned int nvars = 1000;
+  constexpr unsigned int nvars = 10000000;
+  IvyCudaConfig::set_max_num_GPU_blocks(1024);
+  IvyCudaConfig::set_max_num_GPU_threads_per_block(1024*16);
   auto obj_allocator = std_mem::allocator<double>();
   auto obj_allocator_i = std_mem::allocator<int>();
   IvyGPUStream streams[nStreams]{
     GlobalGPUStream,
-    IvyGPUStream(),
-    IvyGPUStream()
+    IvyGPUStream(IvyGPUStream::StreamFlags::NonBlocking),
+    IvyGPUStream(IvyGPUStream::StreamFlags::NonBlocking)
   };
 
   for (unsigned char i = 0; i < nStreams; i++){
@@ -93,12 +95,17 @@ int main(){
     ptr_h = obj_allocator.allocate(nvars, false, streams[i]);
     printf("ptr_h new = %p\n", ptr_h);
 
-    IvyGPUEvent ev_set(IvyGPUEvent::EventFlags::Default); ev_set.record(streams[i]);
-    kernel_set_doubles<<<1, nvars, 0, streams[i]>>>(ptr_d, nvars, i);
-    IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(streams[i]);
-    ev_set_end.synchronize();
-    auto time_set = ev_set_end.elapsed_time(ev_set);
-    printf("Set time = %f ms\n", time_set);
+    {
+      IvyBlockThread_t nreq_blocks, nreq_threads_per_block;
+      if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nvars)){
+        IvyGPUEvent ev_set(IvyGPUEvent::EventFlags::Default); ev_set.record(streams[i]);
+        kernel_set_doubles<<<nreq_blocks, nreq_threads_per_block, 0, streams[i]>>>(ptr_d, nvars, i);
+        IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(streams[i]);
+        ev_set_end.synchronize();
+        auto time_set = ev_set_end.elapsed_time(ev_set);
+        printf("Set time = %f ms\n", time_set);
+      }
+    }
 
     IvyGPUEvent ev_transfer(IvyGPUEvent::EventFlags::Default); ev_transfer.record(streams[i]);
     obj_allocator.transfer(ptr_h, ptr_d, nvars, IvyMemoryHelpers::TransferDirection::DeviceToHost, streams[i]);

@@ -41,7 +41,7 @@
 
 class IvyCudaStream{
 public:
-  typedef cudaStreamCallback_t fcn_callback_t;
+  typedef cudaHostFn_t fcn_callback_t;
 
   enum class StreamFlags{
     Default,
@@ -78,7 +78,7 @@ public:
 
   __CUDA_HOST__ void synchronize();
 
-  __CUDA_HOST__ void add_callback(fcn_callback_t fcn, void* user_data, unsigned int cb_flags = 0);
+  __CUDA_HOST__ void add_callback(fcn_callback_t fcn, void* user_data);
 
 };
 

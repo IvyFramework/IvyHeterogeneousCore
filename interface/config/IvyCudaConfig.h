@@ -9,9 +9,11 @@
 
 #include "cuda_runtime.h"
 #include "std_ivy/algorithm/IvyMinMax.h"
+#include "std_ivy/IvyLimits.h"
 
 
 namespace IvyCudaConfig{
+  using IvyDeviceNum_t = int;
   using IvyBlockThread_t = unsigned int;
   using IvyBlockThread_signed_t = int;
 
@@ -28,22 +30,43 @@ namespace IvyCudaConfig{
     nreq_blocks = 0;
     nreq_threads_per_block = 0;
 
+    IvyDeviceNum_t device_num = 0;
+    if (!__CUDA_CHECK_SUCCESS__(cudaGetDevice(&device_num))) return false;
+
     IvyBlockThread_signed_t max_threads_per_block_x_=0, max_threads_per_block_y_=0, max_threads_per_block_z_=0;
     IvyBlockThread_signed_t max_blocks_x_=0, max_blocks_y_=0, max_blocks_z_=0;
     if (
-      __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_x_, cudaDevAttrMaxBlockDimX, 0))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_y_, cudaDevAttrMaxBlockDimY, 0))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_z_, cudaDevAttrMaxBlockDimZ, 0))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_x_, cudaDevAttrMaxGridDimX, 0))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_y_, cudaDevAttrMaxGridDimY, 0))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_z_, cudaDevAttrMaxGridDimZ, 0))
+      __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_x_, cudaDevAttrMaxBlockDimX, device_num))
+      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_y_, cudaDevAttrMaxBlockDimY, device_num))
+      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_z_, cudaDevAttrMaxBlockDimZ, device_num))
+      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_x_, cudaDevAttrMaxGridDimX, device_num))
+      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_y_, cudaDevAttrMaxGridDimY, device_num))
+      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_z_, cudaDevAttrMaxGridDimZ, device_num))
+      && max_threads_per_block_x_>0 && max_threads_per_block_y_>0 && max_threads_per_block_z_>0
+      && max_blocks_x_>0 && max_blocks_y_>0 && max_blocks_z_>0
       ){
-      IvyBlockThread_signed_t max_threads_per_block_ = max_threads_per_block_x_ * max_threads_per_block_y_ * max_threads_per_block_z_;
-      IvyBlockThread_signed_t max_blocks_ = max_blocks_x_ * max_blocks_y_ * max_blocks_z_;
-      if (max_blocks_>-1) nreq_blocks = std_ivy::min(get_max_num_GPU_blocks(), static_cast<IvyBlockThread_t>(max_blocks_));
-      if (max_threads_per_block_>-1) nreq_threads_per_block = std_ivy::min(get_max_num_GPU_threads_per_block(), static_cast<IvyBlockThread_t>(max_threads_per_block_));
+      unsigned long long int max_threads_per_block_ = max_threads_per_block_x_ * max_threads_per_block_y_ * max_threads_per_block_z_;
+      unsigned long long int max_blocks_ = max_blocks_x_ * max_blocks_y_ * max_blocks_z_;
+      nreq_blocks = std_ivy::min(
+        get_max_num_GPU_blocks(),
+        static_cast<IvyBlockThread_t>(
+          std_ivy::min(
+            static_cast<unsigned long long int>(std_limits::numeric_limits<IvyBlockThread_t>::max()),
+            max_blocks_
+          )
+        )
+      );
+      nreq_threads_per_block = std_ivy::min(
+        get_max_num_GPU_threads_per_block(),
+        static_cast<IvyBlockThread_t>(
+          std_ivy::min(
+            static_cast<unsigned long long int>(std_limits::numeric_limits<IvyBlockThread_t>::max()),
+            max_threads_per_block_
+          )
+        )
+      );
     }
-    if (nreq_blocks<=1 || nreq_threads_per_block<=1){
+    if (nreq_blocks<=1 && nreq_threads_per_block<=1){
       nreq_blocks = nreq_threads_per_block = 0;
       return false;
     }
