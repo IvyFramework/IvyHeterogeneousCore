@@ -78,6 +78,7 @@ public:
 
   // rcd_flags could be cudaEventRecordDefault or cudaEventRecordExternal.
   __CUDA_HOST__ void record(IvyCudaStream& stream, RecordFlags rcd_flags = RecordFlags::Default);
+  __CUDA_HOST__ void record(cudaStream_t& stream, RecordFlags rcd_flags = RecordFlags::Default);
 
   // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
   __CUDA_HOST__ void wait(IvyCudaStream& stream, WaitFlags wait_flags = WaitFlags::Default);

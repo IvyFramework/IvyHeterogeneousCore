@@ -32,6 +32,9 @@ __CUDA_HOST__ IvyCudaEvent::operator cudaEvent_t& (){ return event_; }
 __CUDA_HOST__ void IvyCudaEvent::record(IvyCudaStream& stream, RecordFlags rcd_flags){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventRecordWithFlags(event_, stream.stream(), get_record_flags(rcd_flags)));
 }
+__CUDA_HOST__ void IvyCudaEvent::record(cudaStream_t& stream, RecordFlags rcd_flags){
+  __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventRecordWithFlags(event_, stream, get_record_flags(rcd_flags)));
+}
 __CUDA_HOST__ void IvyCudaEvent::synchronize(){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventSynchronize(event_));
 }

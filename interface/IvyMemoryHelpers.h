@@ -1,6 +1,20 @@
 #ifndef IVYMEMORYHELPERS_H
 #define IVYMEMORYHELPERS_H
 
+
+/*
+IvyMemoryHelpers: A collection of functions for allocating, freeing, and copying memory.
+The functions are overloaded for both host and device code when CUDA is enabled.
+If CUDA is disabled, allocation and freeing are done with new and delete.
+Otherwise, allocation and freeing conventions are as follows:
+- Host code, host memory: new/delete
+- Device code, device memory: new/delete
+- Host code, device memory: cudaMalloc/cudaFree
+If the stream argument is anything other than cudaStreamLegacy, allocation and freeing are asynchronous.
+- Device code, host memory: Disallowed
+*/
+
+
 #ifdef __USE_CUDA__
 #include "cuda_runtime.h"
 #endif
@@ -10,6 +24,7 @@
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyCstdio.h"
+#include "stream/IvyStream.h"
 
 
 namespace IvyMemoryHelpers{
@@ -72,6 +87,15 @@ namespace IvyMemoryHelpers{
   __CUDA_HOST_DEVICE__ cudaMemcpyKind get_cuda_transfer_direction(TransferDirection direction);
 
   /*
+  copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
+  - target: Pointer to the target data.
+  - source: Pointer to the source data.
+  - n_tgt: Number of elements in the target array.
+  - n_src: Number of elements in the source array with the constraint (n_src==n_tgt || n_src==1).
+  */
+  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src);
+
+  /*
   transfer_memory: Runs the transfer operation between two pointers of type T.
   - tgt: Pointer to the target data.
   - src: Pointer to the source data.
@@ -85,15 +109,6 @@ namespace IvyMemoryHelpers{
     TransferDirection direction,
     cudaStream_t stream
   );
-
-  /*
-  copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
-  - target: Pointer to the target data.
-  - source: Pointer to the source data.
-  - n_tgt: Number of elements in the target array.
-  - n_src: Number of elements in the source array with the constraint (n_src==n_tgt || n_src==1).
-  */
-  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src);
 #endif
 
   /*
@@ -132,6 +147,7 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
 #ifndef __CUDA_DEVICE_CODE__
     if (use_cuda_device_mem){
+      bool res = true;
       if (stream==cudaStreamLegacy){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMalloc((void**) &data, n*sizeof(T)));
       }
@@ -140,11 +156,11 @@ namespace IvyMemoryHelpers{
       }
       if (sizeof...(Args)>0){
         T* temp = nullptr;
-        allocate_memory(temp, n, false, stream, args...);
-        transfer_memory(data, temp, n, TransferDirection::HostToDevice, stream);
-        free_memory(temp, n, false, stream);
+        res &= allocate_memory(temp, n, false, stream, args...);
+        res &= transfer_memory(data, temp, n, TransferDirection::HostToDevice, stream);
+        res &= free_memory(temp, n, false, stream);
       }
-      return true;
+      return res;
     }
     else
 #endif
@@ -189,6 +205,7 @@ namespace IvyMemoryHelpers{
 
 #ifdef __USE_CUDA__
   __CUDA_HOST_DEVICE__ inline cudaMemcpyKind get_cuda_transfer_direction(TransferDirection direction){
+#ifndef __CUDA_DEVICE_CODE__
     switch (direction){
       case TransferDirection::HostToDevice:
         return cudaMemcpyHostToDevice;
@@ -202,7 +219,24 @@ namespace IvyMemoryHelpers{
         printf("IvyMemoryHelpers::get_cuda_transfer_direction: Unknown transfer direction.\n");
         assert(0);
     }
+#else
+    return cudaMemcpyDeviceToDevice;
+#endif
   }
+
+  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src){
+    IvyBlockThread_t i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (!(n_src==n_tgt || n_src==1)){
+#if COMPILER == COMPILER_MSVC
+      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+#else
+      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+#endif
+      assert(0);
+    }
+    if (i<n_tgt) target[i] = source[(n_src==1 ? 0 : i)];
+  }
+
   template<typename T> __CUDA_HOST_DEVICE__ bool transfer_memory(
     T*& tgt, T* const& src, size_t n,
     TransferDirection direction,
@@ -221,24 +255,11 @@ namespace IvyMemoryHelpers{
     }
     return true;
   }
-
-  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src){
-    IvyBlockThread_t i = threadIdx.x + blockIdx.x * blockDim.x;
-    if (!(n_src==n_tgt || n_src==1)){
-#if COMPILER == COMPILER_MSVC
-      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_src=%Iu, n_tgt=%Iu\n", n_src, n_tgt);
-#else
-      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_src=%zu, n_tgt=%zu\n", n_src, n_tgt);
-#endif
-      assert(0);
-    }
-    if (i<n_tgt) target[i] = source[(n_src==1 ? 0 : i)];
-  }
 #endif
 
   template<typename T, typename U> __CUDA_HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
-    size_t n_tgt_init, size_t n_src
+    size_t n_tgt_init, size_t n_tgt, size_t n_src
 #ifdef __USE_CUDA__
     , TransferDirection direction
     , cudaStream_t stream
@@ -254,8 +275,16 @@ namespace IvyMemoryHelpers{
     constexpr bool src_on_device = true;
 #endif
 #endif
-    if (n_src==0 || !source) return false;
-    if (n_tgt_init!=n_src){
+    if (n_tgt==0 || n_src==0 || !source) return false;
+    if (!(n_src==n_tgt || n_src==1)){
+#if COMPILER == COMPILER_MSVC
+      printf("IvyMemoryHelpers::copy_data: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+#else
+      printf("IvyMemoryHelpers::copy_data: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+#endif
+      assert(0);
+    }
+    if (n_tgt_init!=n_tgt){
       res &= free_memory(
         target, n_tgt_init
 #ifdef __USE_CUDA__
@@ -263,7 +292,7 @@ namespace IvyMemoryHelpers{
 #endif
       );
       res &= allocate_memory(
-        target, n_src
+        target, n_tgt
 #ifdef __USE_CUDA__
         , tgt_on_device, stream
 #endif
@@ -273,22 +302,68 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
       IvyBlockThread_t nreq_blocks, nreq_threads_per_block;
       if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
+#ifndef __CUDA_DEVICE_CODE__
+        IvyGPUEvent ev_begin, ev_src_altr, ev_tgt_al, ev_copy;
+        ev_begin.record(stream);
+        IvyGPUStream sr_src_altr(IvyGPUStream::StreamFlags::NonBlocking);
+        IvyGPUStream sr_tgt_al(IvyGPUStream::StreamFlags::NonBlocking);
+        IvyGPUStream sr_tgt_free(IvyGPUStream::StreamFlags::NonBlocking);
+        IvyGPUStream sr_src_free(IvyGPUStream::StreamFlags::NonBlocking);
+#endif
         U* d_source = (src_on_device ? source : nullptr);
         if (!src_on_device){
-          res &= allocate_memory(d_source, n_src, true, stream);
-          res &= transfer_memory(d_source, source, n_src, TransferDirection::HostToDevice, stream);
+#ifndef __CUDA_DEVICE_CODE__
+          cudaStream_t* stream_ptr = &(sr_src_altr.stream());
+#else
+          cudaStream_t* stream_ptr = &stream;
+#endif
+          res &= allocate_memory(d_source, n_src, true, *stream_ptr);
+#ifndef __CUDA_DEVICE_CODE__
+          sr_src_altr.wait(ev_begin);
+#endif
+          res &= transfer_memory(d_source, source, n_src, TransferDirection::HostToDevice, *stream_ptr);
+#ifndef __CUDA_DEVICE_CODE__
+          ev_src_altr.record(sr_src_altr);
+          __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamWaitEvent(stream, ev_src_altr.event(), cudaEventWaitDefault));
+#endif
         }
         if (!tgt_on_device){
+#ifndef __CUDA_DEVICE_CODE__
+          cudaStream_t* stream_tgt_al_ptr = &(sr_tgt_al.stream());
+          cudaStream_t* stream_tgt_free_ptr = &(sr_tgt_free.stream());
+#else
+          cudaStream_t* stream_tgt_al_ptr = &stream;
+          cudaStream_t* stream_tgt_free_ptr = &stream;
+#endif
           T* d_target = nullptr;
-          res &= allocate_memory(d_target, n_src, true, stream);
-          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(d_target, d_source, n_src, n_src);
-          res &= transfer_memory(target, d_target, n_src, TransferDirection::DeviceToHost, stream);
-          free_memory(d_target, n_src, true, stream);
+          res &= allocate_memory(d_target, n_tgt, true, *stream_tgt_al_ptr);
+#ifndef __CUDA_DEVICE_CODE__
+          ev_tgt_al.record(sr_tgt_al);
+          __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamWaitEvent(stream, ev_tgt_al.event(), cudaEventWaitDefault));
+#endif
+          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(d_target, d_source, n_tgt, n_src);
+          res &= transfer_memory(target, d_target, n_tgt, TransferDirection::DeviceToHost, stream);
+#ifndef __CUDA_DEVICE_CODE__
+          ev_copy.record(stream);
+          sr_tgt_free.wait(ev_copy);
+#endif
+          free_memory(d_target, n_tgt, true, *stream_tgt_free_ptr);
         }
         else{
-          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(target, d_source, n_src, n_src);
+          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(target, d_source, n_tgt, n_src);
+#ifndef __CUDA_DEVICE_CODE__
+          ev_copy.record(stream);
+#endif
         }
-        if (!src_on_device) free_memory(d_source, n_src, true, stream);
+        if (!src_on_device){
+#ifndef __CUDA_DEVICE_CODE__
+          cudaStream_t* stream_src_free_ptr = &(sr_src_free.stream());
+          sr_src_free.wait(ev_copy);
+#else
+          cudaStream_t* stream_src_free_ptr = &stream;
+#endif
+          free_memory(d_source, n_src, true, *stream_src_free_ptr);
+        }
       }
       else{
         if (tgt_on_device!=src_on_device){
@@ -298,7 +373,7 @@ namespace IvyMemoryHelpers{
 #else
       {
 #endif
-        for (size_t i=0; i<n_src; i++) target[i] = source[i];
+        for (size_t i=0; i<n_tgt; i++) target[i] = source[(n_src==1 ? 0 : i)];
       }
     }
     return res;
