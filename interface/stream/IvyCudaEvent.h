@@ -21,13 +21,13 @@ __CUDA_HOST__ IvyCudaEvent::~IvyCudaEvent(){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventDestroy(event_));
 }
 
-__CUDA_HOST__ unsigned int const& IvyCudaEvent::flags() const{ return flags_; }
-__CUDA_HOST__ cudaEvent_t const& IvyCudaEvent::event() const{ return event_; }
-__CUDA_HOST__ IvyCudaEvent::operator cudaEvent_t const& () const{ return event_; }
+__CUDA_HOST_DEVICE__ unsigned int const& IvyCudaEvent::flags() const{ return flags_; }
+__CUDA_HOST_DEVICE__ cudaEvent_t const& IvyCudaEvent::event() const{ return event_; }
+__CUDA_HOST_DEVICE__ IvyCudaEvent::operator cudaEvent_t const& () const{ return event_; }
 
-__CUDA_HOST__ unsigned int& IvyCudaEvent::flags(){ return flags_; }
-__CUDA_HOST__ cudaEvent_t& IvyCudaEvent::event(){ return event_; }
-__CUDA_HOST__ IvyCudaEvent::operator cudaEvent_t& (){ return event_; }
+__CUDA_HOST_DEVICE__ unsigned int& IvyCudaEvent::flags(){ return flags_; }
+__CUDA_HOST_DEVICE__ cudaEvent_t& IvyCudaEvent::event(){ return event_; }
+__CUDA_HOST_DEVICE__ IvyCudaEvent::operator cudaEvent_t& (){ return event_; }
 
 __CUDA_HOST__ void IvyCudaEvent::record(IvyCudaStream& stream, RecordFlags rcd_flags){
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventRecordWithFlags(event_, stream.stream(), get_record_flags(rcd_flags)));
@@ -97,7 +97,12 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& 
   return cudaEventWaitDefault;
 }
 
+__CUDA_HOST_DEVICE__ void IvyCudaEvent::swap(IvyCudaEvent& other){
+  std_util::swap(flags_, other.flags_);
+  std_util::swap(event_, other.event_);
+}
 
 #endif
+
 
 #endif

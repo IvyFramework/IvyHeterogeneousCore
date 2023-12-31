@@ -14,6 +14,8 @@
 #define __CUDA_DEVICE_CODE__
 #endif
 
+#define GlobalCudaStreamRaw cudaStreamLegacy
+
 #define __CUDA_CHECK_SUCCESS__(CALL) ((CALL) == cudaSuccess)
 
 #define __CUDA_MANAGED__ __managed__
@@ -21,6 +23,9 @@
 #define __CUDA_SHARED__ __shared__
 
 #define __RESTRICT__ __restrict__
+#define __INLINE_FCN_FORCE__ __forceinline__
+#define __INLINE_FCN_RELAXED__ inline
+#define __INLINE_VAR__ inline
 
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __CONST_CAST__(TYPE, PTR) const_cast<TYPE>(PTR)
@@ -48,11 +53,16 @@
 #define __CUDA_HOST_DEVICE__ __CUDA_HOST__ __CUDA_DEVICE_
 #define __CUDA_DEVICE_HOST__ __CUDA_DEVICE_ __CUDA_HOST__
 
+#define GlobalCudaStreamRaw
+
 #define __CUDA_MANAGED__
 #define __CUDA_CONSTANT__
 #define __CUDA_SHARED__
 
 #define __RESTRICT__ restrict
+#define __INLINE_FCN_FORCE__ inline
+#define __INLINE_FCN_RELAXED__ inline
+#define __INLINE_VAR__ inline
 
 #define __STATIC_CAST__(TYPE, PTR) static_cast<TYPE>(PTR)
 #define __DYNAMIC_CAST__(TYPE, PTR) dynamic_cast<TYPE>(PTR)

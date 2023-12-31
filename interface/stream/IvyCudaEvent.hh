@@ -6,6 +6,7 @@
 
 #include "cuda_runtime.h"
 #include "IvyException.h"
+#include "std_ivy/IvyUtility.h"
 
 
 /*
@@ -64,17 +65,17 @@ protected:
 
 public:
   __CUDA_HOST__ IvyCudaEvent(EventFlags flags = EventFlags::DisableTiming);
-  __CUDA_HOST__ IvyCudaEvent(IvyCudaEvent const&) = delete;
-  __CUDA_HOST__ IvyCudaEvent(IvyCudaEvent const&&) = delete;
+  __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&) = delete;
+  __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&&) = delete;
   __CUDA_HOST__ ~IvyCudaEvent();
 
-  __CUDA_HOST__ unsigned int const& flags() const;
-  __CUDA_HOST__ cudaEvent_t const& event() const;
-  __CUDA_HOST__ operator cudaEvent_t const& () const;
+  __CUDA_HOST_DEVICE__ unsigned int const& flags() const;
+  __CUDA_HOST_DEVICE__ cudaEvent_t const& event() const;
+  __CUDA_HOST_DEVICE__ operator cudaEvent_t const& () const;
 
-  __CUDA_HOST__ unsigned int& flags();
-  __CUDA_HOST__ cudaEvent_t& event();
-  __CUDA_HOST__ operator cudaEvent_t& ();
+  __CUDA_HOST_DEVICE__ unsigned int& flags();
+  __CUDA_HOST_DEVICE__ cudaEvent_t& event();
+  __CUDA_HOST_DEVICE__ operator cudaEvent_t& ();
 
   // rcd_flags could be cudaEventRecordDefault or cudaEventRecordExternal.
   __CUDA_HOST__ void record(IvyCudaStream& stream, RecordFlags rcd_flags = RecordFlags::Default);
@@ -87,6 +88,8 @@ public:
 
   __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start) const;
   static __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end);
+
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& other);
 
 };
 

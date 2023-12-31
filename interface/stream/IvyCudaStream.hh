@@ -58,20 +58,24 @@ protected:
 
 public:
   __CUDA_HOST__ IvyCudaStream(StreamFlags flags = StreamFlags::Default, int priority = 0);
-  __CUDA_HOST__ IvyCudaStream(cudaStream_t st, bool do_own);
-  __CUDA_HOST__ IvyCudaStream(IvyCudaStream const&) = delete;
-  __CUDA_HOST__ IvyCudaStream(IvyCudaStream const&&) = delete;
+  __CUDA_HOST_DEVICE__ IvyCudaStream(cudaStream_t st, bool do_own);
+  __CUDA_HOST_DEVICE__ IvyCudaStream(IvyCudaStream const&) = delete;
+  __CUDA_HOST_DEVICE__ IvyCudaStream(IvyCudaStream const&&) = delete;
+#ifdef __CUDA_DEVICE_CODE__
+  ~IvyCudaStream() = default;
+#else
   __CUDA_HOST__ ~IvyCudaStream();
+#endif
 
-  __CUDA_HOST__ unsigned int const& flags() const;
-  __CUDA_HOST__ int const& priority() const;
-  __CUDA_HOST__ cudaStream_t const& stream() const;
-  __CUDA_HOST__ operator cudaStream_t const& () const;
+  __CUDA_HOST_DEVICE__ unsigned int const& flags() const;
+  __CUDA_HOST_DEVICE__ int const& priority() const;
+  __CUDA_HOST_DEVICE__ cudaStream_t const& stream() const;
+  __CUDA_HOST_DEVICE__ operator cudaStream_t const& () const;
 
-  __CUDA_HOST__ unsigned int& flags();
-  __CUDA_HOST__ int& priority();
-  __CUDA_HOST__ cudaStream_t& stream();
-  __CUDA_HOST__ operator cudaStream_t& ();
+  __CUDA_HOST_DEVICE__ unsigned int& flags();
+  __CUDA_HOST_DEVICE__ int& priority();
+  __CUDA_HOST_DEVICE__ cudaStream_t& stream();
+  __CUDA_HOST_DEVICE__ operator cudaStream_t& ();
 
   // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
   __CUDA_HOST__ void wait(IvyCudaEvent& event, IvyCudaEvent::WaitFlags wait_flags = IvyCudaEvent::WaitFlags::Default);
@@ -80,9 +84,11 @@ public:
 
   __CUDA_HOST__ void add_callback(fcn_callback_t fcn, void* user_data);
 
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& other);
+
 };
 
-
 #endif
+
 
 #endif
