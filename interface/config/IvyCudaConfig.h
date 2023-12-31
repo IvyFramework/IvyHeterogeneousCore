@@ -92,7 +92,7 @@ namespace IvyCudaConfig{
       nreq_blocks.x = nreq_blocks.y = nreq_blocks.z = 0;
       nreq_threads_per_block.x = nreq_threads_per_block.y = nreq_threads_per_block.z = 0;
     }
-    printf("check_GPU_usable: n=%llu, nreq_blocks=(%u,%u,%u), nreq_threads_per_block=(%u,%u,%u)\n", n, nreq_blocks.x, nreq_blocks.y, nreq_blocks.z, nreq_threads_per_block.x, nreq_threads_per_block.y, nreq_threads_per_block.z);
+    //__PRINT_INFO__("check_GPU_usable: n=%llu, nreq_blocks=(%u,%u,%u), nreq_threads_per_block=(%u,%u,%u)\n", n, nreq_blocks.x, nreq_blocks.y, nreq_blocks.z, nreq_threads_per_block.x, nreq_threads_per_block.y, nreq_threads_per_block.z);
     return res;
   }
 

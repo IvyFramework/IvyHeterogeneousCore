@@ -6,59 +6,7 @@
 
 
 #ifndef __USE_CUDA__
-#ifndef INCLUDE_STRING
-#define INCLUDE_STRING
-#endif
-#ifndef INCLUDE_STRING_VIEW
-#define INCLUDE_STRING_VIEW
-#endif
-#ifndef INCLUDE_SOURCE_LOCATION
-#define INCLUDE_SOURCE_LOCATION
-#endif
 
-#include "IvyStdExtensions.h"
-
-
-class IvyException{
-public:
-  __CUDA_HOST_DEVICE__ IvyException(
-    std_strview::string_view msg, int const& exit_code=1
-#ifdef __HAS_CPP20_FEATURES__
-    , std_srcloc::source_location const& srcloc = std_srcloc::source_location::current()
-#endif
-  );
-
-protected:
-  __CUDA_HOST_DEVICE__ void print(
-    std_strview::string_view msg
-#ifdef __HAS_CPP20_FEATURES__
-    , std_srcloc::source_location const& srcloc
-#endif
-  ) const;
-};
-
-
-#ifdef __USE_CUDA__
-#define __CUDA_CHECK_OR_EXIT_WITH_ERROR__(CALL) \
-{ \
-  auto __cuda_error_code__ = CALL; \
-  if (__cuda_error_code__ != cudaSuccess) \
-    IvyException( \
-      std_str::string("Call '") + #CALL + "' failed with error code " + std_str::to_string(static_case<int>(__cuda_error_code__)) + "." \
-    ); \
-}
-#define __CUDA_CHECK_OR_CONTINUE_WITH_ERROR__(CALL) \
-{ \
-  auto __cuda_error_code__ = CALL; \
-  if (__cuda_error_code__ != cudaSuccess) \
-    IvyException( \
-      std_str::string("Call '") + #CALL + "' failed with error code " + std_str::to_string(static_case<int>(__cuda_error_code__)) + ".", \
-      0 \
-    ); \
-}
-
-
-#endif // Temporary workaround:
 
 
 #else
@@ -71,12 +19,44 @@ protected:
 { \
   auto __cuda_error_code__ = CALL; \
   if (__cuda_error_code__ != cudaSuccess){ \
-    printf("Call '%s' failed with error code %d.\n", #CALL, __cuda_error_code__); \
+    __PRINT_ERROR__("Call '%s' at %s::%d failed with error code %s.\n", #CALL, __FILE__, __LINE__, cudaGetErrorString(__cuda_error_code__)); \
     assert(false); \
   } \
 }
 
+#define __CUDA_CHECK_AND_WARN_WITH_ERROR__(CALL) \
+{ \
+  auto __cuda_error_code__ = CALL; \
+  if (__cuda_error_code__ != cudaSuccess) \
+    __PRINT_ERROR__("Call '%s' at %s::%d failed with error code %s.\n", #CALL, __FILE__, __LINE__, cudaGetErrorString(__cuda_error_code__)); \
+}
+
+template<typename... Args> __CUDA_HOST_DEVICE__ bool cuda_check(cudaError_t(*call)(Args...), Args... args){
+  return (call(args...) == cudaSuccess);
+}
+template<typename... Args> __CUDA_HOST_DEVICE__ bool cuda_check_and_warn(const char* fn, unsigned int fl, cudaError_t(*call)(Args...), Args... args){
+  auto __cuda_error_code__ = call(args...);
+  if (__cuda_error_code__ != cudaSuccess){
+    __PRINT_ERROR__("CUDA call at %s::%d failed with error code %s.\n", fn, fl, cudaGetErrorString(__cuda_error_code__));
+    return false;
+  }
+  return true;
+}
+template<typename... Args> __CUDA_HOST_DEVICE__ bool cuda_check_or_exit(const char* fn, unsigned int fl, cudaError_t (*call)(Args...), Args... args){
+  bool res = cuda_check_and_warn(fn, fl, call, args...);
+  assert(res);
+  return res;
+}
+
+template<typename Fcn, typename DG, typename DB, typename SMem, typename Stream, typename... Args>
+__CUDA_HOST_DEVICE__ bool cuda_check_kernel(
+  Fcn fcn, DG dg, DB db, SMem sm, Stream stream, Args... args
+){
+  fcn<<<dg, db, sm, stream>>>(args...);
+  return (cudaGetLastError() == cudaSuccess);
+}
 
 #endif
+
 
 #endif

@@ -38,7 +38,7 @@ namespace std_ivy{
       if (ref_count_) ++(*ref_count_);
     }
     else{
-      printf("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
+      __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
     if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
@@ -52,7 +52,7 @@ namespace std_ivy{
       if (ref_count_) ++(*ref_count_);
     }
     else{
-      printf("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
+      __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
     if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
@@ -171,7 +171,7 @@ namespace std_ivy{
     else{
       if (stream) stream_ = stream;
       if (*mem_type_ != mem_type){
-        printf("IvyUnifiedPtr::reset() failed: Incompatible mem_type flags.\n");
+        __PRINT_ERROR__("IvyUnifiedPtr::reset() failed: Incompatible mem_type flags.\n");
         assert(false);
       }
     }
@@ -183,7 +183,7 @@ namespace std_ivy{
     ptr_ = __DYNAMIC_CAST__(pointer, other.get());
     other.get() = __DYNAMIC_CAST__(__ENCAPSULATE__(typename IvyUnifiedPtr<U, IPT>::pointer), tmp_ptr);
     if ((inull != (other.ptr_==nullptr)) || (onull != (ptr_==nullptr))){
-      printf("IvyUnifiedPtr::swap() failed: Incompatible types\n");
+      __PRINT_ERROR__("IvyUnifiedPtr::swap() failed: Incompatible types\n");
       assert(false);
     }
     std_util::swap(ref_count_, other.counter());

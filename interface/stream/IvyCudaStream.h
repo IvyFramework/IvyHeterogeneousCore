@@ -76,7 +76,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaStream::get_stream_flags(StreamFlags co
   case StreamFlags::NonBlocking:
     return cudaStreamNonBlocking;
   default:
-    printf("IvyCudaStream::get_stream_flags: Unknown flag option...");
+    __PRINT_ERROR__("IvyCudaStream::get_stream_flags: Unknown flag option...");
     assert(0);
   }
   return cudaStreamDefault;

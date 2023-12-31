@@ -212,6 +212,7 @@ namespace IvyMemoryHelpers{
   copy_data: Alias to choose between copy_data_multistream and copy_data_single_stream.
   It turns out that copy_data_single_stream is faster even when operating over >1M elements
   because the creation of additional streams and events is very expensive.
+  Waiting for pre-made streams/events is also expensive, but not as much as creating them in the first place.
   */
   template<typename T, typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
@@ -444,7 +445,7 @@ namespace IvyMemoryHelpers{
     else if (tgt_on_device && src_on_device) return cudaMemcpyDeviceToDevice;
     else if (tgt_unified || src_unified) return cudaMemcpyDefault;
     else{
-      printf("IvyMemoryHelpers::get_cuda_transfer_direction: Unknown transfer direction.\n");
+      __PRINT_ERROR__("IvyMemoryHelpers::get_cuda_transfer_direction: Unknown transfer direction.\n");
       assert(0);
       return cudaMemcpyDefault;
     }
@@ -458,9 +459,9 @@ namespace IvyMemoryHelpers{
     IvyMemoryHelpers::get_kernel_call_dims_1D(i);
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
-      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
 #else
-      printf("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
       assert(0);
     }
@@ -508,9 +509,9 @@ namespace IvyMemoryHelpers{
     if (n_tgt==0 || n_src==0 || !source) return false;
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
-      printf("IvyMemoryHelpers::copy_data_multistream: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
 #else
-      printf("IvyMemoryHelpers::copy_data_multistream: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
       assert(0);
     }
@@ -532,7 +533,7 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
       IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
       if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
-        //printf("IvyMemoryHelpers::copy_data_multistream: Running parallel copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_multistream: Running parallel copy.\n");
 #ifndef __CUDA_DEVICE_CODE__
         IvyGPUEvent ev_begin, ev_src_altr_tgt_al, ev_copy;
         ev_begin.record(stream);
@@ -600,10 +601,10 @@ namespace IvyMemoryHelpers{
       }
       else{
         if (tgt_on_device!=src_on_device){
-          printf("IvyMemoryHelpers::copy_data_multistream: Failed to copy data between host and device.\n");
+          __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream: Failed to copy data between host and device.\n");
           assert(0);
         }
-        //printf("IvyMemoryHelpers::copy_data_multistream: Running serial copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_multistream: Running serial copy.\n");
 #else
       {
 #endif
@@ -641,9 +642,9 @@ namespace IvyMemoryHelpers{
     if (n_tgt==0 || n_src==0 || !source) return false;
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
-      printf("IvyMemoryHelpers::copy_data_multistream_ext: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream_ext: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
 #else
-      printf("IvyMemoryHelpers::copy_data_multistream_ext: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream_ext: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
       assert(0);
     }
@@ -665,7 +666,7 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
       IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
       if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
-        //printf("IvyMemoryHelpers::copy_data_multistream_ext: Running parallel copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_multistream_ext: Running parallel copy.\n");
 #ifndef __CUDA_DEVICE_CODE__
         ev_begin.record(stream);
 #endif
@@ -728,10 +729,10 @@ namespace IvyMemoryHelpers{
       }
       else{
         if (tgt_on_device!=src_on_device){
-          printf("IvyMemoryHelpers::copy_data_multistream_ext: Failed to copy data between host and device.\n");
+          __PRINT_ERROR__("IvyMemoryHelpers::copy_data_multistream_ext: Failed to copy data between host and device.\n");
           assert(0);
         }
-        //printf("IvyMemoryHelpers::copy_data_multistream_ext: Running serial copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_multistream_ext: Running serial copy.\n");
 #else
       {
 #endif
@@ -762,9 +763,9 @@ namespace IvyMemoryHelpers{
     if (n_tgt==0 || n_src==0 || !source) return false;
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
-      printf("IvyMemoryHelpers::copy_data_single_stream: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_single_stream: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
 #else
-      printf("IvyMemoryHelpers::copy_data_single_stream: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_single_stream: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
       assert(0);
     }
@@ -786,7 +787,7 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
       IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
       if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
-        //printf("IvyMemoryHelpers::copy_data_single_stream: Running parallel copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_single_stream: Running parallel copy.\n");
         U* d_source = (src_on_device ? source : nullptr);
         if (!src_on_device){
           res &= allocate_memory(d_source, n_src, MemoryType::Device, stream);
@@ -808,10 +809,10 @@ namespace IvyMemoryHelpers{
       }
       else{
         if (tgt_on_device!=src_on_device){
-          printf("IvyMemoryHelpers::copy_data_single_stream: Failed to copy data between host and device.\n");
+          __PRINT_ERROR__("IvyMemoryHelpers::copy_data_single_stream: Failed to copy data between host and device.\n");
           assert(0);
         }
-        printf("IvyMemoryHelpers::copy_data_single_stream: Running serial copy.\n");
+        //__PRINT_INFO__("IvyMemoryHelpers::copy_data_single_stream: Running serial copy.\n");
 #else
       {
 #endif

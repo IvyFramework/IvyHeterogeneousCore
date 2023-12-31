@@ -60,48 +60,48 @@ int main(){
 
   for (unsigned char i = 0; i < nStreams; i++){
     auto& stream = *(streams[i]);
-    printf("Stream %i (%p) computing...\n", i, stream.stream());
+    __PRINT_INFO__("Stream %i (%p) computing...\n", i, stream.stream());
 
     IvyGPUStream sr_tgt_al(IvyGPUStream::StreamFlags::NonBlocking), sr_src_altr(IvyGPUStream::StreamFlags::NonBlocking), sr_tgt_free(IvyGPUStream::StreamFlags::NonBlocking), sr_src_free(IvyGPUStream::StreamFlags::NonBlocking);
     IvyGPUEvent ev_begin, ev_src_altr_tgt_al, ev_copy;
 
     std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
-    printf("ptr_shared no. of copies: %i\n", ptr_shared.use_count());
-    printf("ptr_shared_copy no. of copies: %i\n", ptr_shared_copy.use_count());
+    __PRINT_INFO__("ptr_shared no. of copies: %i\n", ptr_shared.use_count());
+    __PRINT_INFO__("ptr_shared_copy no. of copies: %i\n", ptr_shared_copy.use_count());
     kernel_print_dummy_D<<<1, 1, 0, stream>>>(ptr_shared.get());
     kernel_print_dummy_B_as_D<<<1, 1, 0, stream>>>(ptr_shared_copy.get());
 
     std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::unique_ptr<dummy_B> ptr_unique_copy = ptr_unique;
-    printf("ptr_unique no. of copies: %i\n", ptr_unique.use_count());
-    printf("ptr_unique_copy no. of copies: %i\n", ptr_unique_copy.use_count());
+    __PRINT_INFO__("ptr_unique no. of copies: %i\n", ptr_unique.use_count());
+    __PRINT_INFO__("ptr_unique_copy no. of copies: %i\n", ptr_unique_copy.use_count());
     kernel_print_dummy_B_as_D<<<1, 1, 0, stream>>>(ptr_shared_copy.get());
     ptr_unique_copy.reset();
-    printf("ptr_unique_copy no. of copies after reset: %i\n", ptr_unique_copy.use_count());
+    __PRINT_INFO__("ptr_unique_copy no. of copies after reset: %i\n", ptr_unique_copy.use_count());
 
     int* ptr_i = nullptr;
 
     auto ptr_h = obj_allocator.allocate(nvars, IvyMemoryType::Host, stream);
-    printf("ptr_h = %p\n", ptr_h);
+    __PRINT_INFO__("ptr_h = %p\n", ptr_h);
     ptr_h[0] = 1.0;
     ptr_h[1] = 2.0;
     ptr_h[2] = 3.0;
-    printf("ptr_h values: %f, %f, %f\n", ptr_h[0], ptr_h[1], ptr_h[2]);
+    __PRINT_INFO__("ptr_h values: %f, %f, %f\n", ptr_h[0], ptr_h[1], ptr_h[2]);
     obj_allocator.deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
 
-    printf("Trying device...\n");
+    __PRINT_INFO__("Trying device...\n");
 
     IvyGPUEvent ev_allocate(IvyGPUEvent::EventFlags::Default); ev_allocate.record(stream);
     auto ptr_d = obj_allocator.allocate(nvars, IvyMemoryType::Device, stream);
     IvyGPUEvent ev_allocate_end(IvyGPUEvent::EventFlags::Default); ev_allocate_end.record(stream);
     ev_allocate_end.synchronize();
     auto time_allocate = ev_allocate_end.elapsed_time(ev_allocate);
-    printf("Allocation time = %f ms\n", time_allocate);
-    printf("ptr_d = %p\n", ptr_d);
+    __PRINT_INFO__("Allocation time = %f ms\n", time_allocate);
+    __PRINT_INFO__("ptr_d = %p\n", ptr_d);
 
     ptr_h = obj_allocator.allocate(nvars, IvyMemoryType::Host, stream);
-    printf("ptr_h new = %p\n", ptr_h);
+    __PRINT_INFO__("ptr_h new = %p\n", ptr_h);
 
     {
       IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
@@ -111,7 +111,7 @@ int main(){
         IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(stream);
         ev_set_end.synchronize();
         auto time_set = ev_set_end.elapsed_time(ev_set);
-        printf("Set time = %f ms\n", time_set);
+        __PRINT_INFO__("Set time = %f ms\n", time_set);
       }
     }
 
@@ -120,17 +120,17 @@ int main(){
     IvyGPUEvent ev_transfer_end(IvyGPUEvent::EventFlags::Default); ev_transfer_end.record(stream);
     ev_transfer_end.synchronize();
     auto time_transfer = ev_transfer_end.elapsed_time(ev_transfer);
-    printf("Transfer time = %f ms\n", time_transfer);
+    __PRINT_INFO__("Transfer time = %f ms\n", time_transfer);
 
     IvyGPUEvent ev_cp(IvyGPUEvent::EventFlags::Default); ev_cp.record(stream);
     IvyMemoryHelpers::copy_data(ptr_i, ptr_h, 0, nvars, nvars, IvyMemoryType::Host, IvyMemoryType::Host, stream);
     IvyGPUEvent ev_cp_end(IvyGPUEvent::EventFlags::Default); ev_cp_end.record(stream);
     ev_cp_end.synchronize();
     auto time_cp = ev_cp_end.elapsed_time(ev_cp);
-    printf("Copy time = %f ms\n", time_cp);
+    __PRINT_INFO__("Copy time = %f ms\n", time_cp);
 
-    printf("ptr_h new values: %f, %f, %f, ..., %f\n", ptr_h[0], ptr_h[1], ptr_h[2], ptr_h[nvars-1]);
-    printf("ptr_i new values: %d, %d, %d, ..., %d\n", ptr_i[0], ptr_i[1], ptr_i[2], ptr_i[nvars-1]);
+    __PRINT_INFO__("ptr_h new values: %f, %f, %f, ..., %f\n", ptr_h[0], ptr_h[1], ptr_h[2], ptr_h[nvars-1]);
+    __PRINT_INFO__("ptr_i new values: %d, %d, %d, ..., %d\n", ptr_i[0], ptr_i[1], ptr_i[2], ptr_i[nvars-1]);
     obj_allocator.deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
     obj_allocator_i.deallocate(ptr_i, nvars, IvyMemoryType::Host, stream);
 
@@ -139,7 +139,7 @@ int main(){
     IvyGPUEvent ev_deallocate_end(IvyGPUEvent::EventFlags::Default); ev_deallocate_end.record(stream);
     ev_deallocate_end.synchronize();
     auto time_deallocate = ev_deallocate_end.elapsed_time(ev_allocate);
-    printf("Deallocation time = %f ms\n", time_deallocate);
+    __PRINT_INFO__("Deallocation time = %f ms\n", time_deallocate);
 
     stream.synchronize();
   }
