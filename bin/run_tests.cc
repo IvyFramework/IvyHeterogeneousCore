@@ -62,6 +62,9 @@ int main(){
     auto& stream = *(streams[i]);
     printf("Stream %i (%p) computing...\n", i, stream.stream());
 
+    IvyGPUStream sr_tgt_al(IvyGPUStream::StreamFlags::NonBlocking), sr_src_altr(IvyGPUStream::StreamFlags::NonBlocking), sr_tgt_free(IvyGPUStream::StreamFlags::NonBlocking), sr_src_free(IvyGPUStream::StreamFlags::NonBlocking);
+    IvyGPUEvent ev_begin, ev_src_altr_tgt_al, ev_copy;
+
     std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
     printf("ptr_shared no. of copies: %i\n", ptr_shared.use_count());
