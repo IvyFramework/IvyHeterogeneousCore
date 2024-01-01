@@ -7,10 +7,6 @@
 
 #ifdef __USE_CUDA__
 
-#include "cuda_runtime.h"
-#include "IvyException.h"
-
-
 __CUDA_HOST__ IvyCudaStream::IvyCudaStream(StreamFlags flags, int priority) :
   is_owned_(true),
   flags_(get_stream_flags(flags)),

@@ -3,12 +3,12 @@
 
 
 #include "config/IvyCompilerConfig.h"
+#include "IvyMemoryHelpers.h"
 
 #ifdef __USE_CUDA__
 
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyLimits.h"
-#include "IvyMemoryHelpers.h"
 
 
 namespace std_ivy{

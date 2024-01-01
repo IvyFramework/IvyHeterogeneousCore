@@ -6,7 +6,6 @@
 
 #ifdef __USE_CUDA__
 
-#include "cuda_runtime.h"
 #include "std_ivy/algorithm/IvyMinMax.h"
 #include "std_ivy/IvyLimits.h"
 #include "std_ivy/IvyCstdio.h"

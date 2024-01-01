@@ -1,16 +1,13 @@
-#ifndef IVYEXCEPTION_H
-#define IVYEXCEPTION_H
+#ifndef IVYCALLEXCEPTION_H
+#define IVYCALLEXCEPTION_H
 
 
 #include "config/IvyCudaFlags.h"
 
 
-#ifndef __USE_CUDA__
+#ifdef __USE_CUDA__
 
-
-
-#else
-
+#include "cuda_runtime.h"
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyCstdio.h"
 
@@ -53,7 +50,11 @@ __CUDA_HOST_DEVICE__ bool cuda_check_kernel(
   Fcn fcn, DG dg, DB db, SMem sm, Stream stream, Args... args
 ){
   fcn<<<dg, db, sm, stream>>>(args...);
-  return (cudaGetLastError() == cudaSuccess);
+  auto const err_code = cudaPeekAtLastError();
+#ifdef __CUDA_DEBUG__
+  cudaDeviceSynchronize();
+#endif
+  return (err_code == cudaSuccess);
 }
 
 #endif

@@ -58,6 +58,10 @@ int main(){
     new IvyGPUStream(IvyGPUStream::StreamFlags::NonBlocking)
   };
 
+  __PRINT_INFO__("Size of double = %llu\n", static_cast<unsigned long long int>(sizeof(double)));
+  __PRINT_INFO__("Size of dummy_B = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_B)));
+  __PRINT_INFO__("Size of dummy_D = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_D)));
+
   for (unsigned char i = 0; i < nStreams; i++){
     auto& stream = *(streams[i]);
     __PRINT_INFO__("Stream %i (%p) computing...\n", i, stream.stream());

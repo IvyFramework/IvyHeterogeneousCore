@@ -4,6 +4,7 @@
 
 #include "config/IvyCompilerConfig.h"
 #include "config/IvyCudaConfig.h"
+#include "config/IvyCudaException.h"
 
 
 #endif

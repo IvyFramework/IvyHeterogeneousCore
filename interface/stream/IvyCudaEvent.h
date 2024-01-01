@@ -2,15 +2,13 @@
 #define IVYCUDAEVENT_H
 
 
+#include "config/IvyCudaException.h"
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyCstdio.h"
 #include "stream/IvyCudaEvent.hh"
 
+
 #ifdef __USE_CUDA__
-
-#include "cuda_runtime.h"
-#include "IvyException.h"
-
 
 __CUDA_HOST__ IvyCudaEvent::IvyCudaEvent(EventFlags flags) :
   flags_(get_event_flags(flags))

@@ -20,12 +20,8 @@ For that reason, the -rdc=true flag is required when compiling device code.
 */
 
 
-#ifdef __USE_CUDA__
-#include "cuda_runtime.h"
-#endif
-#include "config/IvyConfig.h"
 #include "IvyBasicTypes.h"
-#include "IvyException.h"
+#include "config/IvyConfig.h"
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyCstdio.h"
@@ -323,7 +319,7 @@ namespace IvyMemoryHelpers{
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocAsync((void**) &data, n*sizeof(T), stream));
       }
       else if (is_pl){
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocHost((void**) &data, n*sizeof(T)));
+        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaHostAlloc((void**) &data, n*sizeof(T), cudaHostAllocDefault));
       }
       else if (is_uni){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &data, n*sizeof(T), cudaMemAttachGlobal));
@@ -346,6 +342,7 @@ namespace IvyMemoryHelpers{
         T* temp = nullptr;
         res &= allocate_memory(temp, n, MemoryType::Host, stream, args...);
         res &= transfer_memory(data, temp, n, type, MemoryType::Host, stream);
+        stream.synchronize();
         res &= free_memory(temp, n, MemoryType::Host, stream);
       }
       return res;
@@ -475,15 +472,7 @@ namespace IvyMemoryHelpers{
   ){
     if (!tgt || !src) return false;
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);
-#ifndef __CUDA_DEVICE_CODE__
-    if (stream.stream()==cudaStreamLegacy){
-      __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpy(tgt, src, n*sizeof(T), dir));
-    }
-    else
-#endif
-    {
-      __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
-    }
+    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
     return true;
   }
 #endif

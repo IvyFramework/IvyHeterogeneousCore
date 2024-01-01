@@ -4,8 +4,7 @@
 
 #ifdef __USE_CUDA__
 
-#include "cuda_runtime.h"
-#include "IvyException.h"
+#include "config/IvyCudaException.h"
 #include "stream/IvyCudaEvent.hh"
 
 
