@@ -140,7 +140,6 @@ namespace std_ivy{
     if (n==1) return h_vals[0];
     else return h_vals[0] / op_parallel<multiply_parallel_op<T>, T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
   }
-
 }
 
 #endif
