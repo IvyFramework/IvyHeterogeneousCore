@@ -41,7 +41,7 @@ namespace std_ivy{
       IvyMemoryHelpers::free_memory(p, n, mem_type, stream);
     }
 
-    static __CUDA_HOST__ bool transfer(pointer& tgt, pointer const& src, size_t n, IvyMemoryType type_tgt, IvyMemoryType type_src, IvyGPUStream& stream){
+    static __CUDA_HOST_DEVICE__ bool transfer(pointer& tgt, pointer const& src, size_t n, IvyMemoryType type_tgt, IvyMemoryType type_src, IvyGPUStream& stream){
       return IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
     }
 

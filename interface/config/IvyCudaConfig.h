@@ -28,8 +28,9 @@ namespace IvyCudaConfig{
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ IvyBlockThread_t const& get_max_num_GPU_threads_per_block(){ return MAX_NUM_THREADS_PER_BLOCK; }
 
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_GPU_usable(IvyBlockThreadDim_t& nreq_blocks, IvyBlockThreadDim_t& nreq_threads_per_block, unsigned long long int n){
-    nreq_blocks = 0;
-    nreq_threads_per_block = 0;
+    nreq_blocks.x = nreq_blocks.y = nreq_blocks.z = 0;
+    nreq_threads_per_block.x = nreq_threads_per_block.y = nreq_threads_per_block.z = 0;
+    if (n==0) return false;
 
     IvyDeviceNum_t device_num = 0;
     if (!__CUDA_CHECK_SUCCESS__(cudaGetDevice(&device_num))) return false;
@@ -55,10 +56,12 @@ namespace IvyCudaConfig{
       ){
       nreq_threads_per_block.x = std_ivy::min(
         max_threads_per_block_sc_,
-        static_cast<IvyBlockThread_signed_t>((n+(warp_size_+1)/2)/warp_size_)
+        static_cast<IvyBlockThread_signed_t>(((n - 1 + warp_size_)/warp_size_)*warp_size_)
       );
       nreq_threads_per_block.y = nreq_threads_per_block.z = 1;
-      unsigned long long int nblocks_needed = (n + (nreq_threads_per_block.x+1)/2)/nreq_threads_per_block.x;
+      unsigned long long int nblocks_needed = static_cast<unsigned long long int>(
+        (n - 1 + nreq_threads_per_block.x)/nreq_threads_per_block.x
+      );
       unsigned long long int const max_blocks_ = max_blocks_x_ * max_blocks_y_ * max_blocks_z_;
       if (nblocks_needed<=max_blocks_x_){
         nreq_blocks.x = nblocks_needed;
@@ -67,17 +70,17 @@ namespace IvyCudaConfig{
       else if (nblocks_needed<=max_blocks_x_ * max_blocks_y_){
         nreq_blocks.x = max_blocks_x_;
         nreq_blocks.y = std_ivy::min(
-          static_cast<unsigned long long int>((nblocks_needed + (max_blocks_x_+1)/2)/max_blocks_x_),
+          static_cast<unsigned long long int>((nblocks_needed - 1 + max_blocks_x_)/max_blocks_x_),
           static_cast<unsigned long long int>(max_blocks_y_)
-          );
+        );
       }
       else if (nblocks_needed<=max_blocks_){
         nreq_blocks.x = max_blocks_x_;
         nreq_blocks.y = max_blocks_y_;
         nreq_blocks.z = std_ivy::min(
-          static_cast<unsigned long long int>((nblocks_needed + (max_blocks_x_*max_blocks_y_+1)/2)/(max_blocks_x_*max_blocks_y_)),
+          static_cast<unsigned long long int>((nblocks_needed - 1 + max_blocks_x_*max_blocks_y_)/(max_blocks_x_*max_blocks_y_)),
           static_cast<unsigned long long int>(max_blocks_z_)
-          );
+        );
       }
       else res = false;
       if (

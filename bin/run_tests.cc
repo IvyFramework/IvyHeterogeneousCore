@@ -1,6 +1,8 @@
 #include "std_ivy/IvyTypeInfo.h"
 #include "std_ivy/IvyMemory.h"
 #include "std_ivy/IvyIterator.h"
+#include "std_ivy/IvyChrono.h"
+#include "std_ivy/IvyAlgorithm.h"
 #include "stream/IvyStream.h"
 
 
@@ -20,7 +22,7 @@ public:
 };
 
 
-__CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyBlockThread_t n, unsigned char is){
+__CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyTypes::size_t n, unsigned char is){
   IvyTypes::size_t i = 0;
   IvyMemoryHelpers::get_kernel_call_dims_1D(i);
   if (i < n){
@@ -47,7 +49,7 @@ __CUDA_GLOBAL__ void kernel_print_dummy_B_as_D(dummy_B* ptr){
 
 int main(){
   constexpr unsigned char nStreams = 3;
-  constexpr unsigned int nvars = 1000000; // Can be up to ~700M
+  constexpr unsigned int nvars = 10000; // Can be up to ~700M
   IvyCudaConfig::set_max_num_GPU_blocks(1024);
   IvyCudaConfig::set_max_num_GPU_threads_per_block(1024);
   auto obj_allocator = std_mem::allocator<double>();
@@ -58,6 +60,10 @@ int main(){
     new IvyGPUStream(IvyGPUStream::StreamFlags::NonBlocking)
   };
 
+  constexpr int nsum = 1000000;
+  constexpr int nsum_serial = 64;
+  double sum_vals[nsum];
+  for (int i = 0; i < nsum; i++) sum_vals[i] = i+1;
   __PRINT_INFO__("Size of double = %llu\n", static_cast<unsigned long long int>(sizeof(double)));
   __PRINT_INFO__("Size of dummy_B = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_B)));
   __PRINT_INFO__("Size of dummy_D = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_D)));
@@ -66,8 +72,20 @@ int main(){
     auto& stream = *(streams[i]);
     __PRINT_INFO__("Stream %i (%p) computing...\n", i, stream.stream());
 
-    IvyGPUStream sr_tgt_al(IvyGPUStream::StreamFlags::NonBlocking), sr_src_altr(IvyGPUStream::StreamFlags::NonBlocking), sr_tgt_free(IvyGPUStream::StreamFlags::NonBlocking), sr_src_free(IvyGPUStream::StreamFlags::NonBlocking);
-    IvyGPUEvent ev_begin, ev_src_altr_tgt_al, ev_copy;
+    IvyGPUEvent ev_sum(IvyGPUEvent::EventFlags::Default); ev_sum.record(stream);
+    double sum_p = std_algo::add_parallel<double>(sum_vals, nsum, nsum_serial, IvyMemoryType::Host, stream);
+    IvyGPUEvent ev_sum_end(IvyGPUEvent::EventFlags::Default); ev_sum_end.record(stream);
+    ev_sum_end.synchronize();
+    auto time_sum = ev_sum_end.elapsed_time(ev_sum);
+    __PRINT_INFO__("Sum_parallel time = %f ms\n", time_sum);
+    __PRINT_INFO__("Sum parallel = %f\n", sum_p);
+
+    auto time_sum_s = std_chrono::high_resolution_clock::now();
+    double sum_s = std_algo::add_serial<double>(sum_vals, nsum);
+    auto time_sum_s_end = std_chrono::high_resolution_clock::now();
+    auto time_sum_s_ms = std_chrono::duration_cast<std_chrono::microseconds>(time_sum_s_end - time_sum_s).count()/1000.;
+    __PRINT_INFO__("Sum_serial time = %f ms\n", time_sum_s_ms);
+    __PRINT_INFO__("Sum serial = %f\n", sum_s);
 
     std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;

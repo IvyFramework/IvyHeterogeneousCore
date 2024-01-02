@@ -8,7 +8,7 @@
 #include <cuda/atomic>
 
 #ifndef std_atomic
-#define std_atomic cuda::std
+#define std_atomic cuda
 #endif
 
 #else

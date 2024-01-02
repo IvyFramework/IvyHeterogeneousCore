@@ -5,7 +5,8 @@
 #ifdef __USE_CUDA__
 
 #include "cuda_runtime.h"
-#include "std_ivy/algorthm/IvyMinMax.h"
+#include "std_ivy/algorithm/IvyMinMax.h"
+#include "std_ivy/algorithm/IvyParallelOp.h"
 
 #ifndef std_algo
 #define std_algo std_ivy
