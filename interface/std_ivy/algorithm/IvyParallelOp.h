@@ -21,7 +21,7 @@ namespace std_ivy{
     if (i < n_ops){
       IvyTypes::size_t k = n_serial;
       if (i*n_serial + k>n) k = n - i*n_serial;
-      C::op(vals[i+n], (vals+(i*n_serial)), n, k);
+      C::op(vals[i+n], (vals+(i*n_serial)), k);
     }
   }
   template<typename C, typename T>
@@ -71,7 +71,7 @@ namespace std_ivy{
   }
 
   template<typename T> struct add_parallel_op{
-    static __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n, IvyTypes::size_t n_serial){
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n_serial){
       for (IvyTypes::size_t j = 0; j < n_serial; j++){
         if (j==0) res = vals[j];
         else res = res + vals[j];
@@ -79,7 +79,7 @@ namespace std_ivy{
     }
   };
   template<typename T> struct multiply_parallel_op{
-    static __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n, IvyTypes::size_t n_serial){
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n_serial){
       for (IvyTypes::size_t j = 0; j < n_serial; j++){
         if (j==0) res = vals[j];
         else res = res * vals[j];
