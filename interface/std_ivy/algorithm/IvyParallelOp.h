@@ -119,9 +119,24 @@ namespace std_ivy{
 #endif
 
 namespace std_ivy{
-  template<typename T> __CUDA_HOST__ T add_serial(T* vals, IvyTypes::size_t n){
-    T res = 0;
-    for (IvyTypes::size_t i = 0; i < n; i++) res += vals[i];
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T add_serial(T* vals, IvyTypes::size_t n){
+    T res = vals[0];
+    for (IvyTypes::size_t i = 1; i < n; i++) res = res + vals[i];
+    return res;
+  }
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T multiply_serial(T* vals, IvyTypes::size_t n){
+    T res = vals[0];
+    for (IvyTypes::size_t i = 1; i < n; i++) res = res * vals[i];
+    return res;
+  }
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T subtract_serial(T* vals, IvyTypes::size_t n){
+    T res = vals[0];
+    for (IvyTypes::size_t i = 1; i < n; i++) res = res - vals[i];
+    return res;
+  }
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T divide_serial(T* vals, IvyTypes::size_t n){
+    T res = vals[0];
+    for (IvyTypes::size_t i = 1; i < n; i++) res = res / vals[i];
     return res;
   }
 }
