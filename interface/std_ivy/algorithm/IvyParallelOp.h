@@ -2,6 +2,33 @@
 #define IVYPARALLELOP_H
 
 
+/*
+Header file for parallel operations on arrays.
+
+The main function is op_parallel. The arguments are as follows:
+- h_vals: Pointer to the input array of values
+- n: Number of values
+- n_serial: Number of elements to group into a serial operation
+- mem_type_vals: Memory location of h_vals
+- stream: GPU stream for the parallelization
+- dyn_shared_mem: Amount of dynamic memory shared between threads of a GPU block
+
+The template arguments for op_parallel are as follows:
+- C: Class with a static function op, which takes as arguments:
+  - res: Reference to the result of the operation
+  - vals: Pointer to the arrays of values for a single parallel operation
+  - n_serial: Number of elements to serialize within a single parallel operation
+- T: Type of the values
+
+The following parallel operations are defined:
+- add_parallel: Parallel addition
+- multiply_parallel: Parallel multiplication
+- subtract_parallel: Parallel subtraction
+- divide_parallel: Parallel division
+Equivalent operations *_serial serial over the host thread, i.e., a CPU or GPU thread, are also defined.
+*/
+
+
 #include "config/IvyCompilerConfig.h"
 #include "IvyBasicTypes.h"
 #include "IvyMemoryHelpers.h"
