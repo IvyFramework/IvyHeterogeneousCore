@@ -55,7 +55,7 @@ namespace std_ivy{
     if (ptr_){
       exec_mem_type_ = other.get_exec_memory_type();
       mem_type_ = other.get_memory_type();
-      size_ = other.size();
+      size_ = other.size_ptr();
       ref_count_ = other.counter();
       stream_ = other.gpu_stream();
       if (ref_count_) ++(*ref_count_);
@@ -86,7 +86,7 @@ namespace std_ivy{
     exec_mem_type_(std_util::move(other.get_exec_memory_type())),
     mem_type_(std_util::move(other.get_memory_type())),
     ptr_(std_util::move(other.get())),
-    size_(std_util::move(other.size())),
+    size_(std_util::move(other.size_ptr())),
     ref_count_(std_util::move(other.counter())),
     stream_(std_util::move(other.gpu_stream()))
   {
@@ -112,7 +112,7 @@ namespace std_ivy{
       exec_mem_type_ = other.get_exec_memory_type();
       mem_type_ = other.get_memory_type();
       ptr_ = __DYNAMIC_CAST__(pointer, other.get());
-      size_ = other.size();
+      size_ = other.size_ptr();
       ref_count_ = other.counter();
       stream_ = other.gpu_stream();
       if (ref_count_) ++(*ref_count_);
@@ -154,7 +154,7 @@ namespace std_ivy{
         operate_with_GPU_stream_from_pointer(
           stream_, ref_stream,
           __ENCAPSULATE__(
-            element_allocator_traits::deallocate(ptr_, *size_, *mem_type_, ref_stream);
+            element_allocator_traits::deallocate(ptr_, this->size(), *mem_type_, ref_stream);
             size_allocator_traits::deallocate(size_, 1, exec_mem_type_, ref_stream);
             counter_allocator_traits::deallocate(ref_count_, 1, exec_mem_type_, ref_stream);
             mem_type_allocator_traits::deallocate(mem_type_, 1, exec_mem_type_, ref_stream);
@@ -174,19 +174,47 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyMemoryType const& IvyUnifiedPtr<T, IPT>::get_exec_memory_type() const noexcept{ return this->exec_mem_type_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyMemoryType* IvyUnifiedPtr<T, IPT>::get_memory_type() const noexcept{ return this->mem_type_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyGPUStream* IvyUnifiedPtr<T, IPT>::gpu_stream() const noexcept{ return this->stream_; }
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::size_type* IvyUnifiedPtr<T, IPT>::size() const noexcept{ return this->size_; }
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::size_type* IvyUnifiedPtr<T, IPT>::size_ptr() const noexcept{ return this->size_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::counter_type* IvyUnifiedPtr<T, IPT>::counter() const noexcept{ return this->ref_count_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::pointer IvyUnifiedPtr<T, IPT>::get() const noexcept{ return this->ptr_; }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyMemoryType& IvyUnifiedPtr<T, IPT>::get_exec_memory_type() noexcept{ return this->exec_mem_type_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyMemoryType*& IvyUnifiedPtr<T, IPT>::get_memory_type() noexcept{ return this->mem_type_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyGPUStream*& IvyUnifiedPtr<T, IPT>::gpu_stream() noexcept{ return this->stream_; }
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::size_type*& IvyUnifiedPtr<T, IPT>::size() noexcept{ return this->size_; }
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::size_type*& IvyUnifiedPtr<T, IPT>::size_ptr() noexcept{ return this->size_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::counter_type*& IvyUnifiedPtr<T, IPT>::counter() noexcept{ return this->ref_count_; }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::pointer& IvyUnifiedPtr<T, IPT>::get() noexcept{ return this->ptr_; }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::reference IvyUnifiedPtr<T, IPT>::operator*() const noexcept{ return *(this->ptr_); }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::pointer IvyUnifiedPtr<T, IPT>::operator->() const noexcept{ return this->ptr_; }
+
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::size_type IvyUnifiedPtr<T, IPT>::size() const noexcept{
+    if (!size_) return 0;
+    constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    if (exec_mem_type_ == def_mem_type) return *size_;
+    else{
+      size_type* p_size_ = nullptr;
+      {
+        operate_with_GPU_stream_from_pointer(
+          stream_, ref_stream,
+          __ENCAPSULATE__(
+            p_size_ = size_allocator_traits::allocate(1, def_mem_type, ref_stream);
+            size_allocator_traits::transfer(p_size_, size_, 1, def_mem_type, exec_mem_type_, ref_stream);
+          )
+        );
+      }
+      size_type ret = *p_size_;
+      {
+        operate_with_GPU_stream_from_pointer(
+          stream_, ref_stream,
+          __ENCAPSULATE__(
+            size_allocator_traits::deallocate(p_size_, 1, def_mem_type, ref_stream);
+          )
+        );
+      }
+      return ret;
+    }
+  }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::reset(){ this->release(); this->dump(); }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::reset(std_cstddef::nullptr_t){ this->release(); this->dump(); }
@@ -207,8 +235,8 @@ namespace std_ivy{
       }
     }
   }
-  template<typename T, IvyPointerType IPT>
-  template<typename U> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream){
+  template<typename T, IvyPointerType IPT> template<typename U>
+  __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream){
     this->reset(ptr, __STATIC_CAST__(size_type, 1), mem_type, stream);
   }
 
@@ -220,12 +248,14 @@ namespace std_ivy{
         size_type* new_size_ = nullptr;
         counter_type*  new_ref_count_ = nullptr;
         IvyMemoryType* new_mem_type_ = nullptr;
+        size_type size_val = this->size();
 
         operate_with_GPU_stream_from_pointer(
           stream_, ref_stream,
           __ENCAPSULATE__(
-            new_ptr_ = element_allocator_traits::allocate(1, new_mem_type, ref_stream, *ptr_);
-            new_size_ = size_allocator_traits::allocate(1, misc_mem_type, ref_stream, *size_);
+            new_ptr_ = element_allocator_traits::allocate(size_val, new_mem_type, ref_stream);
+            element_allocator_traits::transfer(new_ptr_, ptr_, size_val, new_mem_type, *mem_type_, ref_stream);
+            new_size_ = size_allocator_traits::allocate(1, misc_mem_type, ref_stream, size_val);
             new_ref_count_ = counter_allocator_traits::allocate(1, misc_mem_type, ref_stream, __STATIC_CAST__(counter_type, 1));
             new_mem_type_ = mem_type_allocator_traits::allocate(1, misc_mem_type, ref_stream, new_mem_type);
           )
@@ -251,7 +281,7 @@ namespace std_ivy{
       __PRINT_ERROR__("IvyUnifiedPtr::swap() failed: Incompatible types\n");
       assert(false);
     }
-    std_util::swap(size_, other.size());
+    std_util::swap(size_, other.size_ptr());
     std_util::swap(exec_mem_type_, other.get_exec_memory_type());
     std_util::swap(mem_type_, other.get_memory_type());
     std_util::swap(ref_count_, other.counter());

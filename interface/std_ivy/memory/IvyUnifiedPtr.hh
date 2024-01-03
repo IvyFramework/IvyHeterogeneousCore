@@ -68,16 +68,18 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType const& get_exec_memory_type() const noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type() const noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type* size() const noexcept;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type* size_ptr() const noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type* counter() const noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer get() const noexcept;
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType& get_exec_memory_type() noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType*& get_memory_type() noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream*& gpu_stream() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type*& size() noexcept;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type*& size_ptr() noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type*& counter() noexcept;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer& get() noexcept;
+
+    __CUDA_HOST_DEVICE__ size_type size() const noexcept;
 
     __CUDA_HOST_DEVICE__ reference operator*() const noexcept;
     __CUDA_HOST_DEVICE__ pointer operator->() const noexcept;
