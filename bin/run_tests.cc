@@ -52,8 +52,8 @@ int main(){
   constexpr unsigned int nvars = 10000; // Can be up to ~700M
   IvyCudaConfig::set_max_num_GPU_blocks(1024);
   IvyCudaConfig::set_max_num_GPU_threads_per_block(1024);
-  auto obj_allocator = std_mem::allocator<double>();
-  auto obj_allocator_i = std_mem::allocator<int>();
+  typedef std_mem::allocator<double> obj_allocator;
+  typedef std_mem::allocator<int> obj_allocator_i;
   IvyGPUStream* streams[nStreams]{
     new GlobalGPUStream,
     new IvyGPUStream(IvyGPUStream::StreamFlags::NonBlocking),
@@ -104,25 +104,25 @@ int main(){
 
     int* ptr_i = nullptr;
 
-    auto ptr_h = obj_allocator.allocate(nvars, IvyMemoryType::Host, stream);
+    auto ptr_h = obj_allocator::allocate(nvars, IvyMemoryType::Host, stream);
     __PRINT_INFO__("ptr_h = %p\n", ptr_h);
     ptr_h[0] = 1.0;
     ptr_h[1] = 2.0;
     ptr_h[2] = 3.0;
     __PRINT_INFO__("ptr_h values: %f, %f, %f\n", ptr_h[0], ptr_h[1], ptr_h[2]);
-    obj_allocator.deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
+    obj_allocator::deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
 
     __PRINT_INFO__("Trying device...\n");
 
     IvyGPUEvent ev_allocate(IvyGPUEvent::EventFlags::Default); ev_allocate.record(stream);
-    auto ptr_d = obj_allocator.allocate(nvars, IvyMemoryType::Device, stream);
+    auto ptr_d = obj_allocator::allocate(nvars, IvyMemoryType::Device, stream);
     IvyGPUEvent ev_allocate_end(IvyGPUEvent::EventFlags::Default); ev_allocate_end.record(stream);
     ev_allocate_end.synchronize();
     auto time_allocate = ev_allocate_end.elapsed_time(ev_allocate);
     __PRINT_INFO__("Allocation time = %f ms\n", time_allocate);
     __PRINT_INFO__("ptr_d = %p\n", ptr_d);
 
-    ptr_h = obj_allocator.allocate(nvars, IvyMemoryType::Host, stream);
+    ptr_h = obj_allocator::allocate(nvars, IvyMemoryType::Host, stream);
     __PRINT_INFO__("ptr_h new = %p\n", ptr_h);
 
     {
@@ -138,7 +138,7 @@ int main(){
     }
 
     IvyGPUEvent ev_transfer(IvyGPUEvent::EventFlags::Default); ev_transfer.record(stream);
-    obj_allocator.transfer(ptr_h, ptr_d, nvars, IvyMemoryType::Host, IvyMemoryType::Device, stream);
+    obj_allocator::transfer(ptr_h, ptr_d, nvars, IvyMemoryType::Host, IvyMemoryType::Device, stream);
     IvyGPUEvent ev_transfer_end(IvyGPUEvent::EventFlags::Default); ev_transfer_end.record(stream);
     ev_transfer_end.synchronize();
     auto time_transfer = ev_transfer_end.elapsed_time(ev_transfer);
@@ -153,11 +153,11 @@ int main(){
 
     __PRINT_INFO__("ptr_h new values: %f, %f, %f, ..., %f\n", ptr_h[0], ptr_h[1], ptr_h[2], ptr_h[nvars-1]);
     __PRINT_INFO__("ptr_i new values: %d, %d, %d, ..., %d\n", ptr_i[0], ptr_i[1], ptr_i[2], ptr_i[nvars-1]);
-    obj_allocator.deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
-    obj_allocator_i.deallocate(ptr_i, nvars, IvyMemoryType::Host, stream);
+    obj_allocator::deallocate(ptr_h, nvars, IvyMemoryType::Host, stream);
+    obj_allocator_i::deallocate(ptr_i, nvars, IvyMemoryType::Host, stream);
 
     IvyGPUEvent ev_deallocate(IvyGPUEvent::EventFlags::Default); ev_deallocate.record(stream);
-    obj_allocator.deallocate(ptr_d, nvars, IvyMemoryType::Device, stream);
+    obj_allocator::deallocate(ptr_d, nvars, IvyMemoryType::Device, stream);
     IvyGPUEvent ev_deallocate_end(IvyGPUEvent::EventFlags::Default); ev_deallocate_end.record(stream);
     ev_deallocate_end.synchronize();
     auto time_deallocate = ev_deallocate_end.elapsed_time(ev_allocate);

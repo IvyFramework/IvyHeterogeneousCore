@@ -44,7 +44,7 @@ namespace std_ivy{
   __CUDA_GLOBAL__ void kernel_op_parallel(T* vals, IvyTypes::size_t n, IvyTypes::size_t n_serial){
     IvyTypes::size_t i = 0;
     IvyMemoryHelpers::get_kernel_call_dims_1D(i);
-    IvyTypes::size_t n_ops = (n-1+n_serial)/n_serial;
+    IvyTypes::size_t n_ops = C::n_ops(n, n_serial);
     if (i < n_ops){
       IvyTypes::size_t k = n_serial;
       if (i*n_serial + k>n) k = n - i*n_serial;
@@ -54,20 +54,12 @@ namespace std_ivy{
   template<typename C, typename T>
   __CUDA_HOST_DEVICE__ void op_parallel_core(T* vals, IvyTypes::size_t n, IvyTypes::size_t n_serial, IvyGPUStream& stream, int dyn_shared_mem = 0){
     if (n==1) return;
-    IvyTypes::size_t n_ops = (n-1+n_serial)/n_serial;
+    IvyTypes::size_t n_ops = C::n_ops(n, n_serial);
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_ops)){
       kernel_op_parallel<C, T><<<nreq_blocks, nreq_threads_per_block, dyn_shared_mem, stream>>>(vals, n, n_serial);
     }
     op_parallel_core<C, T>((vals+n), n_ops, n_serial, stream);
-  }
-
-  __CUDA_HOST_DEVICE__ void parallel_op_n_mem(IvyTypes::size_t n, IvyTypes::size_t n_serial, IvyTypes::size_t& m){
-    if (n==1) m+=1;
-    else{
-      m+=n;
-      parallel_op_n_mem((n-1+n_serial)/n_serial, n_serial, m);
-    }
   }
   template<typename C, typename T>
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T op_parallel(
@@ -77,7 +69,7 @@ namespace std_ivy{
     auto obj_allocator = std_mem::allocator<T>();
 
     IvyTypes::size_t neff = 0;
-    parallel_op_n_mem(n, n_serial, neff);
+    C::parallel_op_n_mem(n, n_serial, neff);
 
     auto h_res = obj_allocator.allocate(1, mem_type_vals, stream);
     auto d_vals = obj_allocator.allocate(neff, IvyMemoryType::Device, stream);
@@ -97,20 +89,33 @@ namespace std_ivy{
     return res;
   }
 
-  template<typename T> struct add_parallel_op{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n_serial){
-      for (IvyTypes::size_t j = 0; j < n_serial; j++){
-        if (j==0) res = vals[j];
-        else res = res + vals[j];
+  template<typename Base, typename T> struct parallel_op_base{
+    /*
+    n_ops: Number of parallel operations given the total number of elements and the serialization block size
+    - n: Total number of elements
+    - n_serial: Serialization block size
+    */
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyTypes::size_t n_ops(IvyTypes::size_t const& n, IvyTypes::size_t const& n_serial){
+      return (n-1+n_serial)/n_serial;
+    }
+    static __CUDA_HOST_DEVICE__ void parallel_op_n_mem(IvyTypes::size_t n, IvyTypes::size_t n_serial, IvyTypes::size_t& m){
+      if (n==1) m+=1;
+      else{
+        m+=n;
+        parallel_op_base<Base, T>::parallel_op_n_mem((n-1+n_serial)/n_serial, n_serial, m);
       }
     }
   };
-  template<typename T> struct multiply_parallel_op{
+  template<typename T> struct add_parallel_op : public parallel_op_base<add_parallel_op<T>, T>{
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n_serial){
-      for (IvyTypes::size_t j = 0; j < n_serial; j++){
-        if (j==0) res = vals[j];
-        else res = res * vals[j];
-      }
+      res = vals[0];
+      for (IvyTypes::size_t j = 1; j < n_serial; j++) res = res + vals[j];
+    }
+  };
+  template<typename T> struct multiply_parallel_op : public parallel_op_base<add_parallel_op<T>, T>{
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void op(T& res, T* const& vals, IvyTypes::size_t n_serial){
+      res = vals[0];
+      for (IvyTypes::size_t j = 1; j < n_serial; j++) res = res * vals[j];
     }
   };
 
@@ -131,14 +136,14 @@ namespace std_ivy{
     IvyMemoryType mem_type_vals, IvyGPUStream& stream, int dyn_shared_mem = 0
   ){
     if (n==1) return h_vals[0];
-    else return h_vals[0] - op_parallel<add_parallel_op<T>, T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
+    else return h_vals[0] - add_parallel<T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
   }
   template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T divide_parallel(
     T* h_vals, IvyTypes::size_t n, IvyTypes::size_t n_serial,
     IvyMemoryType mem_type_vals, IvyGPUStream& stream, int dyn_shared_mem = 0
   ){
     if (n==1) return h_vals[0];
-    else return h_vals[0] / op_parallel<multiply_parallel_op<T>, T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
+    else return h_vals[0] / multiply_parallel<T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
   }
 }
 
@@ -146,22 +151,22 @@ namespace std_ivy{
 
 namespace std_ivy{
   template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T add_serial(T* vals, IvyTypes::size_t n){
-    T res = vals[0];
+    T res(vals[0]);
     for (IvyTypes::size_t i = 1; i < n; i++) res = res + vals[i];
     return res;
   }
   template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T multiply_serial(T* vals, IvyTypes::size_t n){
-    T res = vals[0];
+    T res(vals[0]);
     for (IvyTypes::size_t i = 1; i < n; i++) res = res * vals[i];
     return res;
   }
   template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T subtract_serial(T* vals, IvyTypes::size_t n){
-    T res = vals[0];
+    T res(vals[0]);
     for (IvyTypes::size_t i = 1; i < n; i++) res = res - vals[i];
     return res;
   }
   template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T divide_serial(T* vals, IvyTypes::size_t n){
-    T res = vals[0];
+    T res(vals[0]);
     for (IvyTypes::size_t i = 1; i < n; i++) res = res / vals[i];
     return res;
   }

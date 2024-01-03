@@ -120,7 +120,7 @@ namespace IvyTypes{
     type_rank_t,
     type_rank_v<S> + type_rank_sum_v<T, U>
   >{};
-  template<template <typename...> typename T, typename U, typename ...Args> struct type_rank<T<U, Args...>> : public std_ttraits::integral_constant<
+  template<template <typename...> typename T, typename U, typename... Args> struct type_rank<T<U, Args...>> : public std_ttraits::integral_constant<
     type_rank_t,
     type_rank_v<U> + type_rank_sum_v<Args...>
   >{};
