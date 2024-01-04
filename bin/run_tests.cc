@@ -20,6 +20,12 @@ public:
   __CUDA_HOST_DEVICE__ dummy_D(double a_) : dummy_B(), a(a_){}
   __CUDA_HOST_DEVICE__ dummy_D(dummy_D const& other) : a(other.a){}
 };
+class dummy_N{
+public:
+  int n;
+  dummy_N() = delete;
+  __CUDA_HOST_DEVICE__ dummy_N(int k) : n(k){}
+};
 
 
 __CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyTypes::size_t n, unsigned char is){
@@ -33,14 +39,14 @@ __CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyTypes::size_t n, unsigne
 
 
 __CUDA_HOST_DEVICE__ void print_dummy_D(dummy_D* ptr){
-  printf("dummy_D.a = %f\n", ptr->a);
+  printf("dummy_D address = %p, a = %f\n", ptr, ptr->a);
 }
 __CUDA_GLOBAL__ void kernel_print_dummy_D(dummy_D* ptr){
   print_dummy_D(ptr);
 }
 
 __CUDA_HOST_DEVICE__ void print_dummy_B_as_D(dummy_B* ptr){
-  printf("dummy_B.a = %f\n", __STATIC_CAST__(dummy_D*, ptr)->a);
+  printf("dummy_B address = %p, a = %f\n", ptr, __STATIC_CAST__(dummy_D*, ptr)->a);
 }
 __CUDA_GLOBAL__ void kernel_print_dummy_B_as_D(dummy_B* ptr){
   print_dummy_B_as_D(ptr);

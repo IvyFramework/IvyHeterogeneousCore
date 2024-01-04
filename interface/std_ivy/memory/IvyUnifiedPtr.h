@@ -288,8 +288,8 @@ namespace std_ivy{
     std_util::swap(stream_, other.stream_);
   }
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::counter_type IvyUnifiedPtr<T, IPT>::use_count() const noexcept{ return (ref_count_ ? *ref_count_ : static_cast<counter_type>(0)); }
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::unique() const noexcept{ return this->use_count() == static_cast<counter_type>(1); }
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::counter_type IvyUnifiedPtr<T, IPT>::use_count() const noexcept{ return (ref_count_ ? *ref_count_ : __STATIC_CAST__(counter_type, 0)); }
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::unique() const noexcept{ return this->use_count() == __STATIC_CAST__(counter_type, 1); }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::operator bool() const noexcept{ return ptr_ != nullptr; }
 
   // Non-member helper functions
