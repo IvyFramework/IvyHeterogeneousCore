@@ -16,7 +16,7 @@
 #include <chrono>
 
 #ifndef std_chrono
-#define std_chrono std
+#define std_chrono std::chrono
 #endif
 
 #endif

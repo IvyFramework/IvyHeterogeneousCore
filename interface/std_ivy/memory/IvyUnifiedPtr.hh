@@ -65,35 +65,36 @@ namespace std_ivy{
     template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(U* ptr);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType const& get_exec_memory_type() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type* size_ptr() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type* counter() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer get() const noexcept;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType const& get_exec_memory_type() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type* size_ptr() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type* counter() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer get() const __NOEXCEPT__;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType& get_exec_memory_type() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType*& get_memory_type() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream*& gpu_stream() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type*& size_ptr() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type*& counter() noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer& get() noexcept;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType& get_exec_memory_type() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType*& get_memory_type() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream*& gpu_stream() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type*& size_ptr() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type*& counter() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer& get() __NOEXCEPT__;
 
-    __CUDA_HOST_DEVICE__ size_type size() const noexcept;
+    __CUDA_HOST_DEVICE__ size_type size() const __NOEXCEPT__;
 
-    __CUDA_HOST_DEVICE__ reference operator*() const noexcept;
-    __CUDA_HOST_DEVICE__ pointer operator->() const noexcept;
+    __CUDA_HOST_DEVICE__ reference operator*() const __NOEXCEPT__;
+    __CUDA_HOST_DEVICE__ reference operator[](size_type k) const;
+    __CUDA_HOST_DEVICE__ pointer operator->() const __NOEXCEPT__;
 
     __CUDA_HOST_DEVICE__ void reset();
     __CUDA_HOST_DEVICE__ void reset(std_cstddef::nullptr_t);
     template<typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
     template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
 
-    template<typename U> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<U, IPT>& other) noexcept;
+    template<typename U> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<U, IPT>& other) __NOEXCEPT__;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type use_count() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool unique() const noexcept;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ explicit operator bool() const noexcept;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type use_count() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool unique() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ explicit operator bool() const __NOEXCEPT__;
 
     /*
     transfer: Transfers the memory type of the pointer to the new memory type.
@@ -106,30 +107,48 @@ namespace std_ivy{
   template<typename T> using shared_ptr = IvyUnifiedPtr<T, IvyPointerType::shared>;
   template<typename T> using unique_ptr = IvyUnifiedPtr<T, IvyPointerType::unique>;
 
-  template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) noexcept;
-  template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) noexcept;
+  template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) __NOEXCEPT__;
+  template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) __NOEXCEPT__;
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, T* ptr) noexcept;
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, T* ptr) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, T* ptr) __NOEXCEPT__;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, T* ptr) __NOEXCEPT__;
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(T* ptr, IvyUnifiedPtr<T, IPT> const& a) noexcept;
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(T* ptr, IvyUnifiedPtr<T, IPT> const& a) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(T* ptr, IvyUnifiedPtr<T, IPT> const& a) __NOEXCEPT__;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(T* ptr, IvyUnifiedPtr<T, IPT> const& a) __NOEXCEPT__;
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) noexcept;
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) __NOEXCEPT__;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, std_cstddef::nullptr_t) __NOEXCEPT__;
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(std_cstddef::nullptr_t, IvyUnifiedPtr<T, IPT> const& a) noexcept;
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(std_cstddef::nullptr_t, IvyUnifiedPtr<T, IPT> const& a) noexcept;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator==(std_cstddef::nullptr_t, IvyUnifiedPtr<T, IPT> const& a) __NOEXCEPT__;
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool operator!=(std_cstddef::nullptr_t, IvyUnifiedPtr<T, IPT> const& a) __NOEXCEPT__;
 
-  template<typename T, typename U, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPT> const& b) noexcept;
+  template<typename T, typename U, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPT> const& b) __NOEXCEPT__;
 
-  template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> allocate_shared(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-  template<typename T, typename Allocator_t, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> allocate_unique(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, typename IvyUnifiedPtr<T, IPT>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> allocate_unified(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ shared_ptr<T> allocate_shared(Allocator_t const& a, IvyMemoryType mem_type, typename shared_ptr<T>::size_type n, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ unique_ptr<T> allocate_unique(Allocator_t const& a, IvyMemoryType mem_type, typename unique_ptr<T>::size_type n, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ shared_ptr<T> allocate_shared(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename Allocator_t, typename... Args>
+  __CUDA_HOST_DEVICE__ unique_ptr<T> allocate_unique(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
 
-  template<typename T, IvyPointerType IPT, typename... Args> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, IvyPointerType IPT, typename... Args>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(typename IvyUnifiedPtr<T, IPT>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, IvyPointerType IPT, typename... Args>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename... Args>
+  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(typename shared_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename... Args>
+  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(typename shared_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename... Args>
+  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+  template<typename T, typename... Args>
+  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
 
 }
 

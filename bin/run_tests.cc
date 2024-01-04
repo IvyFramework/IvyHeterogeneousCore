@@ -4,6 +4,7 @@
 #include "std_ivy/IvyChrono.h"
 #include "std_ivy/IvyAlgorithm.h"
 #include "stream/IvyStream.h"
+#include "IvyMemoryHelpers.h"
 
 
 using std_ivy::IvyMemoryType;

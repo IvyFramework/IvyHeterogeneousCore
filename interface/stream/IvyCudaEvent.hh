@@ -5,7 +5,7 @@
 #ifdef __USE_CUDA__
 
 #include "config/IvyCudaException.h"
-#include "std_ivy/IvyUtility.h"
+#include "stream/IvyBaseStreamEvent.h"
 
 
 /*
@@ -27,9 +27,6 @@
     The rcd_flags argument could be cudaEventRecordDefault or cudaEventRecordExternal.
     The stream argument defines the stream to record this event and is defaulted to cudaStreamLegacy.
   - synchronize() synchronizes the calling thread with the event.
-  - wait() waits for the event to complete on the specified stream.
-    The wait_flags argument could be cudaEventWaitDefault or cudaEventWaitExternal.
-    The stream argument instructs the passed stream to wait for this event.
   - elapsed_time() returns the elapsed time between the calling event and the passed event.
     The start argument marks the beginning of the time interval and needs to be another event.
 */
@@ -37,61 +34,53 @@
 
 class IvyCudaStream;
 
-class IvyCudaEvent{
+namespace IvyStreamUtils{
+  template<> __CUDA_HOST_DEVICE__ void createStreamEvent(cudaEvent_t& ev);
+  template<> __CUDA_HOST_DEVICE__ void destroyStreamEvent(cudaEvent_t& ev);
+
+  template<> struct StreamEvent<cudaStream_t>{ typedef cudaEvent_t type; };
+}
+
+class IvyCudaEvent final : public IvyBaseStreamEvent<cudaStream_t>{
 public:
-  enum class EventFlags{
+  typedef IvyBaseStreamEvent<cudaStream_t> Base_t;
+
+  enum class EventFlags : unsigned char{
     Default,
     BlockingSync,
     DisableTiming,
     Interprocess
   };
-  enum class RecordFlags{
+  enum class RecordFlags : unsigned char{
     Default,
     External
   };
-  enum class WaitFlags{
+  enum class WaitFlags : unsigned char{
     Default,
     External
   };
 
-  static __CUDA_HOST_DEVICE__ unsigned int get_event_flags(EventFlags const& flags);
-  static __CUDA_HOST_DEVICE__ unsigned int get_record_flags(RecordFlags const& flags);
-  static __CUDA_HOST_DEVICE__ unsigned int get_wait_flags(WaitFlags const& flags);
-
-protected:
-  unsigned int flags_;
-  cudaEvent_t event_;
-
-public:
   __CUDA_HOST__ IvyCudaEvent(EventFlags flags = EventFlags::DisableTiming);
   __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&) = delete;
   __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&&) = delete;
-  __CUDA_HOST__ ~IvyCudaEvent();
-
-  __CUDA_HOST_DEVICE__ unsigned int const& flags() const;
-  __CUDA_HOST_DEVICE__ cudaEvent_t const& event() const;
-  __CUDA_HOST_DEVICE__ operator cudaEvent_t const& () const;
-
-  __CUDA_HOST_DEVICE__ unsigned int& flags();
-  __CUDA_HOST_DEVICE__ cudaEvent_t& event();
-  __CUDA_HOST_DEVICE__ operator cudaEvent_t& ();
+  virtual __CUDA_HOST_DEVICE__ ~IvyCudaEvent(){}
 
   // rcd_flags could be cudaEventRecordDefault or cudaEventRecordExternal.
+  __CUDA_HOST__ void record(cudaStream_t& stream, unsigned int rcd_flags);
   __CUDA_HOST__ void record(IvyCudaStream& stream, RecordFlags rcd_flags = RecordFlags::Default);
   __CUDA_HOST__ void record(cudaStream_t& stream, RecordFlags rcd_flags = RecordFlags::Default);
-
-  // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
-  __CUDA_HOST__ void wait(IvyCudaStream& stream, WaitFlags wait_flags = WaitFlags::Default);
 
   __CUDA_HOST__ void synchronize();
 
   __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start) const;
   static __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end);
 
-  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& other);
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& other){ Base_t::swap(other); }
 
+  static __CUDA_HOST_DEVICE__ unsigned int get_event_flags(EventFlags const& flags);
+  static __CUDA_HOST_DEVICE__ unsigned int get_record_flags(RecordFlags const& flags);
+  static __CUDA_HOST_DEVICE__ unsigned int get_wait_flags(WaitFlags const& flags);
 };
-
 
 #endif
 

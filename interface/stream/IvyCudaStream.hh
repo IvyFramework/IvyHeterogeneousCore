@@ -2,12 +2,6 @@
 #define IVYCUDASTREAM_HH
 
 
-#ifdef __USE_CUDA__
-
-#include "config/IvyCudaException.h"
-#include "stream/IvyCudaEvent.hh"
-
-
 /*
   IvyCudaStream:
   This class is a wrapper around cudaStream_t. It is used to record streams and synchronize them.
@@ -38,53 +32,45 @@
 */
 
 
-class IvyCudaStream{
+#ifdef __USE_CUDA__
+
+#include "config/IvyCudaException.h"
+#include "stream/IvyBaseStream.h"
+#include "stream/IvyCudaEvent.hh"
+
+
+namespace IvyStreamUtils{
+  template<> __CUDA_HOST_DEVICE__ void createStream(cudaStream_t& st, unsigned int flags, unsigned int priority);
+  template<> __CUDA_HOST_DEVICE__ void destroyStream(cudaStream_t& st);
+}
+
+class IvyCudaStream final : public IvyBaseStream<cudaStream_t>{
 public:
   typedef cudaHostFn_t fcn_callback_t;
+  typedef IvyBaseStream<cudaStream_t> Base_t;
 
-  enum class StreamFlags{
+  enum class StreamFlags : unsigned char{
     Default,
     NonBlocking
   };
 
-  static __CUDA_HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags);
-
-protected:
-  bool is_owned_;
-  unsigned int flags_;
-  int priority_;
-  cudaStream_t stream_;
-
-public:
   __CUDA_HOST__ IvyCudaStream(StreamFlags flags = StreamFlags::Default, int priority = 0);
   __CUDA_HOST_DEVICE__ IvyCudaStream(cudaStream_t st, bool do_own);
   __CUDA_HOST_DEVICE__ IvyCudaStream(IvyCudaStream const&) = delete;
   __CUDA_HOST_DEVICE__ IvyCudaStream(IvyCudaStream const&&) = delete;
-#ifdef __CUDA_DEVICE_CODE__
-  ~IvyCudaStream() = default;
-#else
-  __CUDA_HOST__ ~IvyCudaStream();
-#endif
-
-  __CUDA_HOST_DEVICE__ unsigned int const& flags() const;
-  __CUDA_HOST_DEVICE__ int const& priority() const;
-  __CUDA_HOST_DEVICE__ cudaStream_t const& stream() const;
-  __CUDA_HOST_DEVICE__ operator cudaStream_t const& () const;
-
-  __CUDA_HOST_DEVICE__ unsigned int& flags();
-  __CUDA_HOST_DEVICE__ int& priority();
-  __CUDA_HOST_DEVICE__ cudaStream_t& stream();
-  __CUDA_HOST_DEVICE__ operator cudaStream_t& ();
-
-  // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
-  __CUDA_HOST__ void wait(IvyCudaEvent& event, IvyCudaEvent::WaitFlags wait_flags = IvyCudaEvent::WaitFlags::Default);
+  virtual __CUDA_HOST_DEVICE__ ~IvyCudaStream(){}
 
   __CUDA_HOST__ void synchronize();
 
+  // wait_flags could be cudaEventWaitDefault or cudaEventWaitExternal.
+  __CUDA_HOST__ void wait(Base_t::RawEvent_t& event, unsigned int wait_flags);
+  __CUDA_HOST__ void wait(IvyCudaEvent& event, IvyCudaEvent::WaitFlags wait_flags = IvyCudaEvent::WaitFlags::Default);
+
   __CUDA_HOST__ void add_callback(fcn_callback_t fcn, void* user_data);
 
-  __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& other);
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& other){ Base_t::swap(other); }
 
+  static __CUDA_HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags);
 };
 
 #endif
