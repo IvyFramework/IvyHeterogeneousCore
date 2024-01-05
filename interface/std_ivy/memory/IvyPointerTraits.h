@@ -42,7 +42,8 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
   struct pointer_traits_rebind<S<T, Args...>, U, false>{ typedef S<U, Args...> type; };
 
 
-  template <typename T> struct pointer_traits{
+  template <typename T> class pointer_traits{
+  public:
     typedef T pointer;
     typedef pointer_traits_element_type_t<pointer> element_type;
     typedef pointer_traits_difference_type_t<pointer> difference_type;
@@ -54,8 +55,8 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
       std_ttraits::conditional_t<std_ttraits::is_void_v<element_type>, nat, element_type>& x
     ){ return pointer::pointer_to(x); }
   };
-  template<typename T> struct pointer_traits<T*>{
-  protected:
+  template<typename T> class pointer_traits<T*>{
+  public:
     typedef T* pointer;
     typedef T element_type;
     typedef IvyTypes::ptrdiff_t difference_type;

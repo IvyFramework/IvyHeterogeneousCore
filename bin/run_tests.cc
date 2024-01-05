@@ -101,6 +101,11 @@ int main(){
     kernel_print_dummy_D<<<1, 1, 0, stream>>>(ptr_shared.get());
     kernel_print_dummy_B_as_D<<<1, 1, 0, stream>>>(ptr_shared_copy.get());
 
+    printf("%s\n", typeid(ptr_shared).name());
+    printf("%s\n", typeid(std_mem::pointer_traits<std_mem::shared_ptr<dummy_D>>::element_type).name());
+    printf("%s\n", typeid(std_mem::pointer_traits<std_mem::shared_ptr<dummy_D>>::pointer).name());
+    printf("%s\n", typeid(std_mem::pointer_traits<std_mem::shared_ptr<dummy_D>>::rebind<dummy_B>).name());
+
     std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::unique_ptr<dummy_B> ptr_unique_copy = ptr_unique;
     __PRINT_INFO__("ptr_unique no. of copies: %i\n", ptr_unique.use_count());

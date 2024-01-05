@@ -8,6 +8,7 @@
 #include "std_ivy/IvyCstddef.h"
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
+#include "std_ivy/memory/IvyPointerTraits.h"
 #include "std_ivy/IvyFunctional.h"
 
 
@@ -24,6 +25,7 @@ namespace std_ivy{
     typedef T& reference;
     typedef IvyTypes::size_t size_type;
     typedef IvyTypes::size_t counter_type;
+    typedef size_type difference_type;
     typedef std_ivy::allocator<element_type> element_allocator_type;
     typedef std_ivy::allocator<size_type> size_allocator_type;
     typedef std_ivy::allocator<counter_type> counter_allocator_type;
@@ -32,6 +34,8 @@ namespace std_ivy{
     typedef std_ivy::allocator_traits<size_allocator_type> size_allocator_traits;
     typedef std_ivy::allocator_traits<counter_allocator_type> counter_allocator_traits;
     typedef std_ivy::allocator_traits<mem_type_allocator_type> mem_type_allocator_traits;
+
+    template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
   protected:
     IvyMemoryType exec_mem_type_;
@@ -149,6 +153,18 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
   template<typename T, typename... Args>
   __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+
+  /*
+  Specialization of pointer_traits:
+  There is no pointer_to for IvyUnifiedPtr since this class is for shared/unique pointers with ownership.
+  */
+  template<typename T, IvyPointerType IPT> class pointer_traits<IvyUnifiedPtr<T, IPT>>{
+  public:
+    typedef IvyUnifiedPtr<T, IPT> pointer;
+    typedef typename pointer::element_type element_type;
+    typedef typename pointer::difference_type difference_type;
+    template <typename U> using rebind = pointer_traits_rebind_t<pointer, U>;
+  };
 
 }
 
