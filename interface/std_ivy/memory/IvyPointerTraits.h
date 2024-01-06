@@ -33,7 +33,7 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
   public:
     static constexpr bool value = decltype(has_rebind::test<T>(0))::value;
   };
-  template <typename T, typename U> inline constexpr bool has_rebind_v = has_rebind<T, U>::value;
+  template <typename T, typename U> __INLINE_FCN_RELAXED__ constexpr bool has_rebind_v = has_rebind<T, U>::value;
   template <typename T, typename U, bool = has_rebind_v<T, U>> struct pointer_traits_rebind{ typedef typename T::template rebind<U> type; };
   template <typename T, typename U> using pointer_traits_rebind_t = typename pointer_traits_rebind<T, U>::type;
   template <template <typename, typename...> typename S, typename T, typename ...Args, typename U>

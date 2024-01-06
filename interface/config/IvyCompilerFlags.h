@@ -19,10 +19,11 @@ Compiler types and compiler-dependent macros
 #define COMPILER_CLANG 1
 #define COMPILER_CLANG_APPLE 2
 #define COMPILER_GCC 3
-#define COMPILER_MSVC 4
-#define COMPILER_IBM 5
-#define COMPILER_NVHPC 6
-#define COMPILER_NVRTC 7
+#define COMPILER_ILLVM 4
+#define COMPILER_MSVC 5
+#define COMPILER_IBM 6
+#define COMPILER_NVHPC 7
+#define COMPILER_NVRTC 8
 #if defined(__clang__)
 #ifndef __apple_build_version__
 #define COMPILER COMPILER_CLANG
@@ -31,6 +32,9 @@ Compiler types and compiler-dependent macros
 #define COMPILER COMPILER_CLANG_APPLE
 #define COMPILER_VERSION __apple_build_version__
 #endif
+#elif defined(__INTEL_LLVM_COMPILER)
+#define COMPILER COMPILER_ILLVM
+#define COMPILER_VERSION __VERSION__
 #elif defined(__GNUC__)
 #define COMPILER COMPILER_GCC
 #define COMPILER_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
@@ -91,7 +95,9 @@ If they are not, they should simply return 'No'.
 #define __is_identifier(x) 1
 #endif
 
+#ifndef __has_keyword
 #define __has_keyword(x) !(__is_identifier(x))
+#endif
 
 #ifndef __has_declspec_attribute
 #define __has_declspec_attribute(x) 0
@@ -114,6 +120,12 @@ so the macros below are to maintain compatibility.
 #define __CPP_CONSTEXPR__ constexpr
 #else
 #define __CPP_CONSTEXPR__
+#endif
+
+#if defined(__HAS_CPP20_FEATURES__)
+#define __CPP_VIRTUAL_CONSTEXPR__ constexpr
+#else
+#define __CPP_VIRTUAL_CONSTEXPR__
 #endif
 
 #if __has_feature(cxx_noexcept)

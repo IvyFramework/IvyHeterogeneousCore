@@ -19,7 +19,12 @@
 #endif
 
 // Define shorthands for common type trait checks
-#define ENABLE_IF_BASE_OF(BASE, DERIVED) std_ttraits::enable_if_t<std_ttraits::is_base_of_v<BASE, DERIVED>, bool> = true
+#define ENABLE_IF_BOOL_IMPL(COND) std_ttraits::enable_if_t<COND, bool>
+#define ENABLE_IF_BOOL(COND) ENABLE_IF_BOOL_IMPL(COND) = true
+#define ENABLE_IF_BASE_OF_IMPL(BASE, DERIVED) ENABLE_IF_BOOL_IMPL(std_ttraits::is_base_of_v<BASE, DERIVED>)
+#define ENABLE_IF_BASE_OF(BASE, DERIVED) ENABLE_IF_BOOL(std_ttraits::is_base_of_v<BASE, DERIVED>)
+#define ENABLE_IF_ARITHMETIC_IMPL(TYPE) ENABLE_IF_BOOL_IMPL(std_ttraits::is_arithmetic_v<TYPE>)
+#define ENABLE_IF_ARITHMETIC(TYPE) ENABLE_IF_BOOL(std_ttraits::is_arithmetic_v<TYPE>)
 #define DEFINE_HAS_TRAIT(TRAIT) \
   template <typename T, typename = void> struct has_##TRAIT : std_ttraits::false_type{}; \
   template <typename T> struct has_##TRAIT<T, std_ttraits::void_t<typename T::TRAIT>> : std_ttraits::true_type{}; \

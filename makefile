@@ -26,7 +26,7 @@ EXEFLAGS      = $(CXXFLAGS)
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
 CXXDEFINES    += -D__USE_CUDA__
-CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared -Xcompiler -fPIC -g -O2 -std=c++17 $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared -Xcompiler -fPIC -g -O2 -std=c++20 $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 endif
 

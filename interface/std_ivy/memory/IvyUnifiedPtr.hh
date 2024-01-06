@@ -9,7 +9,7 @@
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
-#include "std_ivy/IvyFunctional.h"
+//#include "std_ivy/IvyFunctional.h"
 
 
 namespace std_ivy{
