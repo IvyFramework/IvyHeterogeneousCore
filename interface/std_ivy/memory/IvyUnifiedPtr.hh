@@ -10,6 +10,7 @@
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 //#include "std_ivy/IvyFunctional.h"
+#include "IvyMultiAccessTransferrable.h"
 
 
 namespace std_ivy{
@@ -18,7 +19,10 @@ namespace std_ivy{
     unique
   };
 
-  template<typename T, IvyPointerType IPT> class IvyUnifiedPtr{
+  template<typename T, IvyPointerType IPT> class IvyUnifiedPtr;
+  template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
+
+  template<typename T, IvyPointerType IPT> class IvyUnifiedPtr : IvyMultiAccessTransferrable{
   public:
     typedef T element_type;
     typedef T* pointer;
@@ -37,6 +41,8 @@ namespace std_ivy{
 
     template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
+    friend class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
+
   protected:
     IvyMemoryType exec_mem_type_;
     IvyMemoryType* mem_type_;
@@ -48,6 +54,8 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void init_members(IvyMemoryType mem_type, size_type n);
     __CUDA_HOST_DEVICE__ void release();
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void dump();
+
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType new_mem_type);
 
   public:
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
@@ -70,20 +78,21 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType const& get_exec_memory_type() const __NOEXCEPT__;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type_ptr() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type* size_ptr() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type* counter() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer get() const __NOEXCEPT__;
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType& get_exec_memory_type() __NOEXCEPT__;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType*& get_memory_type() __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType*& get_memory_type_ptr() __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream*& gpu_stream() __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type*& size_ptr() __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type*& counter() __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer& get() __NOEXCEPT__;
 
     __CUDA_HOST_DEVICE__ size_type size() const __NOEXCEPT__;
+    __CUDA_HOST_DEVICE__ IvyMemoryType get_memory_type() const __NOEXCEPT__;
 
     __CUDA_HOST_DEVICE__ reference operator*() const __NOEXCEPT__;
     __CUDA_HOST_DEVICE__ reference operator[](size_type k) const;
@@ -105,7 +114,7 @@ namespace std_ivy{
     If transfer_all is true, pointers ref_count_ and mem_type_ are also transferred.
     Otherwise, these two pointers are created in the default memory location of the execution space.
     */
-    __CUDA_HOST__ void transfer(IvyMemoryType new_mem_type, bool transfer_all);
+    __CUDA_HOST__ bool transfer(IvyMemoryType new_mem_type, bool transfer_all);
   };
 
   template<typename T> using shared_ptr = IvyUnifiedPtr<T, IvyPointerType::shared>;

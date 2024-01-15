@@ -3,6 +3,7 @@
 
 
 #include "IvyBasicTypes.h"
+#include "std_ivy/iterator/IvyIteratorTraits.h"
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyMemory.h"
@@ -126,7 +127,19 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ void swap(IvyOutputIterator<T, D, P, R>& x, IvyOutputIterator<T, D, P, R>& y){ return x.swap(y); }
 
 
-
+  template<typename It> __CUDA_HOST_DEVICE__ constexpr typename std_ivy::iterator_traits<It>::difference_type distance(It const& first, It const& last){
+    using category = typename std_ivy::iterator_traits<It>::iterator_category;
+    static_assert(std_ttraits::is_base_of_v<std_ivy::input_iterator_tag, category>);
+    if constexpr (std_ttraits::is_base_of_v<std_ivy::random_access_iterator_tag, category>) return last - first;
+    else{
+      typename std_ivy::iterator_traits<It>::difference_type result = 0;
+      while (first != last){
+        ++first;
+        ++result;
+      }
+      return result;
+    }
+  }
 
 
 
