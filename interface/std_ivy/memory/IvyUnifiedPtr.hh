@@ -21,6 +21,7 @@ namespace std_ivy{
 
   template<typename T, IvyPointerType IPT> class IvyUnifiedPtr;
   template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
+  template<typename T, IvyPointerType IPT> class deallocator_primitive<IvyUnifiedPtr<T, IPT>>;
 
   template<typename T, IvyPointerType IPT> class IvyUnifiedPtr : IvyMultiAccessTransferrable{
   public:
@@ -42,6 +43,7 @@ namespace std_ivy{
     template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
     friend class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
+    friend class deallocator_primitive<IvyUnifiedPtr<T, IPT>>;
 
   protected:
     IvyMemoryType exec_mem_type_;
@@ -54,6 +56,8 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void init_members(IvyMemoryType mem_type, size_type n);
     __CUDA_HOST_DEVICE__ void release();
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void dump();
+
+    __CUDA_HOST_DEVICE__ void inc_dec_counter(bool do_inc);
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type);
 
@@ -113,8 +117,8 @@ namespace std_ivy{
 
     template<typename U> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<U, IPT>& other) __NOEXCEPT__;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type use_count() const __NOEXCEPT__;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool unique() const __NOEXCEPT__;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type use_count() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool unique() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ explicit operator bool() const __NOEXCEPT__;
 
     /*

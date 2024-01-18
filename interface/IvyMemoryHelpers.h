@@ -41,6 +41,8 @@ namespace IvyMemoryHelpers{
     UnifiedPrefetched
   };
 
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool requires_malloc_free(MemoryType type);
+
   /*
   allocate_memory: Allocates memory for an array of type T of size n. Constructors are called for the arguments args.
   - data: Pointer to the target data.
@@ -256,6 +258,19 @@ namespace IvyMemoryHelpers{
 
 // Definitions
 namespace IvyMemoryHelpers{
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool requires_malloc_free(MemoryType type){
+#ifdef __USE_CUDA__
+#ifndef __CUDA_DEVICE_CODE__
+    bool const is_pl = is_pagelocked(type);
+    bool const is_dev = is_device_memory(type);
+    bool const is_uni = is_unified_memory(type);
+    return (is_dev || is_uni || is_pl);
+#endif
+#else
+    return false;
+#endif
+  }
+
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool allocate_memory_fcnal<T, Args...>::allocate_memory(
     T*& data,
     size_t n

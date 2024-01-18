@@ -52,6 +52,11 @@ __CUDA_HOST_DEVICE__ void print_dummy_B_as_D(dummy_B* ptr){
 __CUDA_GLOBAL__ void kernel_print_dummy_B_as_D(dummy_B* ptr){
   print_dummy_B_as_D(ptr);
 }
+template<typename T> __CUDA_GLOBAL__ void kernel_test_unifiedptr_ptr(T* ptr){
+  printf("Calling kernel_test_unifiedptr_ptr...\n");
+  printf("kernel_test_unifiedptr_ptr: Device ptr ptrs: address, ptr, mem_type, size, counter, exec_mem = %p, %p, %p, %p, %p, %u\n", ptr, ptr->get(), ptr->get_memory_type_ptr(), ptr->size_ptr(), ptr->counter(), ptr->get_exec_memory_type());
+  printf("kernel_test_unifiedptr_ptr: Device ptr no. of copies, counter val., memory type, dummy_D.a: %llu, %llu, %u, %f\n", ptr->use_count(), *(ptr->counter()), ptr->get_memory_type(), (*ptr)->a);
+}
 
 
 int main(){
@@ -126,9 +131,8 @@ int main(){
     __PRINT_INFO__("Allocating h_ptr_unique...\n");
     std_mem::unique_ptr<dummy_D>* h_ptr_unique = uniqueptr_allocator_traits::allocate(1, IvyMemoryType::Host, stream);
     uniqueptr_allocator_traits::transfer(h_ptr_unique, &h_unique_transferable, 1, IvyMemoryType::Host, IvyMemoryType::Host, stream);
-    __PRINT_INFO__("h_unique_transferable no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_unique_transferable.use_count(), h_unique_transferable.get(), h_unique_transferable->a);
-    __PRINT_INFO__("h_ptr_unique no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_ptr_unique->use_count(), h_ptr_unique->get(), (*h_ptr_unique)->a);
-
+    __PRINT_INFO__("h_unique_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_unique_transferable.use_count(), h_unique_transferable.get(), h_unique_transferable->a);
+    __PRINT_INFO__("h_ptr_unique no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_ptr_unique->use_count(), h_ptr_unique->get(), (*h_ptr_unique)->a);
     __PRINT_INFO__("Deallocating h_ptr_unique...\n");
     uniqueptr_allocator_traits::deallocate(h_ptr_unique, 1, IvyMemoryType::Host, stream);
 
@@ -136,11 +140,20 @@ int main(){
     __PRINT_INFO__("Allocating h_ptr_shared...\n");
     std_mem::shared_ptr<dummy_D>* h_ptr_shared = sharedptr_allocator_traits::allocate(1, IvyMemoryType::Host, stream);
     sharedptr_allocator_traits::transfer(h_ptr_shared, &h_shared_transferable, 1, IvyMemoryType::Host, IvyMemoryType::Host, stream);
-    __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
-    __PRINT_INFO__("h_ptr_shared no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_ptr_shared->use_count(), h_ptr_shared->get(), (*h_ptr_shared)->a);
-
+    __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
+    __PRINT_INFO__("h_ptr_shared no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_ptr_shared->use_count(), h_ptr_shared->get(), (*h_ptr_shared)->a);
     __PRINT_INFO__("Deallocating h_ptr_shared...\n");
     sharedptr_allocator_traits::deallocate(h_ptr_shared, 1, IvyMemoryType::Host, stream);
+    __PRINT_INFO__("h_shared_transferable (after dealloc.) no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
+    __PRINT_INFO__("Allocating d_ptr_shared...\n");
+    std_mem::shared_ptr<dummy_D>* d_ptr_shared = sharedptr_allocator_traits::allocate(1, IvyMemoryType::Device, stream);
+    sharedptr_allocator_traits::transfer(d_ptr_shared, &h_shared_transferable, 1, IvyMemoryType::Device, IvyMemoryType::Host, stream);
+    __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
+    stream.synchronize();
+    kernel_test_unifiedptr_ptr<<<1, 1, 0, stream>>>(d_ptr_shared);
+    stream.synchronize();
+    __PRINT_INFO__("Deallocating d_ptr_shared...\n");
+    sharedptr_allocator_traits::deallocate(d_ptr_shared, 1, IvyMemoryType::Device, stream);
 
     __PRINT_INFO__("\t- Testing basic data allocation, transfer, and deallocation...\n");
 
