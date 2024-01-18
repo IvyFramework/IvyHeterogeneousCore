@@ -55,7 +55,15 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void release();
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void dump();
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType new_mem_type);
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type);
+
+    /*
+    transfer_impl: Implementation for transferring the memory type of the pointer to the new memory type.
+    If transfer_all is true, pointers ref_count_ and mem_type_ are also transferred.
+    Otherwise, these two pointers are created in the default memory location of the execution space.
+    IF copy_ptr is true, a new pointer is created.
+    */
+    __CUDA_HOST__ bool transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr);
 
   public:
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
@@ -113,8 +121,10 @@ namespace std_ivy{
     transfer: Transfers the memory type of the pointer to the new memory type.
     If transfer_all is true, pointers ref_count_ and mem_type_ are also transferred.
     Otherwise, these two pointers are created in the default memory location of the execution space.
+
+    See also transfer_impl for the internal implementation, allowing the user to also make a new copy of the pointer.
     */
-    __CUDA_HOST__ bool transfer(IvyMemoryType new_mem_type, bool transfer_all);
+    __CUDA_HOST__ bool transfer(IvyMemoryType const& new_mem_type, bool transfer_all);
   };
 
   template<typename T> using shared_ptr = IvyUnifiedPtr<T, IvyPointerType::shared>;

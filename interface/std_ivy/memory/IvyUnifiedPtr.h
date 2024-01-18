@@ -153,10 +153,11 @@ namespace std_ivy{
     if (ref_count_){
       if (*ref_count_>0) --(*ref_count_);
       if (*ref_count_ == 0){
+        auto const current_mem_type = this->get_memory_type();
         operate_with_GPU_stream_from_pointer(
           stream_, ref_stream,
           __ENCAPSULATE__(
-            element_allocator_traits::deallocate(ptr_, this->size(), *mem_type_, ref_stream);
+            element_allocator_traits::deallocate(ptr_, this->size(), current_mem_type, ref_stream);
             size_allocator_traits::deallocate(size_, 1, exec_mem_type_, ref_stream);
             counter_allocator_traits::deallocate(ref_count_, 1, exec_mem_type_, ref_stream);
             mem_type_allocator_traits::deallocate(mem_type_, 1, exec_mem_type_, ref_stream);
@@ -266,7 +267,7 @@ namespace std_ivy{
     }
     else{
       if (stream) stream_ = stream;
-      if (*mem_type_ != mem_type){
+      if (this->get_memory_type() != mem_type){
         __PRINT_ERROR__("IvyUnifiedPtr::reset() failed: Incompatible mem_type flags.\n");
         assert(false);
       }
@@ -277,37 +278,38 @@ namespace std_ivy{
     this->reset(ptr, __STATIC_CAST__(size_type, 1), mem_type, stream);
   }
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_internal_memory(IvyMemoryType new_mem_type){
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_internal_memory(IvyMemoryType const& new_mem_type){
 #ifndef __CUDA_DEVICE_CODE__
-    return this->transfer(new_mem_type, true);
+    return this->transfer_impl(new_mem_type, true, true);
 #else
     return true;
 #endif
   }
 
-  template<typename T, IvyPointerType IPT> __CUDA_HOST__ bool IvyUnifiedPtr<T, IPT>::transfer(IvyMemoryType new_mem_type, bool transfer_all){
+  template<typename T, IvyPointerType IPT> __CUDA_HOST__ bool IvyUnifiedPtr<T, IPT>::transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr){
     bool res = true;
     if (ptr_){
-      if (*mem_type_ != new_mem_type){
+      auto const current_mem_type = this->get_memory_type();
+      if (copy_ptr || current_mem_type != new_mem_type){
         IvyMemoryType misc_mem_type = (transfer_all ? new_mem_type : exec_mem_type_);
         pointer new_ptr_ = nullptr;
         size_type* new_size_ = nullptr;
-        counter_type*  new_ref_count_ = nullptr;
+        counter_type* new_ref_count_ = nullptr;
         IvyMemoryType* new_mem_type_ = nullptr;
-        size_type size_val = this->size();
+        size_type const size_val = this->size();
 
         operate_with_GPU_stream_from_pointer(
           stream_, ref_stream,
           __ENCAPSULATE__(
             res &= element_allocator_traits::allocate(new_ptr_, size_val, new_mem_type, ref_stream);
-            res &= element_allocator_traits::transfer(new_ptr_, ptr_, size_val, new_mem_type, *mem_type_, ref_stream);
+            res &= element_allocator_traits::transfer(new_ptr_, ptr_, size_val, new_mem_type, current_mem_type, ref_stream);
             res &= size_allocator_traits::allocate(new_size_, 1, misc_mem_type, ref_stream, size_val);
             res &= counter_allocator_traits::allocate(new_ref_count_, 1, misc_mem_type, ref_stream, __STATIC_CAST__(counter_type, 1));
             res &= mem_type_allocator_traits::allocate(new_mem_type_, 1, misc_mem_type, ref_stream, new_mem_type);
           )
         );
 
-        this->release();
+        if (!copy_ptr) this->release();
 
         exec_mem_type_ = misc_mem_type;
         ptr_ = new_ptr_;
@@ -317,6 +319,9 @@ namespace std_ivy{
       }
     }
     return res;
+  }
+  template<typename T, IvyPointerType IPT> __CUDA_HOST__ bool IvyUnifiedPtr<T, IPT>::transfer(IvyMemoryType const& new_mem_type, bool transfer_all){
+    return this->transfer_impl(new_mem_type, transfer_all, false);
   }
 
   template<typename T, IvyPointerType IPT> template<typename U> __CUDA_HOST_DEVICE__ void IvyUnifiedPtr<T, IPT>::swap(IvyUnifiedPtr<U, IPT>& other) __NOEXCEPT__{
@@ -410,15 +415,20 @@ namespace std_ivy{
       IvyGPUStream& stream
     ){
       if (!src) return false;
-      if (type_tgt == type_src) return IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
       bool res = true;
-      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      pointer p_int = nullptr;
-      res &= allocator_primitive<value_type>::allocate(p_int, n, def_mem_type, stream);
-      res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
-      for (size_type i=0; i<n; i++) res &= p_int[i]->transfer_internal_memory(type_tgt);
-      res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
-      res &= deallocator_primitive<value_type>::deallocate(p_int, n, def_mem_type, stream);
+      if (type_tgt == type_src){
+        res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
+        for (size_type i=0; i<n; i++) res &= tgt[i].transfer_internal_memory(type_tgt);
+      }
+      else{
+        constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+        pointer p_int = nullptr;
+        res &= allocator_primitive<value_type>::allocate(p_int, n, def_mem_type, stream);
+        res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
+        for (size_type i=0; i<n; i++) res &= p_int[i].transfer_internal_memory(type_tgt);
+        res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
+        res &= deallocator_primitive<value_type>::deallocate(p_int, n, def_mem_type, stream);
+      }
       return res;
     }
   };

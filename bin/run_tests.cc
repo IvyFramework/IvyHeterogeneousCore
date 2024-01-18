@@ -59,6 +59,10 @@ int main(){
   constexpr unsigned int nvars = 10000; // Can be up to ~700M
   IvyCudaConfig::set_max_num_GPU_blocks(1024);
   IvyCudaConfig::set_max_num_GPU_threads_per_block(1024);
+  typedef std_mem::allocator<std_mem::unique_ptr<dummy_D>> uniqueptr_allocator;
+  typedef std_mem::allocator_traits<uniqueptr_allocator> uniqueptr_allocator_traits;
+  typedef std_mem::allocator<std_mem::shared_ptr<dummy_D>> sharedptr_allocator;
+  typedef std_mem::allocator_traits<sharedptr_allocator> sharedptr_allocator_traits;
   typedef std_mem::allocator<double> obj_allocator;
   typedef std_mem::allocator<int> obj_allocator_i;
   IvyGPUStream* streams[nStreams]{
@@ -71,13 +75,14 @@ int main(){
   constexpr int nsum_serial = 64;
   double sum_vals[nsum];
   for (int i = 0; i < nsum; i++) sum_vals[i] = i+1;
-  __PRINT_INFO__("Size of double = %llu\n", static_cast<unsigned long long int>(sizeof(double)));
-  __PRINT_INFO__("Size of dummy_B = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_B)));
-  __PRINT_INFO__("Size of dummy_D = %llu\n", static_cast<unsigned long long int>(sizeof(dummy_D)));
 
   for (unsigned char i = 0; i < nStreams; i++){
+    __PRINT_INFO__("**********\n");
+
     auto& stream = *(streams[i]);
     __PRINT_INFO__("Stream %i (%p) computing...\n", i, stream.stream());
+
+    __PRINT_INFO__("\t- Benchmarking parallel and serial summation...\n");
 
     IvyGPUEvent ev_sum(IvyGPUEvent::EventFlags::Default); ev_sum.record(stream);
     double sum_p = std_algo::add_parallel<double>(sum_vals, nsum, nsum_serial, IvyMemoryType::Host, stream);
@@ -93,6 +98,8 @@ int main(){
     auto time_sum_s_ms = std_chrono::duration_cast<std_chrono::microseconds>(time_sum_s_end - time_sum_s).count()/1000.;
     __PRINT_INFO__("Sum_serial time = %f ms\n", time_sum_s_ms);
     __PRINT_INFO__("Sum serial = %f\n", sum_s);
+
+    __PRINT_INFO__("\t- Testing IvyUniquePtr...\n");
 
     std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::Device, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
@@ -113,6 +120,29 @@ int main(){
     kernel_print_dummy_B_as_D<<<1, 1, 0, stream>>>(ptr_shared_copy.get());
     ptr_unique_copy.reset();
     __PRINT_INFO__("ptr_unique_copy no. of copies after reset: %i\n", ptr_unique_copy.use_count());
+
+    __PRINT_INFO__("\t- Testing IvyUnifiedPtr memory allocation...\n");
+    std_mem::unique_ptr<dummy_D> h_unique_transferable = std_mem::make_unique<dummy_D>(IvyMemoryType::Host, &stream, 1.);
+    __PRINT_INFO__("Allocating h_ptr_unique...\n");
+    std_mem::unique_ptr<dummy_D>* h_ptr_unique = uniqueptr_allocator_traits::allocate(1, IvyMemoryType::Host, stream);
+    uniqueptr_allocator_traits::transfer(h_ptr_unique, &h_unique_transferable, 1, IvyMemoryType::Host, IvyMemoryType::Host, stream);
+    __PRINT_INFO__("h_unique_transferable no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_unique_transferable.use_count(), h_unique_transferable.get(), h_unique_transferable->a);
+    __PRINT_INFO__("h_ptr_unique no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_ptr_unique->use_count(), h_ptr_unique->get(), (*h_ptr_unique)->a);
+
+    __PRINT_INFO__("Deallocating h_ptr_unique...\n");
+    uniqueptr_allocator_traits::deallocate(h_ptr_unique, 1, IvyMemoryType::Host, stream);
+
+    std_mem::shared_ptr<dummy_D> h_shared_transferable = std_mem::make_shared<dummy_D>(IvyMemoryType::Host, &stream, 1.);
+    __PRINT_INFO__("Allocating h_ptr_shared...\n");
+    std_mem::shared_ptr<dummy_D>* h_ptr_shared = sharedptr_allocator_traits::allocate(1, IvyMemoryType::Host, stream);
+    sharedptr_allocator_traits::transfer(h_ptr_shared, &h_shared_transferable, 1, IvyMemoryType::Host, IvyMemoryType::Host, stream);
+    __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
+    __PRINT_INFO__("h_ptr_shared no. of copies, dummy_D addr., dummy_D.a: %p, %i, %p, %f\n", h_ptr_shared->use_count(), h_ptr_shared->get(), (*h_ptr_shared)->a);
+
+    __PRINT_INFO__("Deallocating h_ptr_shared...\n");
+    sharedptr_allocator_traits::deallocate(h_ptr_shared, 1, IvyMemoryType::Host, stream);
+
+    __PRINT_INFO__("\t- Testing basic data allocation, transfer, and deallocation...\n");
 
     int* ptr_i = nullptr;
 
@@ -176,6 +206,8 @@ int main(){
     __PRINT_INFO__("Deallocation time = %f ms\n", time_deallocate);
 
     stream.synchronize();
+
+    __PRINT_INFO__("**********\n");
   }
 
   // Clean up local streams
