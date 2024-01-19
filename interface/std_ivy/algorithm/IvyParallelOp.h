@@ -43,7 +43,7 @@ namespace std_ivy{
   template<typename C, typename T>
   __CUDA_GLOBAL__ void kernel_op_parallel(T* vals, IvyTypes::size_t n, IvyTypes::size_t n_serial){
     IvyTypes::size_t i = 0;
-    IvyMemoryHelpers::get_kernel_call_dims_1D(i);
+    get_kernel_call_dims_1D(i);
     IvyTypes::size_t n_ops = C::n_ops(n, n_serial);
     if (i < n_ops){
       IvyTypes::size_t k = n_serial;

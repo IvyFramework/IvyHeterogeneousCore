@@ -31,9 +31,10 @@
   template <typename T> inline constexpr bool has_##TRAIT##_v = has_##TRAIT<T>::value;
 #define DEFINE_HAS_CALL(FCN) \
   template<typename T> struct has_call_##FCN{ \
+    struct invalid_call_type{}; \
     template <typename U> static constexpr auto test(int) -> decltype(&U::FCN); \
-    template <typename U> static constexpr auto test(...) -> void; \
-    static constexpr bool value = !std_ttraits::is_void_v<decltype(test<T>(0))>; \
+    template <typename U> static constexpr auto test(...) -> invalid_call_type; \
+    static constexpr bool value = !std_ttraits::is_same_v<invalid_call_type, decltype(test<T>(0))>; \
   }; \
   template<typename T> inline constexpr bool has_call_##FCN##_v = has_call_##FCN<T>::value;
 #define DEFINE_HAS_MEMBER(MEMBER) \

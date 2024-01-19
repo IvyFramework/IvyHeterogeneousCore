@@ -266,29 +266,21 @@ namespace IvyMemoryHelpers{
     }
     if (res){
 #ifdef __USE_CUDA__
-      IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
-      if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n_src)){
-        //__PRINT_INFO__("IvyMemoryHelpers::copy_data: Running parallel copy.\n");
-        U* d_source = (src_on_device ? source : nullptr);
-        if (!src_on_device){
-          res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, MemoryType::Device, stream);
-          res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, MemoryType::Device, type_src, stream);
-        }
-        if (!tgt_on_device){
-          T* d_target = nullptr;
-          res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, MemoryType::Device, stream);
-          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(d_target, d_source, n_tgt, n_src);
-          res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, MemoryType::Device, stream);
-          res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, MemoryType::Device, stream);
-        }
-        else{
-          copy_data_kernel<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(target, d_source, n_tgt, n_src);
-        }
-        if (!src_on_device){
-          res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, MemoryType::Device, stream);
-        }
+      U* d_source = (src_on_device ? source : nullptr);
+      if (!src_on_device){
+        res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, MemoryType::Device, stream);
+        res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, MemoryType::Device, type_src, stream);
       }
-      else{
+      T* d_target = nullptr;
+      if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, MemoryType::Device, stream);
+      else d_target = target;
+      res &= run_kernel<copy_data_kernel<T, U>>().parallel_1D(0, stream, n_tgt, n_src, d_target, d_source);
+      if (!tgt_on_device){
+        res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, MemoryType::Device, stream);
+        res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, MemoryType::Device, stream);
+      }
+      if (!src_on_device) res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, MemoryType::Device, stream);
+      if (!res){
         if (tgt_on_device!=src_on_device){
           __PRINT_ERROR__("IvyMemoryHelpers::copy_data: Failed to copy data between host and device.\n");
           assert(0);

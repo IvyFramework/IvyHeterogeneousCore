@@ -31,7 +31,7 @@ public:
 
 __CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyTypes::size_t n, unsigned char is){
   IvyTypes::size_t i = 0;
-  IvyMemoryHelpers::get_kernel_call_dims_1D(i);
+  get_kernel_call_dims_1D(i);
   if (i < n){
     ptr[i] = (i+2)*(is+1);
     if (i<3 || i==n-1) printf("ptr[%llu] = %f in stream %u\n", static_cast<unsigned long long int>(i), ptr[i], static_cast<unsigned int>(is));

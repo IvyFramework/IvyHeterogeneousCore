@@ -22,6 +22,7 @@ For that reason, the -rdc=true flag is required when compiling device code.
 
 #include "IvyBasicTypes.h"
 #include "config/IvyConfig.h"
+#include "config/IvyKernelRun.h"
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyCstdio.h"
@@ -152,24 +153,15 @@ namespace IvyMemoryHelpers{
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ cudaMemcpyKind get_cuda_transfer_direction(MemoryType tgt, MemoryType src);
 
   /*
-  get_kernel_call_dims_1D/2D/3D: Gets the dimensions of the kernel call
-  corresponding to the blockIdx and threadIdx dimensions of the current thread:
-  - 1D is fully flattened.
-  - In 2D, the z dimension is folded into the y direction, and the x dimension is taken as is.
-  - The x, y, and z dimensions are taken as they are in 3D.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_1D(IvyTypes::size_t& i);
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_2D(IvyTypes::size_t& i, IvyTypes::size_t& j);
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_3D(IvyTypes::size_t& i, IvyTypes::size_t& j, IvyTypes::size_t& k);
-
-  /*
   copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
-  - target: Pointer to the target data.
-  - source: Pointer to the source data.
   - n_tgt: Number of elements in the target array.
   - n_src: Number of elements in the source array with the constraint (n_src==n_tgt || n_src==1).
+  - target: Pointer to the target data.
+  - source: Pointer to the source data.
   */
-  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src);
+  template<typename T, typename U> struct copy_data_kernel{
+    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source);
+  };
 
   /*
   transfer_memory: Runs the transfer operation between two pointers of type T.
@@ -383,24 +375,6 @@ namespace IvyMemoryHelpers{
   }
 
 #ifdef __USE_CUDA__
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_1D(IvyTypes::size_t& i){
-    IvyTypes::size_t ix = blockIdx.x * blockDim.x + threadIdx.x;
-    IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
-    IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
-    i = ix + iy * blockDim.x * gridDim.x + iz * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
-  }
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_2D(IvyTypes::size_t& i, IvyTypes::size_t& j){
-    i = blockIdx.x * blockDim.x + threadIdx.x;
-    IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
-    IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
-    j = iy + iz * blockDim.y * gridDim.y;
-  }
-  __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_3D(IvyTypes::size_t& i, IvyTypes::size_t& j, IvyTypes::size_t& k){
-    i = blockIdx.x * blockDim.x + threadIdx.x;
-    j = blockIdx.y * blockDim.y + threadIdx.y;
-    k = blockIdx.z * blockDim.z + threadIdx.z;
-  }
-
   __CUDA_HOST_DEVICE__ inline cudaMemcpyKind get_cuda_transfer_direction(MemoryType tgt, MemoryType src){
 #ifndef __CUDA_DEVICE_CODE__
     bool const tgt_on_device = is_device_memory(tgt);
@@ -424,14 +398,12 @@ namespace IvyMemoryHelpers{
 #endif
   }
 
-  template<typename T, typename U> __CUDA_GLOBAL__ void copy_data_kernel(T* target, U* source, size_t n_tgt, size_t n_src){
-    IvyTypes::size_t i = 0;
-    IvyMemoryHelpers::get_kernel_call_dims_1D(i);
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
-      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
 #else
-      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
       assert(0);
     }
