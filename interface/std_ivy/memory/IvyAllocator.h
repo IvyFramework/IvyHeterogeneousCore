@@ -274,7 +274,7 @@ namespace IvyMemoryHelpers{
       T* d_target = nullptr;
       if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, MemoryType::Device, stream);
       else d_target = target;
-      res &= run_kernel<copy_data_kernel<T, U>>().parallel_1D(0, stream, n_tgt, n_src, d_target, d_source);
+      res &= run_kernel<copy_data_kernel<T, U>>(0, stream).parallel_1D(n_tgt, n_src, d_target, d_source);
       if (!tgt_on_device){
         res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, MemoryType::Device, stream);
         res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, MemoryType::Device, stream);

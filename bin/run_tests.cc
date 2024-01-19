@@ -29,14 +29,15 @@ public:
 };
 
 
-__CUDA_GLOBAL__ void kernel_set_doubles(double* ptr, IvyTypes::size_t n, unsigned char is){
-  IvyTypes::size_t i = 0;
-  get_kernel_call_dims_1D(i);
-  if (i < n){
+struct set_doubles{
+  static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void kernel_unified_unit(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
     ptr[i] = (i+2)*(is+1);
     if (i<3 || i==n-1) printf("ptr[%llu] = %f in stream %u\n", static_cast<unsigned long long int>(i), ptr[i], static_cast<unsigned int>(is));
   }
-}
+  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
+    if (i < n) kernel_unified_unit(i, n, ptr, is);
+  }
+};
 
 
 __CUDA_HOST_DEVICE__ void print_dummy_D(dummy_D* ptr){
@@ -181,15 +182,13 @@ int main(){
     __PRINT_INFO__("ptr_h new = %p\n", ptr_h);
 
     {
-      IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
-      if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nvars)){
-        IvyGPUEvent ev_set(IvyGPUEvent::EventFlags::Default); ev_set.record(stream);
-        kernel_set_doubles<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(ptr_d, nvars, i);
-        IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(stream);
-        ev_set_end.synchronize();
-        auto time_set = ev_set_end.elapsed_time(ev_set);
-        __PRINT_INFO__("Set time = %f ms\n", time_set);
-      }
+      run_kernel<set_doubles> set_doubles_kernel(0, stream);
+      IvyGPUEvent ev_set(IvyGPUEvent::EventFlags::Default); ev_set.record(stream);
+      set_doubles_kernel.parallel_1D(nvars, ptr_d, i);
+      IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(stream);
+      ev_set_end.synchronize();
+      auto time_set = ev_set_end.elapsed_time(ev_set);
+      __PRINT_INFO__("Set time = %f ms\n", time_set);
     }
 
     IvyGPUEvent ev_transfer(IvyGPUEvent::EventFlags::Default); ev_transfer.record(stream);

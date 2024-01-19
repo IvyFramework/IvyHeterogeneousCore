@@ -451,9 +451,15 @@ namespace std_ivy{
   template<typename T, typename... Args>
   __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::unique>(mem_type, stream, args...); }
 
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n, IvyMemoryType mem_type);
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n);
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_reset(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n);
+  template<typename T, IvyPointerType IPT> struct kernel_IvyUnifiedPtr_transfer_internal_memory{
+    static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr, IvyMemoryType const& mem_type);
+  };
+  template<typename T, IvyPointerType IPT> struct kernel_IvyUnifiedPtr_dump{
+    static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr);
+  };
+  template<typename T, IvyPointerType IPT> struct kernel_IvyUnifiedPtr_reset{
+    static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr);
+  };
   template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>{
   public:
     using base_t = allocation_type_properties<IvyUnifiedPtr<T, IPT>>;
@@ -472,12 +478,8 @@ namespace std_ivy{
     static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       bool res = true;
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(ptr_mem_type)){
-        IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
-        if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n)){
-          kernel_IvyUnifiedPtr_transfer_internal_memory<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(ptr, n, mem_type);
-        }
-        else{
+      if (IvyMemoryHelpers::is_device_memory(ptr_mem_type) || IvyMemoryHelpers::is_unified_memory(ptr_mem_type)){
+        if (!run_kernel<kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>>(0, stream).parallel_1D(n, ptr, mem_type)){
           __PRINT_ERROR__("transfer_memory_primitive::transfer_internal_memory: Unable to call the GPU kernel...\n");
           res = false;
         }
@@ -496,12 +498,8 @@ namespace std_ivy{
     }
     static __CUDA_HOST_DEVICE__ void dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(mem_type)){
-        IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
-        if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n)){
-          kernel_IvyUnifiedPtr_dump<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(ptr, n);
-        }
-        else{
+      if (IvyMemoryHelpers::is_device_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
+        if (!run_kernel<kernel_IvyUnifiedPtr_dump<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("transfer_memory_primitive::dump: Unable to call the GPU kernel...\n");
         }
       }
@@ -549,12 +547,8 @@ namespace std_ivy{
   protected:
     static __CUDA_HOST_DEVICE__ void reset(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(mem_type)){
-        IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
-        if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n)){
-          kernel_IvyUnifiedPtr_reset<<<nreq_blocks, nreq_threads_per_block, 0, stream>>>(ptr, n);
-        }
-        else{
+      if (IvyMemoryHelpers::is_device_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
+        if (!run_kernel<kernel_IvyUnifiedPtr_reset<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("deallocator_primitive::reset: Unable to call the GPU kernel...\n");
         }
       }
@@ -584,19 +578,13 @@ namespace std_ivy{
     }
   };
 
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n, IvyMemoryType mem_type){
-    IvyTypes::size_t i = 0;
-    get_kernel_call_dims_1D(i);
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>::kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr, IvyMemoryType const& mem_type){
     if (i<n) transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>::call_IvyUnifiedPtr_transfer_internal_memory(ptr+i, mem_type);
   }
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n){
-    IvyTypes::size_t i = 0;
-    get_kernel_call_dims_1D(i);
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void kernel_IvyUnifiedPtr_dump<T, IPT>::kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr){
     if (i<n) transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>::call_IvyUnifiedPtr_dump(ptr+i);
   }
-  template<typename T, IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_IvyUnifiedPtr_reset(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t n){
-    IvyTypes::size_t i = 0;
-    get_kernel_call_dims_1D(i);
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void kernel_IvyUnifiedPtr_reset<T, IPT>::kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr){
     if (i<n) deallocator_primitive<IvyUnifiedPtr<T, IPT>>::call_IvyUnifiedPtr_reset(ptr+i);
   }
 
