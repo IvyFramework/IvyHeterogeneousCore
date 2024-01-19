@@ -107,7 +107,7 @@ int main(){
 
     __PRINT_INFO__("\t- Testing IvyUniquePtr...\n");
 
-    std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::Device, &stream, 1.);
+    std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::GPU, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
     __PRINT_INFO__("ptr_shared no. of copies: %i\n", ptr_shared.use_count());
     __PRINT_INFO__("ptr_shared_copy no. of copies: %i\n", ptr_shared_copy.use_count());
@@ -119,7 +119,7 @@ int main(){
     printf("%s\n", typeid(std_mem::pointer_traits<std_mem::shared_ptr<dummy_D>>::pointer).name());
     printf("%s\n", typeid(std_mem::pointer_traits<std_mem::shared_ptr<dummy_D>>::rebind<dummy_B>).name());
 
-    std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(IvyMemoryType::Device, &stream, 1.);
+    std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(IvyMemoryType::GPU, &stream, 1.);
     std_mem::unique_ptr<dummy_B> ptr_unique_copy = ptr_unique;
     __PRINT_INFO__("ptr_unique no. of copies: %i\n", ptr_unique.use_count());
     __PRINT_INFO__("ptr_unique_copy no. of copies: %i\n", ptr_unique_copy.use_count());
@@ -147,14 +147,14 @@ int main(){
     sharedptr_allocator_traits::deallocate(h_ptr_shared, 1, IvyMemoryType::Host, stream);
     __PRINT_INFO__("h_shared_transferable (after dealloc.) no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
     __PRINT_INFO__("Allocating d_ptr_shared...\n");
-    std_mem::shared_ptr<dummy_D>* d_ptr_shared = sharedptr_allocator_traits::allocate(1, IvyMemoryType::Device, stream);
-    sharedptr_allocator_traits::transfer(d_ptr_shared, &h_shared_transferable, 1, IvyMemoryType::Device, IvyMemoryType::Host, stream);
+    std_mem::shared_ptr<dummy_D>* d_ptr_shared = sharedptr_allocator_traits::allocate(1, IvyMemoryType::GPU, stream);
+    sharedptr_allocator_traits::transfer(d_ptr_shared, &h_shared_transferable, 1, IvyMemoryType::GPU, IvyMemoryType::Host, stream);
     __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
     stream.synchronize();
     kernel_test_unifiedptr_ptr<<<1, 1, 0, stream>>>(d_ptr_shared);
     stream.synchronize();
     __PRINT_INFO__("Deallocating d_ptr_shared...\n");
-    sharedptr_allocator_traits::deallocate(d_ptr_shared, 1, IvyMemoryType::Device, stream);
+    sharedptr_allocator_traits::deallocate(d_ptr_shared, 1, IvyMemoryType::GPU, stream);
 
     __PRINT_INFO__("\t- Testing basic data allocation, transfer, and deallocation...\n");
 
@@ -171,7 +171,7 @@ int main(){
     __PRINT_INFO__("Trying device...\n");
 
     IvyGPUEvent ev_allocate(IvyGPUEvent::EventFlags::Default); ev_allocate.record(stream);
-    auto ptr_d = obj_allocator::allocate(nvars, IvyMemoryType::Device, stream);
+    auto ptr_d = obj_allocator::allocate(nvars, IvyMemoryType::GPU, stream);
     IvyGPUEvent ev_allocate_end(IvyGPUEvent::EventFlags::Default); ev_allocate_end.record(stream);
     ev_allocate_end.synchronize();
     auto time_allocate = ev_allocate_end.elapsed_time(ev_allocate);
@@ -192,7 +192,7 @@ int main(){
     }
 
     IvyGPUEvent ev_transfer(IvyGPUEvent::EventFlags::Default); ev_transfer.record(stream);
-    obj_allocator::transfer(ptr_h, ptr_d, nvars, IvyMemoryType::Host, IvyMemoryType::Device, stream);
+    obj_allocator::transfer(ptr_h, ptr_d, nvars, IvyMemoryType::Host, IvyMemoryType::GPU, stream);
     IvyGPUEvent ev_transfer_end(IvyGPUEvent::EventFlags::Default); ev_transfer_end.record(stream);
     ev_transfer_end.synchronize();
     auto time_transfer = ev_transfer_end.elapsed_time(ev_transfer);
@@ -211,7 +211,7 @@ int main(){
     obj_allocator_i::deallocate(ptr_i, nvars, IvyMemoryType::Host, stream);
 
     IvyGPUEvent ev_deallocate(IvyGPUEvent::EventFlags::Default); ev_deallocate.record(stream);
-    obj_allocator::deallocate(ptr_d, nvars, IvyMemoryType::Device, stream);
+    obj_allocator::deallocate(ptr_d, nvars, IvyMemoryType::GPU, stream);
     IvyGPUEvent ev_deallocate_end(IvyGPUEvent::EventFlags::Default); ev_deallocate_end.record(stream);
     ev_deallocate_end.synchronize();
     auto time_deallocate = ev_deallocate_end.elapsed_time(ev_allocate);

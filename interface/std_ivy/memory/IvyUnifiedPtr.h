@@ -478,7 +478,7 @@ namespace std_ivy{
     static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       bool res = true;
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(ptr_mem_type) || IvyMemoryHelpers::is_unified_memory(ptr_mem_type)){
+      if (IvyMemoryHelpers::is_gpu_memory(ptr_mem_type) || IvyMemoryHelpers::is_unified_memory(ptr_mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>>(0, stream).parallel_1D(n, ptr, mem_type)){
           __PRINT_ERROR__("transfer_memory_primitive::transfer_internal_memory: Unable to call the GPU kernel...\n");
           res = false;
@@ -489,7 +489,7 @@ namespace std_ivy{
       {
 #endif
         IvyUnifiedPtr<T, IPT>* pr = ptr;
-        for (size_type i=0; i<n; i++){
+        for (size_type i=0; i<n; ++i){
           res &= call_IvyUnifiedPtr_transfer_internal_memory(pr, mem_type);
           ++pr;
         }
@@ -498,7 +498,7 @@ namespace std_ivy{
     }
     static __CUDA_HOST_DEVICE__ void dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
+      if (IvyMemoryHelpers::is_gpu_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_dump<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("transfer_memory_primitive::dump: Unable to call the GPU kernel...\n");
         }
@@ -508,7 +508,7 @@ namespace std_ivy{
       {
 #endif
         IvyUnifiedPtr<T, IPT>* pr = ptr;
-        for (size_type i=0; i<n; i++){
+        for (size_type i=0; i<n; ++i){
           call_IvyUnifiedPtr_dump(pr);
           ++pr;
         }
@@ -547,7 +547,7 @@ namespace std_ivy{
   protected:
     static __CUDA_HOST_DEVICE__ void reset(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
 #ifndef __CUDA_DEVICE_CODE__
-      if (IvyMemoryHelpers::is_device_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
+      if (IvyMemoryHelpers::is_gpu_memory(mem_type) || IvyMemoryHelpers::is_unified_memory(mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_reset<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("deallocator_primitive::reset: Unable to call the GPU kernel...\n");
         }
@@ -557,7 +557,7 @@ namespace std_ivy{
       {
 #endif
         IvyUnifiedPtr<T, IPT>* pr = ptr;
-        for (size_type i=0; i<n; i++){
+        for (size_type i=0; i<n; ++i){
           call_IvyUnifiedPtr_reset(pr);
           ++pr;
         }

@@ -183,7 +183,7 @@ namespace IvyMemoryHelpers{
       T*& target, U* const& source,
       size_t n_tgt_init, size_t n_tgt, size_t n_src
 #ifdef __USE_CUDA__
-      , MemoryType type_tgt, MemoryType type_src
+      , IvyMemoryType type_tgt, IvyMemoryType type_src
       , IvyGPUStream& stream
 #endif
     );
@@ -192,7 +192,7 @@ namespace IvyMemoryHelpers{
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src
 #ifdef __USE_CUDA__
-    , MemoryType type_tgt, MemoryType type_src
+    , IvyMemoryType type_tgt, IvyMemoryType type_src
     , IvyGPUStream& stream
 #endif
   ){
@@ -213,7 +213,7 @@ namespace IvyMemoryHelpers{
   template<typename T, typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src,
-    MemoryType type_tgt, MemoryType type_src,
+    IvyMemoryType type_tgt, IvyMemoryType type_src,
     cudaStream_t stream
   ){
     IvyGPUStream sr(stream, false);
@@ -232,15 +232,15 @@ namespace IvyMemoryHelpers{
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src
 #ifdef __USE_CUDA__
-    , MemoryType type_tgt, MemoryType type_src
+    , IvyMemoryType type_tgt, IvyMemoryType type_src
     , IvyGPUStream& stream
 #endif
   ){
     bool res = true;
 #ifdef __USE_CUDA__
 #ifndef __CUDA_DEVICE_CODE__
-    bool const tgt_on_device = is_device_memory(type_tgt) || is_unified_memory(type_tgt);
-    bool const src_on_device = is_device_memory(type_src) || is_unified_memory(type_src);
+    bool const tgt_on_device = is_gpu_memory(type_tgt) || is_unified_memory(type_tgt);
+    bool const src_on_device = is_gpu_memory(type_src) || is_unified_memory(type_src);
 #else
     constexpr bool tgt_on_device = true;
     constexpr bool src_on_device = true;
@@ -268,18 +268,18 @@ namespace IvyMemoryHelpers{
 #ifdef __USE_CUDA__
       U* d_source = (src_on_device ? source : nullptr);
       if (!src_on_device){
-        res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, MemoryType::Device, stream);
-        res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, MemoryType::Device, type_src, stream);
+        res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, IvyMemoryType::GPU, stream);
+        res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, IvyMemoryType::GPU, type_src, stream);
       }
       T* d_target = nullptr;
-      if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, MemoryType::Device, stream);
+      if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
       else d_target = target;
       res &= run_kernel<copy_data_kernel<T, U>>(0, stream).parallel_1D(n_tgt, n_src, d_target, d_source);
       if (!tgt_on_device){
-        res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, MemoryType::Device, stream);
-        res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, MemoryType::Device, stream);
+        res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, IvyMemoryType::GPU, stream);
+        res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
       }
-      if (!src_on_device) res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, MemoryType::Device, stream);
+      if (!src_on_device) res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, IvyMemoryType::GPU, stream);
       if (!res){
         if (tgt_on_device!=src_on_device){
           __PRINT_ERROR__("IvyMemoryHelpers::copy_data: Failed to copy data between host and device.\n");
@@ -289,7 +289,7 @@ namespace IvyMemoryHelpers{
 #else
       {
 #endif
-        for (size_t i=0; i<n_tgt; i++) target[i] = source[(n_src==1 ? 0 : i)];
+        for (size_t i=0; i<n_tgt; ++i) target[i] = source[(n_src==1 ? 0 : i)];
       }
     }
     return res;
