@@ -9,9 +9,9 @@
 
 #ifdef __USE_CUDA__
 
-#ifndef __CUDA_DEVICE_CODE__
-#define __PRINT_INFO__(...) fprintf(stdout, __VA_ARGS__)
-#define __PRINT_ERROR__(...) fprintf(stderr, __VA_ARGS__)
+#if (DEVICE_CODE==DEVICE_CODE_HOST)
+#define __PRINT_INFO__(...) printf(__VA_ARGS__)
+#define __PRINT_ERROR__(...) printf(__VA_ARGS__)
 #else
 #define __PRINT_INFO__(...) {}
 #define __PRINT_ERROR__(...) {}

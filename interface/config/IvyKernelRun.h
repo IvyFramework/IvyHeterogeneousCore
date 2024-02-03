@@ -53,6 +53,10 @@ struct run_kernel_base{
 
   __CUDA_HOST_DEVICE__ run_kernel_base(IvyTypes::size_t const& shared_mem_size_, IvyGPUStream& stream_) : shared_mem_size(shared_mem_size_), stream(stream_){}
 };
+struct kernel_base_noprep_nofin{
+  static __CUDA_HOST_DEVICE__ void prepare(...){}
+  static __CUDA_HOST_DEVICE__ void finalize(...){}
+};
 
 #ifdef __USE_CUDA__
 
@@ -105,7 +109,9 @@ template<typename Kernel_t, bool = has_call_kernel_unit_unified_v<Kernel_t>> str
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_1D(IvyTypes::size_t n, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n)){
-      generic_kernel_1D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(n, args...);
+      Kernel_t::prepare(true, n, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_1D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(n, args...)));
+      Kernel_t::finalize(true, n, args...);
       return true;
     }
     else return false;
@@ -113,7 +119,9 @@ template<typename Kernel_t, bool = has_call_kernel_unit_unified_v<Kernel_t>> str
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_2D(IvyTypes::size_t nx, IvyTypes::size_t ny, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nx*ny)){
-      generic_kernel_2D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, args...);
+      Kernel_t::prepare(true, nx, ny, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_2D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, args...)));
+      Kernel_t::finalize(true, nx, ny, args...);
       return true;
     }
     else return false;
@@ -121,7 +129,9 @@ template<typename Kernel_t, bool = has_call_kernel_unit_unified_v<Kernel_t>> str
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_3D(IvyTypes::size_t nx, IvyTypes::size_t ny, IvyTypes::size_t nz, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nx*ny*nz)){
-      generic_kernel_3D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, nz, args...);
+      Kernel_t::prepare(true, nx, ny, nz, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_3D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, nz, args...)));
+      Kernel_t::finalize(true, nx, ny, nz, args...);
       return true;
     }
     else return false;
@@ -133,36 +143,48 @@ template<typename Kernel_t> struct run_kernel<Kernel_t, true> : run_kernel_base{
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_1D(IvyTypes::size_t n, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, n)){
-      generic_kernel_1D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(n, args...);
+      Kernel_t::prepare(true, n, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_1D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(n, args...)));
+      Kernel_t::finalize(true, n, args...);
     }
     else{
+      Kernel_t::prepare(false, n, args...);
       for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel_unit_unified(i, n, args...);
+      Kernel_t::finalize(false, n, args...);
     }
     return true;
   }
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_2D(IvyTypes::size_t nx, IvyTypes::size_t ny, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nx*ny)){
-      generic_kernel_2D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, args...);
+      Kernel_t::prepare(true, nx, ny, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_2D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, args...)));
+      Kernel_t::finalize(true, nx, ny, args...);
     }
     else{
+      Kernel_t::prepare(false, nx, ny, args...);
       for (IvyTypes::size_t i = 0; i < nx; ++i){
         for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel_unit_unified(i, j, nx, ny, args...);
       }
+      Kernel_t::finalize(false, nx, ny, args...);
     }
     return true;
   }
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_3D(IvyTypes::size_t nx, IvyTypes::size_t ny, IvyTypes::size_t nz, Args... args){
     IvyBlockThreadDim_t nreq_blocks, nreq_threads_per_block;
     if (IvyCudaConfig::check_GPU_usable(nreq_blocks, nreq_threads_per_block, nx*ny*nz)){
-      generic_kernel_3D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, nz, args...);
+      Kernel_t::prepare(true, nx, ny, nz, args...);
+      __CUDA_CHECK_KERNEL_AND_WARN_WITH_ERROR__(__ENCAPSULATE__(generic_kernel_3D<Kernel_t, IvyTypes::size_t, Args...><<<nreq_blocks, nreq_threads_per_block, shared_mem_size, stream>>>(nx, ny, nz, args...)));
+      Kernel_t::finalize(true, nx, ny, nz, args...);
     }
     else{
+      Kernel_t::prepare(false, nx, ny, nz, args...);
       for (IvyTypes::size_t i = 0; i < nx; ++i){
         for (IvyTypes::size_t j = 0; j < ny; ++j){
           for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel_unit_unified(i, j, k, nx, ny, nz, args...);
         }
       }
+      Kernel_t::finalize(false, nx, ny, nz, args...);
     }
     return true;
   }
@@ -174,21 +196,27 @@ template<typename Kernel_t> struct run_kernel : run_kernel_base{
   __CUDA_HOST_DEVICE__ run_kernel(IvyTypes::size_t const& shared_mem_size_, IvyGPUStream& stream_) : run_kernel_base(shared_mem_size_, stream_){}
 
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_1D(IvyTypes::size_t n, Args... args){
+    Kernel_t::prepare(false, n, args...);
     for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel(i, n, args...);
+    Kernel_t::finalize(false, n, args...);
     return true;
   }
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_2D(IvyTypes::size_t nx, IvyTypes::size_t ny, Args... args){
+    Kernel_t::prepare(false, nx, ny, args...);
     for (IvyTypes::size_t i = 0; i < nx; ++i){
       for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel(i, j, nx, ny, args...);
     }
+    Kernel_t::finalize(false, nx, ny, args...);
     return true;
   }
   template<typename... Args> __CUDA_HOST_DEVICE__ bool parallel_3D(IvyTypes::size_t nx, IvyTypes::size_t ny, IvyTypes::size_t nz, Args... args){
+    Kernel_t::prepare(false, nx, ny, nz, args...);
     for (IvyTypes::size_t i = 0; i < nx; ++i){
       for (IvyTypes::size_t j = 0; j < ny; ++j){
         for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel(i, j, k, nx, ny, nz, args...);
       }
     }
+    Kernel_t::finalize(false, nx, ny, nz, args...);
     return true;
   }
 };

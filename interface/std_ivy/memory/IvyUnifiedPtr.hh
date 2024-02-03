@@ -20,8 +20,14 @@ namespace std_ivy{
   };
 
   template<typename T, IvyPointerType IPT> class IvyUnifiedPtr;
+  template<typename T, IvyPointerType IPT> class IvyUnifiedPtrAccessor;
+
   template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
   template<typename T, IvyPointerType IPT> class deallocator_primitive<IvyUnifiedPtr<T, IPT>>;
+
+  template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_transfer_internal_memory;
+  template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_dump;
+  template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_reset;
 
   template<typename T, IvyPointerType IPT> class IvyUnifiedPtr : IvyMultiAccessTransferrable{
   public:
@@ -42,8 +48,8 @@ namespace std_ivy{
 
     template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
-    friend class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
-    friend class deallocator_primitive<IvyUnifiedPtr<T, IPT>>;
+    friend class kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>;
+    friend class kernel_IvyUnifiedPtr_dump<T, IPT>;
 
   protected:
     IvyMemoryType exec_mem_type_;
@@ -67,7 +73,7 @@ namespace std_ivy{
     Otherwise, these two pointers are created in the default memory location of the execution space.
     IF copy_ptr is true, a new pointer is created.
     */
-    __CUDA_HOST__ bool transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr);
+    __CUDA_HOST_DEVICE__ bool transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr);
 
   public:
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
@@ -84,7 +90,8 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr&& other);
     __CUDA_HOST_DEVICE__ ~IvyUnifiedPtr();
 
-    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPU> const& other);
+    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
+    __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPU> const& other);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr const& other);
     template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(U* ptr);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);

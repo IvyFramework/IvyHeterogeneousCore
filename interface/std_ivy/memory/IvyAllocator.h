@@ -182,27 +182,21 @@ namespace IvyMemoryHelpers{
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool copy_data(
       T*& target, U* const& source,
       size_t n_tgt_init, size_t n_tgt, size_t n_src
-#ifdef __USE_CUDA__
       , IvyMemoryType type_tgt, IvyMemoryType type_src
       , IvyGPUStream& stream
-#endif
     );
   };
   template<typename T, typename U> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src
-#ifdef __USE_CUDA__
     , IvyMemoryType type_tgt, IvyMemoryType type_src
     , IvyGPUStream& stream
-#endif
   ){
     return copy_data_fcnal<T, U>::copy_data(
       target, source,
       n_tgt_init, n_tgt, n_src
-#ifdef __USE_CUDA__
       , type_tgt, type_src
       , stream
-#endif
     );
   }
 
@@ -231,20 +225,16 @@ namespace IvyMemoryHelpers{
     template<typename T, typename U> __CUDA_HOST_DEVICE__ bool copy_data_fcnal<T, U>::copy_data(
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src
-#ifdef __USE_CUDA__
     , IvyMemoryType type_tgt, IvyMemoryType type_src
     , IvyGPUStream& stream
-#endif
   ){
     bool res = true;
-#ifdef __USE_CUDA__
-#ifndef __CUDA_DEVICE_CODE__
-    bool const tgt_on_device = is_gpu_memory(type_tgt) || is_unified_memory(type_tgt);
-    bool const src_on_device = is_gpu_memory(type_src) || is_unified_memory(type_src);
+#if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
+    bool const tgt_on_device = use_device_acc(type_tgt);
+    bool const src_on_device = use_device_acc(type_src);
 #else
     constexpr bool tgt_on_device = true;
     constexpr bool src_on_device = true;
-#endif
 #endif
     if (n_tgt==0 || n_src==0 || !source) return false;
     if (!(n_src==n_tgt || n_src==1)){
@@ -260,8 +250,8 @@ namespace IvyMemoryHelpers{
       res &= std_ivy::deallocator_primitive<T>::deallocate(target, n_tgt_init, type_tgt, stream);
       res &= std_ivy::allocator_primitive<T>::allocate(target, n_tgt, type_tgt, stream);
 #else
-      res &= free_memory(target, n_tgt_init);
-      res &= allocate_memory(target, n_tgt);
+      res &= free_memory(target, n_tgt_init, type_tgt, stream);
+      res &= allocate_memory(target, n_tgt, type_tgt, stream);
 #endif
     }
     if (res){

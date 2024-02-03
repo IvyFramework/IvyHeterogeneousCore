@@ -70,7 +70,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_event_flags(EventFlags const
   case EventFlags::Interprocess:
     return cudaEventInterprocess;
   default:
-    __PRINT_ERROR__("IvyCudaEvent::get_event_flags: Unknown flag option...");
+    __PRINT_ERROR__("IvyCudaEvent::get_event_flags: Unknown flag option...\n");
     assert(0);
   }
   return cudaEventDisableTiming;
@@ -82,7 +82,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_record_flags(RecordFlags con
   case RecordFlags::External:
     return cudaEventRecordExternal;
   default:
-    __PRINT_ERROR__("IvyCudaEvent::get_record_flags: Unknown flag option...");
+    __PRINT_ERROR__("IvyCudaEvent::get_record_flags: Unknown flag option...\n");
     assert(0);
   }
   return cudaEventRecordDefault;
@@ -94,7 +94,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& 
   case WaitFlags::External:
     return cudaEventWaitExternal;
   default:
-    __PRINT_ERROR__("IvyCudaEvent::get_wait_flags: Unknown flag option...");
+    __PRINT_ERROR__("IvyCudaEvent::get_wait_flags: Unknown flag option...\n");
     assert(0);
   }
   return cudaEventWaitDefault;
