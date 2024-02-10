@@ -34,18 +34,21 @@ namespace IvyStreamUtils{
 using IvyStreamUtils::IvyGPUEvent;
 using IvyStreamUtils::IvyGPUStream;
 
-#define GlobalGPUStreamRaw IvyStreamUtils::GlobalBlankStream
+#define GlobalGPUStreamRaw IvyStreamUtils::GlobalBlankStreamRaw
 
 #endif
 
 
 #define GlobalGPUStream IvyGPUStream(GlobalGPUStreamRaw, false)
+namespace IvyStreamUtils{
+  __CUDA_HOST_DEVICE__ IvyGPUStream* make_global_gpu_stream(){ return make_stream<IvyGPUStream>(GlobalGPUStreamRaw, false); }
+}
 #define operate_with_GPU_stream_from_pointer(ptr, ref, CALL) \
 IvyGPUStream* new_##ptr = nullptr; \
-if (!ptr) new_##ptr = new GlobalGPUStream; \
+if (!ptr) new_##ptr = IvyStreamUtils::make_global_gpu_stream(); \
 IvyGPUStream& ref = (ptr ? *ptr : *new_##ptr); \
 CALL \
-if (new_##ptr) delete new_##ptr;
+IvyStreamUtils::destroy_stream(new_##ptr);
 
 
 #endif

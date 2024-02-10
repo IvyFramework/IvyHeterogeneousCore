@@ -9,8 +9,8 @@
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
-//#include "std_ivy/IvyFunctional.h"
 #include "IvyMultiAccessTransferrable.h"
+//#include "std_ivy/IvyFunctional.h"
 
 
 namespace std_ivy{
@@ -79,9 +79,9 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(std_cstddef::nullptr_t);
     template<typename U>
-    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
+    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U>
-    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
+    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other);
@@ -119,8 +119,8 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void reset();
     __CUDA_HOST_DEVICE__ void reset(std_cstddef::nullptr_t);
-    template<typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
-    template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream = nullptr);
+    template<typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
+    template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
 
     template<typename U> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<U, IPT>& other) __NOEXCEPT__;
 

@@ -8,14 +8,47 @@
 #ifdef __USE_CUDA__
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createStream(cudaStream_t& st, unsigned int flags, unsigned int priority){
-#ifndef __CUDA_DEVICE_CODE__
+  template<> __CUDA_HOST_DEVICE__ void createRawStream(cudaStream_t& st, unsigned int flags, unsigned int priority){
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamCreateWithPriority(&st, flags, priority));
 #endif
   }
-  template<> __CUDA_HOST_DEVICE__ void destroyStream(cudaStream_t& st){
-#ifndef __CUDA_DEVICE_CODE__
+  template<> __CUDA_HOST_DEVICE__ void destroyRawStream(cudaStream_t& st){
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamDestroy(st));
+#endif
+  }
+
+  template<> __CUDA_HOST_DEVICE__ void destroy_stream(IvyCudaStream*& stream){
+    if (stream){
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
+      __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFree(stream));
+#else
+      delete stream;
+#endif
+      stream = nullptr;
+    }
+  }
+  template<> __CUDA_HOST__ void make_stream(IvyCudaStream*& stream, IvyCudaStream::StreamFlags flags, unsigned int priority){
+    destroy_stream(stream);
+    unsigned int iflags = IvyCudaStream::get_stream_flags(flags);
+    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &stream, sizeof(IvyCudaStream), cudaMemAttachGlobal));
+    createRawStream(stream->stream(), iflags, priority);
+    stream->is_owned() = true;
+    stream->flags() = iflags;
+    stream->priority() = priority;
+  }
+  template<> __CUDA_HOST__ void make_stream(IvyCudaStream*& stream, unsigned int flags, unsigned int priority){ make_stream(stream, IvyCudaStream::get_stream_flags_reverse(flags), priority); }
+  template<> __CUDA_HOST_DEVICE__ void make_stream(IvyCudaStream*& stream, IvyCudaStream::RawStream_t st, bool is_owned){
+    destroy_stream(stream);
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
+    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &stream, sizeof(IvyCudaStream), cudaMemAttachGlobal));
+    stream->stream() = st;
+    stream->is_owned() = is_owned;
+    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamGetFlags(st, &(stream->flags())));
+    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamGetPriority(st, &(stream->priority())));
+#else
+    stream = new IvyCudaStream(st, is_owned);
 #endif
   }
 }
@@ -26,11 +59,11 @@ __CUDA_HOST__ IvyCudaStream::IvyCudaStream(StreamFlags flags, int priority) : Iv
   flags_ = get_stream_flags(flags);
   priority_ = priority;
 
-  IvyStreamUtils::createStream(stream_, flags_, priority_);
+  IvyStreamUtils::createRawStream(stream_, flags_, priority_);
 }
 __CUDA_HOST_DEVICE__ IvyCudaStream::IvyCudaStream(
   cudaStream_t st,
-#ifndef __CUDA_DEVICE_CODE__
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
   bool do_own
 #else
   bool
@@ -38,7 +71,7 @@ __CUDA_HOST_DEVICE__ IvyCudaStream::IvyCudaStream(
 ) : IvyBaseStream<cudaStream_t>()
 {
   stream_ = st;
-#ifndef __CUDA_DEVICE_CODE__
+#if (DEVICE_CODE == DEVICE_CODE_HOST)
   is_owned_ = do_own;
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamGetFlags(stream_, &flags_));
   __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamGetPriority(stream_, &priority_));
@@ -75,6 +108,19 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaStream::get_stream_flags(StreamFlags co
   }
   return cudaStreamDefault;
 }
+__CUDA_HOST_DEVICE__ IvyCudaStream::StreamFlags IvyCudaStream::get_stream_flags_reverse(unsigned int const& flags){
+  switch (flags){
+  case cudaStreamDefault:
+    return StreamFlags::Default;
+  case cudaStreamNonBlocking:
+    return StreamFlags::NonBlocking;
+  default:
+    __PRINT_ERROR__("IvyCudaStream::get_stream_flags_reverse: Unknown flag option...\n");
+    assert(0);
+  }
+  return StreamFlags::Default;
+}
+
 
 #endif
 

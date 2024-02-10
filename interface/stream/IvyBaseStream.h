@@ -13,14 +13,24 @@
 
 
 namespace IvyStreamUtils{
-  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void createStream(RawStream_t& st, unsigned int flags, unsigned int priority);
-  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void destroyStream(RawStream_t& st);
+  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void createRawStream(RawStream_t& st, unsigned int flags, unsigned int priority);
+  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void destroyRawStream(RawStream_t& st);
+
+  template<typename Stream_t> __CUDA_HOST__ void make_stream(Stream_t*& stream, typename Stream_t::StreamFlags flags, unsigned int priority=0);
+  template<typename Stream_t> __CUDA_HOST__ void make_stream(Stream_t*& stream, unsigned int flags, unsigned int priority=0);
+  template<typename Stream_t> __CUDA_HOST_DEVICE__ void make_stream(Stream_t*& stream, typename Stream_t::RawStream_t st, bool is_owned);
+  template<typename Stream_t> __CUDA_HOST_DEVICE__ void destroy_stream(Stream_t*& stream);
+
+  // Calls with different arguments
+  template<typename Stream_t> __CUDA_HOST__ Stream_t* make_stream(unsigned int flags, unsigned int priority=0){ Stream_t* res = nullptr; make_stream(res, flags, priority); return res; }
+  template<typename Stream_t> __CUDA_HOST__ Stream_t* make_stream(typename Stream_t::StreamFlags flags, unsigned int priority=0){ Stream_t* res = nullptr; make_stream(res, flags, priority); return res; }
+  template<typename Stream_t> __CUDA_HOST_DEVICE__ Stream_t* make_stream(typename Stream_t::RawStream_t st, bool is_owned){ Stream_t* res = nullptr; make_stream(res, st, is_owned); return res; }
 }
 
 template<typename S> class IvyBaseStream{
 public:
-  typedef S RawStream_t;
-  typedef IvyStreamUtils::StreamEvent_t<RawStream_t> RawEvent_t;
+  using RawStream_t = S;
+  using RawEvent_t = IvyStreamUtils::StreamEvent_t<RawStream_t>;
 
 protected:
   bool is_owned_;
@@ -35,13 +45,15 @@ public:
   {}
   __CUDA_HOST_DEVICE__ IvyBaseStream(IvyBaseStream const&) = delete;
   __CUDA_HOST_DEVICE__ IvyBaseStream(IvyBaseStream const&&) = delete;
-  virtual __CUDA_HOST_DEVICE__ ~IvyBaseStream(){ if (is_owned_) IvyStreamUtils::destroyStream(this->stream_); }
+  virtual __CUDA_HOST_DEVICE__ ~IvyBaseStream(){ if (is_owned_) IvyStreamUtils::destroyRawStream(this->stream_); }
 
+  __CUDA_HOST_DEVICE__ bool const& is_owned() const{ return this->is_owned_; }
   __CUDA_HOST_DEVICE__ unsigned int const& flags() const{ return this->flags_; }
   __CUDA_HOST_DEVICE__ int const& priority() const{ return this->priority_; }
   __CUDA_HOST_DEVICE__ RawStream_t const& stream() const{ return this->stream_; }
   __CUDA_HOST_DEVICE__ operator RawStream_t const& () const{ return this->stream_; }
 
+  __CUDA_HOST_DEVICE__ bool& is_owned(){ return this->is_owned_; }
   __CUDA_HOST_DEVICE__ unsigned int& flags(){ return this->flags_; }
   __CUDA_HOST_DEVICE__ int& priority(){ return this->priority_; }
   __CUDA_HOST_DEVICE__ RawStream_t& stream(){ return this->stream_; }

@@ -14,7 +14,7 @@ namespace IvyStreamUtils{
   template<> struct StreamEvent<BlankStream>{ typedef BlankStreamEvent type; };
 
 #ifndef __USE_CUDA__
-  constexpr BlankStream GlobalBlankStream;
+  constexpr BlankStream GlobalBlankStreamRaw;
 #endif
 }
 

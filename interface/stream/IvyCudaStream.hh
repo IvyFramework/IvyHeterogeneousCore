@@ -40,14 +40,15 @@
 
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createStream(cudaStream_t& st, unsigned int flags, unsigned int priority);
-  template<> __CUDA_HOST_DEVICE__ void destroyStream(cudaStream_t& st);
+  template<> __CUDA_HOST_DEVICE__ void createRawStream(cudaStream_t& st, unsigned int flags, unsigned int priority);
+  template<> __CUDA_HOST_DEVICE__ void destroyRawStream(cudaStream_t& st);
 }
 
 class IvyCudaStream final : public IvyBaseStream<cudaStream_t>{
 public:
-  typedef cudaHostFn_t fcn_callback_t;
-  typedef IvyBaseStream<cudaStream_t> Base_t;
+  using fcn_callback_t = cudaHostFn_t;
+  using Base_t = IvyBaseStream<cudaStream_t>;
+  using RawStream_t = typename Base_t::RawStream_t;
 
   enum class StreamFlags : unsigned char{
     Default,
@@ -71,7 +72,16 @@ public:
   __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& other){ Base_t::swap(other); }
 
   static __CUDA_HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags);
+  static __CUDA_HOST_DEVICE__ StreamFlags get_stream_flags_reverse(unsigned int const& flags);
 };
+
+namespace IvyStreamUtils{
+  template<> __CUDA_HOST_DEVICE__ void destroy_stream(IvyCudaStream*& stream);
+  template<> __CUDA_HOST__ void make_stream(IvyCudaStream*& stream, IvyCudaStream::StreamFlags flags, unsigned int priority);
+  template<> __CUDA_HOST__ void make_stream(IvyCudaStream*& stream, unsigned int flags, unsigned int priority);
+  template<> __CUDA_HOST_DEVICE__ void make_stream(IvyCudaStream*& stream, IvyCudaStream::RawStream_t st, bool is_owned);
+}
+
 
 #endif
 

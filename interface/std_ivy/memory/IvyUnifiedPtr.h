@@ -29,35 +29,32 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
+    stream_(stream)
   {
     ptr_ = __DYNAMIC_CAST__(pointer, ptr);
-    if (ptr_){
-      stream_ = stream;
-      this->init_members(mem_type, 1);
-    }
+    if (ptr_) this->init_members(mem_type, 1);
   }
   template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
+    stream_(stream)
   {
     ptr_ = __DYNAMIC_CAST__(pointer, ptr);
-    if (ptr_){
-      stream_ = stream;
-      this->init_members(mem_type, n);
-    }
+    if (ptr_) this->init_members(mem_type, n);
   }
   template<typename T, IvyPointerType IPT>
   template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other){
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other) :
+    stream_(other.gpu_stream())
+  {
     ptr_ = __DYNAMIC_CAST__(pointer, other.get());
     if (ptr_){
       exec_mem_type_ = other.get_exec_memory_type();
       mem_type_ = other.get_memory_type_ptr();
       size_ = other.size_ptr();
       ref_count_ = other.counter();
-      stream_ = other.gpu_stream();
       if (ref_count_) this->inc_dec_counter(true);
     }
     else{
@@ -66,14 +63,15 @@ namespace std_ivy{
     }
     if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
   }
-  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other){
+  template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other) :
+    stream_(other.gpu_stream())
+  {
     ptr_ = other.ptr_;
     if (ptr_){
       exec_mem_type_ = other.exec_mem_type_;
       mem_type_ = other.mem_type_;
       size_ = other.size_;
       ref_count_ = other.ref_count_;
-      stream_ = other.stream_;
       if (ref_count_) this->inc_dec_counter(true);
     }
     else{
@@ -98,7 +96,7 @@ namespace std_ivy{
     ptr_(std_util::move(other.ptr_)),
     size_(std_util::move(other.size_)),
     ref_count_(std_util::move(other.ref_count_)),
-    stream_(std_util::move(other.stream_))
+    stream_(std_util::move(other.gpu_stream()))
   {
     other.dump();
   }
@@ -130,7 +128,7 @@ namespace std_ivy{
       ptr_ = other.ptr_;
       size_ = other.size_;
       ref_count_ = other.ref_count_;
-      stream_ = other.stream_;
+      stream_ = other.gpu_stream();
       if (ref_count_) this->inc_dec_counter(true);
     }
     if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
@@ -280,11 +278,15 @@ namespace std_ivy{
   }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_internal_memory(IvyMemoryType const& new_mem_type){
-#ifndef __CUDA_DEVICE_CODE__
+    printf("Inside IvyUnifiedPtr::transfer_internal_memory\n");
+    printf("%s:%d\n", __FILE__, __LINE__);
+//#ifndef __CUDA_DEVICE_CODE__
+//    printf("%s:%d\n", __FILE__, __LINE__);
     return this->transfer_impl(new_mem_type, true, true);
-#else
-    return true;
-#endif
+//#else
+//    printf("%s:%d\n", __FILE__, __LINE__);
+//    return true;
+//#endif
   }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr){
@@ -459,7 +461,12 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_transfer_internal_memory : public kernel_base_noprep_nofin{
   protected:
     static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* const& ptr, IvyMemoryType const& mem_type){
-      return ptr->transfer_internal_memory(mem_type);
+      // FIXME: transfer_internal_memory is an abstract function,
+      // so virtual function table does not exist on the device
+      // unless one creates the object in the device (to be tested).
+      //bool res = ptr->transfer_internal_memory(mem_type);
+      bool res = ptr->transfer_impl(mem_type, true, true);
+      return res;
     }
 
   public:
@@ -508,7 +515,7 @@ namespace std_ivy{
     static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       bool res = true;
-      if (!IvyMemoryHelpers::use_device_acc(def_mem_type) && IvyMemoryHelpers::use_device_GPU(ptr_mem_type)){
+      if (IvyMemoryHelpers::use_device_host(def_mem_type) && IvyMemoryHelpers::use_device_GPU(ptr_mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>>(0, stream).parallel_1D(n, ptr, mem_type)){
           __PRINT_ERROR__("transfer_memory_primitive::transfer_internal_memory: Unable to call the GPU kernel...\n");
           res = false;
@@ -523,11 +530,12 @@ namespace std_ivy{
       }
       return res;
     }
-    static __CUDA_HOST_DEVICE__ void dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
+    static __CUDA_HOST_DEVICE__ bool dump(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      if (!IvyMemoryHelpers::use_device_acc(def_mem_type) && IvyMemoryHelpers::use_device_GPU(mem_type)){
+      if (IvyMemoryHelpers::use_device_host(def_mem_type) && IvyMemoryHelpers::use_device_GPU(mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_dump<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("transfer_memory_primitive::dump: Unable to call the GPU kernel...\n");
+          return false;
         }
       }
       else{
@@ -537,6 +545,7 @@ namespace std_ivy{
           ++pr;
         }
       }
+      return true;
     }
 
   public:
@@ -558,7 +567,7 @@ namespace std_ivy{
         res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
         res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
         res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
-        dump(p_int, n, def_mem_type, stream);
+        res &= dump(p_int, n, def_mem_type, stream);
         res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       }
       return res;
@@ -575,7 +584,7 @@ namespace std_ivy{
   protected:
     static __CUDA_HOST_DEVICE__ void reset(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      if (!IvyMemoryHelpers::use_device_acc(def_mem_type) && IvyMemoryHelpers::use_device_GPU(mem_type)){
+      if (IvyMemoryHelpers::use_device_host(def_mem_type) && IvyMemoryHelpers::use_device_GPU(mem_type)){
         if (!run_kernel<kernel_IvyUnifiedPtr_reset<T, IPT>>(0, stream).parallel_1D(n, ptr)){
           __PRINT_ERROR__("deallocator_primitive::reset: Unable to call the GPU kernel...\n");
         }
