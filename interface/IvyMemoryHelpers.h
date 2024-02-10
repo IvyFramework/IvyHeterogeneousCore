@@ -21,6 +21,7 @@ For that reason, the -rdc=true flag is required when compiling device code.
 
 
 #include "IvyBasicTypes.h"
+#include "IvyMemoryTypes.h"
 #include "config/IvyConfig.h"
 #include "config/IvyKernelRun.h"
 #include "std_ivy/IvyCassert.h"
@@ -34,19 +35,10 @@ namespace IvyMemoryHelpers{
   using size_t = IvyTypes::size_t;
   using ptrdiff_t = IvyTypes::ptrdiff_t;
 
-  enum class IvyMemoryType : unsigned char{
-    Host,
-    GPU,
-    PageLocked,
-    Unified,
-    UnifiedPrefetched,
-    nMemoryTypes
-  };
-
   /*
   requires_malloc_free: Checks whether the memory type requires malloc/free calls instead of new/delete.
   */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool requires_malloc_free(IvyMemoryType type);
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr bool requires_malloc_free(IvyMemoryType type);
 
   /*
   allocate_memory: Allocates memory for an array of type T of size n. Constructors are called for the arguments args.
@@ -113,46 +105,12 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
-  is_host_memory: Returns true if the memory type is host memory.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool is_host_memory(IvyMemoryType type);
-
-  /*
-  is_gpu_memory: Returns true if the memory type is GPU device memory.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool is_gpu_memory(IvyMemoryType type);
-
-  /*
-  is_unified_memory: Returns true if the memory type is unified memory.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool is_unified_memory(IvyMemoryType type);
-
-  /*
-  is_pagelocked: Returns true if the memory type is page-locked host memory.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool is_pagelocked(IvyMemoryType type);
-
-  /*
-  is_prefetched: Returns true if the memory type is unified memory that has been prefetched.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool is_prefetched(IvyMemoryType type);
-
-  /*
-  use_device_GPU: Returns true if the memory type is associated with the GPU
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool use_device_GPU(IvyMemoryType type);
-
-  /*
-  use_device_acc: Returns true if the memory type is associated with hardware accelerators.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool use_device_acc(IvyMemoryType type);
 
 #ifdef __USE_CUDA__
   /*
   get_cuda_transfer_direction: Translates the target and source memory locations to the corresponding cudaMemcpyKind transfer type.
   */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
 
   /*
   copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
@@ -240,19 +198,12 @@ namespace IvyMemoryHelpers{
     );
   }
 #endif
-
-  /*
-  get_execution_default_memory: Returns the default memory type for the current execution environment.
-  For host code or if not using CUDA, this is IvyMemoryType::Host.
-  Otherwise, for device code, this is IvyMemoryType::GPU.
-  */
-  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__ IvyMemoryType get_execution_default_memory();
 }
 
 
 // Definitions
 namespace IvyMemoryHelpers{
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool requires_malloc_free(IvyMemoryType type){
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr bool requires_malloc_free(IvyMemoryType type){
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
     bool const is_pl = is_pagelocked(type);
     bool const is_dev = use_device_acc(type);
@@ -328,8 +279,12 @@ namespace IvyMemoryHelpers{
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
     bool const is_pl = is_pagelocked(type);
     if (use_device_GPU(type) || is_pl){
-      if (!is_pl){
+      bool const is_uni = is_unified_memory(type);
+      if (!is_pl && !is_uni){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeAsync(data, stream));
+      }
+      else if (is_uni){
+        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFree(data));
       }
       else{
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeHost(data));
@@ -345,39 +300,8 @@ namespace IvyMemoryHelpers{
     return true;
   }
 
-  __CUDA_HOST_DEVICE__ bool is_host_memory(IvyMemoryType type){
-    return type==IvyMemoryType::Host || type==IvyMemoryType::PageLocked;
-  }
-
-  __CUDA_HOST_DEVICE__ bool is_gpu_memory(IvyMemoryType type){
-    return type==IvyMemoryType::GPU;
-  }
-
-  __CUDA_HOST_DEVICE__ bool is_unified_memory(IvyMemoryType type){
-    return type==IvyMemoryType::Unified || type==IvyMemoryType::UnifiedPrefetched;
-  }
-
-  __CUDA_HOST_DEVICE__ bool is_pagelocked(IvyMemoryType type){
-    return type==IvyMemoryType::PageLocked;
-  }
-
-  __CUDA_HOST_DEVICE__ bool is_prefetched(IvyMemoryType type){
-    return type==IvyMemoryType::UnifiedPrefetched;
-  }
-
-  __CUDA_HOST_DEVICE__ bool use_device_GPU(IvyMemoryType type){
-    return is_gpu_memory(type) || is_unified_memory(type);
-  }
-
-  // For now, we can only test for GPUs. Once FPGAs or other devices are added, this function would need to be modified.
-  __CUDA_HOST_DEVICE__ bool use_device_acc(IvyMemoryType type){
-    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
-    return use_device_GPU(type);
-  }
-
-
 #ifdef __USE_CUDA__
-  __CUDA_HOST_DEVICE__ inline cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src){
+  __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src){
 #if (DEVICE_CODE == DEVICE_CODE_HOST)
     bool const tgt_on_device = is_gpu_memory(tgt);
     bool const tgt_on_host = is_host_memory(tgt);
@@ -418,23 +342,15 @@ namespace IvyMemoryHelpers{
     IvyGPUStream& stream
   ){
     if (!tgt || !src) return false;
+#if DEVICE_CODE == DEVICE_CODE_HOST
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
+#else
+    memcpy(tgt, src, n*sizeof(T));
+#endif
     return true;
   }
 #endif
-
-#if (DEVICE_CODE == DEVICE_CODE_CUDA)
-  __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__ IvyMemoryType get_execution_default_memory(){ return IvyMemoryType::GPU; }
-#elif (DEVICE_CODE == DEVICE_CODE_HOST)
-  __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__ IvyMemoryType get_execution_default_memory(){ return IvyMemoryType::Host; }
-#endif
-}
-
-
-// Aliases for std_ivy namespace
-namespace std_ivy{
-  using IvyMemoryType = IvyMemoryHelpers::IvyMemoryType;
 }
 
 
