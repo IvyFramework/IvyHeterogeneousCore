@@ -38,7 +38,7 @@ Equivalent operations *_serial serial over the host thread, i.e., a CPU or GPU t
 #ifdef __USE_CUDA__
 
 namespace std_ivy{
-  template<typename C, typename T> struct kernel_op_parallel{
+  template<typename C, typename T> struct kernel_op_parallel : public kernel_base_noprep_nofin{
     static __CUDA_HOST_DEVICE__ void kernel_unit_unified(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyTypes::size_t const& n_serial, T* const& vals){
       IvyTypes::size_t k = n_serial;
       if (i*n_serial + k>n) k = n - i*n_serial;

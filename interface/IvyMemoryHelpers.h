@@ -36,11 +36,6 @@ namespace IvyMemoryHelpers{
   using ptrdiff_t = IvyTypes::ptrdiff_t;
 
   /*
-  requires_malloc_free: Checks whether the memory type requires malloc/free calls instead of new/delete.
-  */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr bool requires_malloc_free(IvyMemoryType type);
-
-  /*
   allocate_memory: Allocates memory for an array of type T of size n. Constructors are called for the arguments args.
   - data: Pointer to the target data.
   - n: Number of elements.
@@ -51,14 +46,12 @@ namespace IvyMemoryHelpers{
   - stream: In host code, this is the CUDA stream to use for the allocation.
     In device code, any allocation and object construction operations are always synchronous with the running thread.
   */
-
   template<typename T, typename... Args> struct allocate_memory_fcnal{
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool allocate_memory(
       T*& data,
       size_t n
       , IvyMemoryType type
       , IvyGPUStream& stream
-      , Args&&... args
     );
   };
   template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool allocate_memory(
@@ -66,9 +59,41 @@ namespace IvyMemoryHelpers{
     size_t n
     , IvyMemoryType type
     , IvyGPUStream& stream
-    , Args&&... args
   ){
     return allocate_memory_fcnal<T, Args...>::allocate_memory(
+      data, n
+      , type, stream
+    );
+  }
+
+  /*
+  construct: Allocates memory for an array of type T of size n and constructs the objects for the arguments args.
+  - data: Pointer to the target data.
+  - n: Number of elements.
+  - args: Arguments for the constructors of the elements.
+  When using CUDA, the following additional arguments are required:
+  - type: In host code, this flag determines whether to allocate the data in device, host, unified, or page-locked host memory.
+    In device code, this flag is ignored, and the memory is always allocated on the device.
+  - stream: In host code, this is the CUDA stream to use for the allocation.
+    In device code, any allocation and object construction operations are always synchronous with the running thread.
+  */
+  template<typename T, typename... Args> struct construct_fcnal{
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(
+      T*& data,
+      size_t n
+      , IvyMemoryType type
+      , IvyGPUStream& stream
+      , Args&&... args
+    );
+  };
+  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool construct(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+    , Args&&... args
+  ){
+    return construct_fcnal<T, Args...>::construct(
       data, n
       , type, stream
       , args...
@@ -76,7 +101,7 @@ namespace IvyMemoryHelpers{
   }
 
   /*
-  free_memory: Frees memory for an array of type T of size n in a way consistent with allocate_memory.
+  free_memory: Frees the memory storing an array of type T of size n in a way consistent with allocate_memory.
   - data: Pointer to the data.
   - n: Number of elements.
   When using CUDA, the following additional arguments are required:
@@ -105,12 +130,44 @@ namespace IvyMemoryHelpers{
     );
   }
 
-
-#ifdef __USE_CUDA__
   /*
-  get_cuda_transfer_direction: Translates the target and source memory locations to the corresponding cudaMemcpyKind transfer type.
+  destroy: Calls the destructors of each element of an array of type T of size n, and frees the memory of the pointer in a way consistent with allocate_memory.
+  - data: Pointer to the data.
+  - n: Number of elements.
+  When using CUDA, the following additional arguments are required:
+  - type: In host code, this flag determines whether the data resides in device, host, unified, or page-locked host memory.
+    In device code, this flag is ignored, and the memory is always freed from the device.
+  - stream: In host code, this is the CUDA stream to use for the deallocation.
+    In device code, any deallocation operations are always synchronous with the running thread.
   */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
+  template<typename T> struct destroy_fcnal{
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(
+      T*& data,
+      size_t n
+      , IvyMemoryType type
+      , IvyGPUStream& stream
+    );
+  };
+  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destroy(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+  ){
+    return destroy_fcnal<T>::destroy(
+      data, n
+      , type, stream
+    );
+  }
+
+  /*
+  destroy_data_kernel: Kernel function for destroying object of type T from pointer.
+  - n: Number of elements.
+  - data: Pointer to the data array.
+  */
+  template<typename T> struct destroy_data_kernel : public kernel_base_noprep_nofin{
+    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data);
+  };
 
   /*
   copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
@@ -119,9 +176,16 @@ namespace IvyMemoryHelpers{
   - target: Pointer to the target data.
   - source: Pointer to the source data.
   */
-  template<typename T, typename U> struct copy_data_kernel{
+  template<typename T, typename U> struct copy_data_kernel : public kernel_base_noprep_nofin{
     static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source);
   };
+
+#ifdef __USE_CUDA__
+  /*
+  get_cuda_transfer_direction: Translates the target and source memory locations to the corresponding cudaMemcpyKind transfer type.
+  */
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
+#endif
 
   /*
   transfer_memory: Runs the transfer operation between two pointers of type T.
@@ -151,7 +215,6 @@ namespace IvyMemoryHelpers{
       stream
     );
   }
-#endif
 
   /*
   Overloads to allow passing raw cudaStream_t objects.
@@ -162,10 +225,23 @@ namespace IvyMemoryHelpers{
     size_t n
     , IvyMemoryType type
     , cudaStream_t stream
-    , Args&&... args
   ){
     IvyGPUStream sr(stream, false);
     return allocate_memory(
+      data, n
+      , type
+      , sr
+    );
+  }
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , cudaStream_t stream
+    , Args&&... args
+  ){
+    IvyGPUStream sr(stream, false);
+    return construct(
       data, n
       , type
       , sr
@@ -180,6 +256,19 @@ namespace IvyMemoryHelpers{
   ){
     IvyGPUStream sr(stream, false);
     return free_memory(
+      data, n
+      , type
+      , sr
+    );
+  }
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , cudaStream_t stream
+  ){
+    IvyGPUStream sr(stream, false);
+    return destroy(
       data, n
       , type
       , sr
@@ -203,30 +292,19 @@ namespace IvyMemoryHelpers{
 
 // Definitions
 namespace IvyMemoryHelpers{
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr bool requires_malloc_free(IvyMemoryType type){
-#if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
-    bool const is_pl = is_pagelocked(type);
-    bool const is_dev = use_device_acc(type);
-    return (is_dev || is_pl);
-#else
-    return false;
-#endif
-  }
-
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool allocate_memory_fcnal<T, Args...>::allocate_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
     , IvyGPUStream& stream
-    , Args&&... args
   ){
     if (n==0 || data) return false;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
+    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
     bool const is_pl = is_pagelocked(type);
     bool const is_gpu = is_gpu_memory(type);
     bool const is_uni = is_unified_memory(type);
     if (is_gpu || is_uni || is_pl){
-      bool res = true;
       if (is_gpu){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocAsync((void**) &data, n*sizeof(T), stream));
       }
@@ -250,22 +328,43 @@ namespace IvyMemoryHelpers{
           }
         }
       }
-      if (sizeof...(Args)>0){
-        T* temp = nullptr;
-        res &= allocate_memory(temp, n, IvyMemoryType::Host, stream, args...);
-        res &= transfer_memory(data, temp, n, type, IvyMemoryType::Host, stream);
-        stream.synchronize();
-        res &= free_memory(temp, n, IvyMemoryType::Host, stream);
-      }
-      return res;
     }
     else
 #endif
     {
-      if (n==1) data = new T(std_util::forward<Args>(args)...);
-      else data = new T[n]{ std_util::forward<Args>(args)... };
-      return true;
+      data = (T*) malloc(n*sizeof(T));
     }
+    return true;
+  }
+
+
+  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool construct_fcnal<T, Args...>::construct(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+    , Args&&... args
+  ){
+    bool res = allocate_memory_fcnal<T, Args...>::allocate_memory(data, n, type, stream);
+    if (res){
+#if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
+      static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
+      bool const is_pl = is_pagelocked(type);
+      bool const is_acc = use_device_acc(type);
+      if (is_acc || is_pl){
+        T* temp = nullptr;
+        res &= construct(temp, n, IvyMemoryType::Host, stream, args...);
+        res &= transfer_memory(data, temp, n, type, IvyMemoryType::Host, stream);
+        stream.synchronize();
+        res &= free_memory(temp, n, IvyMemoryType::Host, stream); // Important! Destroying can also invalidate the internal components of the data pointer on the device!
+      }
+      else
+#endif
+      {
+        for (size_t i=0; i<n; i++) new (data+i) T(std_util::forward<Args>(args)...);
+      }
+    }
+    return res;
   }
 
   template<typename T> __CUDA_HOST_DEVICE__ bool free_memory_fcnal<T>::free_memory(
@@ -277,6 +376,7 @@ namespace IvyMemoryHelpers{
     if (!data) return true;
     if (n==0) return false;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
+    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
     bool const is_pl = is_pagelocked(type);
     if (use_device_GPU(type) || is_pl){
       bool const is_uni = is_unified_memory(type);
@@ -293,11 +393,49 @@ namespace IvyMemoryHelpers{
     else
 #endif
     {
-      if (n==1) delete data;
-      else delete[] data;
+      free(data);
     }
     data = nullptr;
     return true;
+  }
+
+  template<typename T> __CUDA_HOST_DEVICE__ bool destroy_fcnal<T>::destroy(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+  ){
+    if (!data) return true;
+    if (n==0) return false;
+    bool res = true;
+    if (run_acc_on_host(type)){
+      res &= run_kernel<destroy_data_kernel<T>>(0, stream).parallel_1D(n, data);
+    }
+    else{
+      T* ptr = data;
+      for (size_t i=0; i<n; i++){
+        ptr->~T();
+        ++ptr;
+      }
+    }
+    res &= free_memory(data, n, type, stream);
+    return res;
+  }
+
+  template<typename T> __CUDA_HOST_DEVICE__ void destroy_data_kernel<T>::kernel(size_t const& i, size_t const& n, T* data){
+    if (i<n) (data+i)->~T();
+  }
+
+  template<typename T, typename U> __CUDA_HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
+    if (!(n_src==n_tgt || n_src==1)){
+#if COMPILER == COMPILER_MSVC
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
+#else
+      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
+#endif
+      assert(0);
+    }
+    if (i<n_tgt) *(target+i) = *(source + (n_src==1 ? 0 : i));
   }
 
 #ifdef __USE_CUDA__
@@ -323,18 +461,7 @@ namespace IvyMemoryHelpers{
     return cudaMemcpyDeviceToDevice;
 #endif
   }
-
-  template<typename T, typename U> __CUDA_HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
-    if (!(n_src==n_tgt || n_src==1)){
-#if COMPILER == COMPILER_MSVC
-      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
-#else
-      __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%zu, n_src=%zu\n", n_tgt, n_src);
 #endif
-      assert(0);
-    }
-    if (i<n_tgt) *(target+i) = *(source + (n_src==1 ? 0 : i));
-  }
 
   template<typename T> __CUDA_HOST_DEVICE__ bool transfer_memory_fcnal<T>::transfer_memory(
     T*& tgt, T* const& src, size_t n,
@@ -342,7 +469,7 @@ namespace IvyMemoryHelpers{
     IvyGPUStream& stream
   ){
     if (!tgt || !src) return false;
-#if DEVICE_CODE == DEVICE_CODE_HOST
+#if DEVICE_CODE == DEVICE_CODE_HOST && defined(__USE_CUDA__)
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
 #else
@@ -350,7 +477,6 @@ namespace IvyMemoryHelpers{
 #endif
     return true;
   }
-#endif
 }
 
 
