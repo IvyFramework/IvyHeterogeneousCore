@@ -307,12 +307,15 @@ namespace IvyMemoryHelpers{
     if (is_gpu || is_uni || is_pl){
       if (is_gpu){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocAsync((void**) &data, n*sizeof(T), stream));
+        //printf("allocate_memory_fcnal::allocate_memory: Ran cudaMallocAsync on %p\n", data);
       }
       else if (is_pl){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaHostAlloc((void**) &data, n*sizeof(T), cudaHostAllocDefault));
+        //printf("allocate_memory_fcnal::allocate_memory: Ran cudaHostAlloc on %p\n", data);
       }
       else if (is_uni){
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &data, n*sizeof(T), cudaMemAttachGlobal));
+        //printf("allocate_memory_fcnal::allocate_memory: Ran cudaMallocManaged on %p\n", data);
         if (is_prefetched(type)){
           IvyCudaConfig::IvyDeviceNum_t dev_gpu = 0;
           int supports_prefetch = 0;
@@ -333,6 +336,7 @@ namespace IvyMemoryHelpers{
 #endif
     {
       data = (T*) malloc(n*sizeof(T));
+      //printf("allocate_memory_fcnal::allocate_memory: Ran malloc on %p\n", data);
     }
     return true;
   }
@@ -381,18 +385,22 @@ namespace IvyMemoryHelpers{
     if (use_device_GPU(type) || is_pl){
       bool const is_uni = is_unified_memory(type);
       if (!is_pl && !is_uni){
+        //printf("free_memory_fcnal::free_memory: Will run cudaFreeAsync on %p\n", data);
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeAsync(data, stream));
       }
       else if (is_uni){
+        //printf("free_memory_fcnal::free_memory: Will run cudaFree on %p\n", data);
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFree(data));
       }
       else{
+        //printf("free_memory_fcnal::free_memory: Will run cudaFreeHost on %p\n", data);
         __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeHost(data));
       }
     }
     else
 #endif
     {
+      //printf("free_memory_fcnal::free_memory: Will run free on %p\n", data);
       free(data);
     }
     data = nullptr;
@@ -408,10 +416,27 @@ namespace IvyMemoryHelpers{
     if (!data) return true;
     if (n==0) return false;
     bool res = true;
-    if (run_acc_on_host(type)){
-      res &= run_kernel<destroy_data_kernel<T>>(0, stream).parallel_1D(n, data);
+#if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
+    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
+    bool const is_pl = is_pagelocked(type);
+    bool const is_acc = use_device_acc(type);
+    if (is_acc || is_pl){
+      T* temp = nullptr;
+      res &= allocate_memory(temp, n, IvyMemoryType::Host, stream);
+      res &= transfer_memory(temp, data, n, IvyMemoryType::Host, type, stream);
+      stream.synchronize();
+      {
+        T* ptr = temp;
+        for (size_t i=0; i<n; i++){
+          ptr->~T();
+          ++ptr;
+        }
+      }
+      res &= free_memory(temp, n, IvyMemoryType::Host, stream);
     }
-    else{
+    else
+#endif
+    {
       T* ptr = data;
       for (size_t i=0; i<n; i++){
         ptr->~T();

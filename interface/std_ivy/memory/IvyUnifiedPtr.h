@@ -515,24 +515,18 @@ namespace std_ivy{
     ){
       if (!src) return false;
       bool res = true;
-      if (type_tgt == type_src){
-        res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
-        res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream);
-      }
-      else{
-        constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-        pointer p_int = nullptr;
-        res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
-        res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
-        // FIXME: At the next function,
-        // device mem alloc in host is done using cudaMemAlloc
-        // but if we run reset on the pointer later on
-        // (such as in deallocate calls)
-        // delete is called as deallocate will run the kernel_reset functional in device cide.
-        res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
-        res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
-        res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
-      }
+      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      pointer p_int = nullptr;
+      res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
+      res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
+      // FIXME: At the next function,
+      // device mem alloc in host is done using cudaMemAlloc
+      // but if we run reset on the pointer later on
+      // (such as in deallocate calls)
+      // delete is called as deallocate will run the kernel_reset functional in device cide.
+      res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
+      res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
+      res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       return res;
     }
   };
