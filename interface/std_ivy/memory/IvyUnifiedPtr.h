@@ -27,6 +27,22 @@ namespace std_ivy{
     stream_(nullptr)
   {}
   template<typename T, IvyPointerType IPT>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
+    ptr_(ptr),
+    stream_(stream)
+  {
+    if (ptr_) this->init_members(mem_type, 1);
+  }
+  template<typename T, IvyPointerType IPT>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream) :
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
+    ptr_(ptr),
+    stream_(stream)
+  {
+    if (ptr_) this->init_members(mem_type, n);
+  }
+  template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
     exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
@@ -50,16 +66,16 @@ namespace std_ivy{
     stream_(other.gpu_stream())
   {
     ptr_ = __DYNAMIC_CAST__(pointer, other.get());
-    if (ptr_){
+    if (!ptr_ && other.get()){
+      __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
+      assert(false);
+    }
+    else{
       exec_mem_type_ = other.get_exec_memory_type();
       mem_type_ = other.get_memory_type_ptr();
       size_ = other.size_ptr();
       ref_count_ = other.counter();
       if (ref_count_) this->inc_dec_counter(true);
-    }
-    else{
-      __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
-      assert(false);
     }
     if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
   }
@@ -67,17 +83,11 @@ namespace std_ivy{
     stream_(other.gpu_stream())
   {
     ptr_ = other.ptr_;
-    if (ptr_){
-      exec_mem_type_ = other.exec_mem_type_;
-      mem_type_ = other.mem_type_;
-      size_ = other.size_;
-      ref_count_ = other.ref_count_;
-      if (ref_count_) this->inc_dec_counter(true);
-    }
-    else{
-      __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
-      assert(false);
-    }
+    exec_mem_type_ = other.exec_mem_type_;
+    mem_type_ = other.mem_type_;
+    size_ = other.size_;
+    ref_count_ = other.ref_count_;
+    if (ref_count_) this->inc_dec_counter(true);
     if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
   }
   template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other) :

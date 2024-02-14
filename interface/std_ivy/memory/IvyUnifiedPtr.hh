@@ -73,6 +73,8 @@ namespace std_ivy{
   public:
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr();
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr(std_cstddef::nullptr_t);
+    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(T* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
+    explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U>
     explicit __CUDA_HOST_DEVICE__ IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U>

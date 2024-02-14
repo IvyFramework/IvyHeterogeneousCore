@@ -365,7 +365,7 @@ namespace IvyMemoryHelpers{
       else
 #endif
       {
-        for (size_t i=0; i<n; i++) new (data+i) T(std_util::forward<Args>(args)...);
+        for (size_t i=0; i<n; ++i) new (data+i) T(std_util::forward<Args>(args)...);
       }
     }
     return res;
@@ -427,7 +427,7 @@ namespace IvyMemoryHelpers{
       stream.synchronize();
       {
         T* ptr = temp;
-        for (size_t i=0; i<n; i++){
+        for (size_t i=0; i<n; ++i){
           ptr->~T();
           ++ptr;
         }
@@ -438,7 +438,7 @@ namespace IvyMemoryHelpers{
 #endif
     {
       T* ptr = data;
-      for (size_t i=0; i<n; i++){
+      for (size_t i=0; i<n; ++i){
         ptr->~T();
         ++ptr;
       }
