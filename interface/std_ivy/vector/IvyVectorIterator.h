@@ -35,7 +35,7 @@ namespace std_ivy{
     pointable_t prev_;
 
   public:
-    __CUDA_HOST_DEVICE__ IvyVectorIterator() : ptr_mem_loc_(nullptr){}
+    __CUDA_HOST_DEVICE__ IvyVectorIterator(){}
     __CUDA_HOST_DEVICE__ IvyVectorIterator(IvyVectorIterator const& other) : ptr_mem_loc_(other.ptr_mem_loc_), next_(other.next_), prev_(other.prev_){}
     __CUDA_HOST_DEVICE__ IvyVectorIterator(IvyVectorIterator&& other) : ptr_mem_loc_(std_util::move(other.ptr_mem_loc_)), next_(std_util::move(other.next_)), prev_(std_util::move(other.prev_)){}
     __CUDA_HOST_DEVICE__ ~IvyVectorIterator(){}
@@ -45,8 +45,7 @@ namespace std_ivy{
       // For that reason, we can safely set the stream to nullptr even if the pointed data is operated by a particular stream.
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       constexpr IvyGPUStream* def_stream = nullptr;
-      ptr_mem_loc_ = std_mem::make_shared<pointer>(def_mem_type, def_stream, nullptr);
-      *(ptr_mem_loc_.get()) = mem_loc;
+      ptr_mem_loc_ = std_mem::make_shared<pointer>(def_mem_type, def_stream, mem_loc);
     }
     __CUDA_HOST_DEVICE__ pointer& get_mem_loc(){ return *ptr_mem_loc_; }
     __CUDA_HOST_DEVICE__ pointer const& get_mem_loc() const{ return *ptr_mem_loc_; }
