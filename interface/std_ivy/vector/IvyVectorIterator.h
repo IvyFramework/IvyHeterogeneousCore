@@ -40,6 +40,7 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyVectorIterator(IvyVectorIterator&& other) : ptr_mem_loc_(std_util::move(other.ptr_mem_loc_)), next_(std_util::move(other.next_)), prev_(std_util::move(other.prev_)){}
     __CUDA_HOST_DEVICE__ ~IvyVectorIterator(){}
 
+  protected:
     __CUDA_HOST_DEVICE__ void set_mem_loc(pointer const& mem_loc){
       // Iterators should only operrate in the default memory space of the context (host, GPU etc.).
       // For that reason, we can safely set the stream to nullptr even if the pointed data is operated by a particular stream.
@@ -53,6 +54,8 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void set_prev(pointable_t const& prev){ prev_ = prev; }
     __CUDA_HOST_DEVICE__ void set_next(std_cstddef::nullptr_t){ next_.reset(); }
     __CUDA_HOST_DEVICE__ void set_prev(std_cstddef::nullptr_t){ prev_.reset(); }
+
+  public:
     __CUDA_HOST_DEVICE__ pointable_t& next(){ return next_; }
     __CUDA_HOST_DEVICE__ pointable_t& prev(){ return prev_; }
     __CUDA_HOST_DEVICE__ pointable_t const& next() const{ return next_; }
@@ -65,6 +68,8 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ pointer const& operator->() const{ return this->get_mem_loc(); }
 
     __CUDA_HOST_DEVICE__ bool is_valid() const{ return (ptr_mem_loc_ && this->get_mem_loc()); }
+
+  protected:
     __CUDA_HOST_DEVICE__ void invalidate(){
       if (this->is_valid()) *ptr_mem_loc_ = nullptr; // This line invalidates all related iterators.
       ptr_mem_loc_.reset(); // This line decouples this iterator from previously related iterators.
@@ -73,6 +78,7 @@ namespace std_ivy{
       prev_.reset();
     }
 
+  public:
     __CUDA_HOST_DEVICE__ IvyVectorIterator<T>& operator++(){ *this = *next_; return *this; }
     __CUDA_HOST_DEVICE__ IvyVectorIterator<T> operator++(int){ IvyVectorIterator<T> tmp(*this); operator++(); return tmp; }
     __CUDA_HOST_DEVICE__ IvyVectorIterator<T>& operator--(){ *this = *prev_; return *this; }
