@@ -191,7 +191,7 @@ namespace std_ivy{
     allocator() noexcept = default;
     __CUDA_HOST_DEVICE__ allocator(allocator const& other) noexcept{}
     template<typename U> __CUDA_HOST_DEVICE__ allocator(allocator<U> const& other) noexcept{}
-    /*__CUDA_HOST_DEVICE__*/ ~allocator() = default;
+    /*__CUDA_HOST_DEVICE__*/ ~allocator() noexcept = default;
   };
   template<typename T, typename U> bool operator==(std_ivy::allocator<T> const&, std_ivy::allocator<U> const&) noexcept{ return true; }
   template<typename T, typename U> bool operator!=(std_ivy::allocator<T> const& a1, std_ivy::allocator<U> const& a2) noexcept{ return !(a1==a2); }
