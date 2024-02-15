@@ -1,15 +1,13 @@
 #define __CUDA_DEBUG__
 
-//#include "std_ivy/IvyTypeInfo.h"
-#include "std_ivy/memory/IvyUnifiedPtr.h"
-//#include "std_ivy/IvyMemory.h"
+#include "std_ivy/IvyTypeInfo.h"
+#include "std_ivy/IvyTypeTraits.h"
+#include "std_ivy/IvyMemory.h"
+#include "std_ivy/vector/IvyVectorIterator.h"
 //#include "std_ivy/IvyIterator.h"
 #include "std_ivy/IvyChrono.h"
 #include "std_ivy/IvyAlgorithm.h"
-//#include "stream/IvyStream.h"
-//#include "IvyMemoryHelpers.h"
 
-#define std_mem std_ivy
 
 using std_ivy::IvyMemoryType;
 
@@ -65,18 +63,6 @@ template<typename T, std_mem::IvyPointerType IPT> struct test_unifiedptr_fcn{
     }
   }
 };
-
-template<typename T, std_mem::IvyPointerType IPT> struct run_builtin{
-  static __CUDA_HOST_DEVICE__ void do_run(std_mem::IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
-    //run_kernel<std_ivy::kernel_IvyUnifiedPtr_reset<T, IPT>>(0, stream).parallel_1D(n, ptr);
-    //deallocator_primitive_test<std_mem::IvyUnifiedPtr<T, IPT>>::deallocate(ptr, n, mem_type, stream);
-  }
-
-  static __CUDA_HOST_DEVICE__ void run(std_mem::IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& mem_type, IvyGPUStream& stream){
-    do_run(ptr, n, mem_type, stream);
-  }
-};
-
 
 
 __CUDA_HOST_DEVICE__ void print_dummy_D(dummy_D* ptr){
@@ -207,7 +193,7 @@ void utest_transfer_sharedptr(IvyGPUStream& stream){
   __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
   __PRINT_INFO__("Running kernel test on d_ptr_shared...\n");
   kernel_test_unifiedptr_ptr<<<1, 1, 0, stream>>>(d_ptr_shared);
-  run_kernel<test_unifiedptr_fcn<dummy_D, std_ivy::IvyPointerType::shared>>(0, stream).parallel_1D(1, d_ptr_shared);
+  run_kernel<test_unifiedptr_fcn<dummy_D, std_mem::IvyPointerType::shared>>(0, stream).parallel_1D(1, d_ptr_shared);
   stream.synchronize();
   //__PRINT_INFO__("Running kernel test on d_ptr_shared_dtransfer before transfer...\n");
   //kernel_test_unifiedptr_ptr<<<1, 1, 0, stream>>>(d_ptr_shared_dtransfer);
@@ -219,11 +205,8 @@ void utest_transfer_sharedptr(IvyGPUStream& stream){
   __PRINT_INFO__("h_shared_transferable no. of copies, dummy_D addr., dummy_D.a: %llu, %p, %f\n", h_shared_transferable.use_count(), h_shared_transferable.get(), h_shared_transferable->a);
   __PRINT_INFO__("Running kernel test on d_ptr_shared_dtransfer...\n");
   kernel_test_unifiedptr_ptr<<<1, 1, 0, stream>>>(d_ptr_shared_dtransfer);
-  run_kernel<test_unifiedptr_fcn<dummy_D, std_ivy::IvyPointerType::shared>>(0, stream).parallel_1D(1, d_ptr_shared_dtransfer);
+  run_kernel<test_unifiedptr_fcn<dummy_D, std_mem::IvyPointerType::shared>>(0, stream).parallel_1D(1, d_ptr_shared_dtransfer);
   stream.synchronize();
-  //__PRINT_INFO__("Calling reset through the built-in kernel...\n");
-  //run_builtin<dummy_D, std_ivy::IvyPointerType::shared>::run(d_ptr_shared, 1, IvyMemoryType::GPU, stream);
-  //stream.synchronize();
   __PRINT_INFO__("Destroying d_ptr_shared...\n");
   sharedptr_allocator_traits::destroy(d_ptr_shared, 1, IvyMemoryType::GPU, stream);
   __PRINT_INFO__("Destroying d_ptr_shared_dtransfer...\n");
@@ -300,6 +283,72 @@ template<unsigned int nvars> void utest_basic_alloc_copy_dealloc(IvyGPUStream& s
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
 }
+void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
+  using namespace std_ivy;
+
+  __PRINT_INFO__("|*** Benchmarking IvyVectorIterator basic functionality... ***|\n");
+
+  constexpr unsigned int ndata = 10;
+  std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(ndata, IvyMemoryType::Host, &stream, 1.);
+  for (size_t i=0; i<ndata; i++){
+    ptr_unique[i].a += i;
+    printf("ptr_unique[%llu].a = %f\n", i, ptr_unique[i].a);
+  }
+
+  IvyVectorIteratorBuilder<dummy_D> it_builder;
+  it_builder.reset(ptr_unique, ndata);
+
+  printf("Use count of it_builder.chain_rend: %llu\n", it_builder.chain_rend.use_count());
+  printf("Use count of it_builder.chain_front: %llu\n", it_builder.chain_front.use_count());
+  printf("Use count of it_builder.chain_front->next(): %llu\n", it_builder.chain_front->next().use_count());
+  printf("Use count of it_builder.chain_back: %llu\n", it_builder.chain_back.use_count());
+  printf("Use count of it_builder.chain_end: %llu\n", it_builder.chain_end.use_count());
+
+  {
+    auto it_begin = it_builder.begin();
+    auto it_end = it_builder.end();
+    auto it = it_begin;
+    while (it != it_end){
+      printf("it.a = %f\n", it->a);
+      ++it;
+    }
+  }
+
+  printf("Testing range-based for-loop...\n");
+  for (auto const& obj:it_builder){
+    printf("obj.a = %f\n", obj.a);
+  }
+
+  it_builder.pop_back();
+  printf("After pop_back...\n");
+  {
+    auto it_begin = it_builder.begin();
+    auto it_end = it_builder.end();
+    auto it = it_begin;
+    while (it != it_end){
+      printf("it.a = %f\n", it->a);
+      ++it;
+    }
+  }
+
+  auto it_middle = it_builder.find_pointable(ptr_unique.get()+3);
+  it_builder.erase(it_middle);
+  printf("After erase...\n");
+  {
+    auto it_begin = it_builder.begin();
+    auto it_end = it_builder.end();
+    auto it = it_begin;
+    while (it != it_end){
+      printf("it.a = %f\n", it->a);
+      ++it;
+    }
+    if (it_middle->is_valid()) printf("it_middle.a = %f\n", (*it_middle)->a);
+    else printf("it_middle is invalid.\n");
+  }
+
+  stream.synchronize();
+  __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
+}
 
 
 int main(){
@@ -337,6 +386,7 @@ int main(){
     utest_sumparallel<nsum, nsum_serial>(stream, sum_vals);
     utest_IvyUnifiedPtr_basic(stream);
     utest_transfer_sharedptr(stream);
+    utest_IvyVectorIterator_basic(stream);
 
     __PRINT_INFO__("**********\n");
   }
