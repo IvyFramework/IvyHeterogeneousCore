@@ -9,7 +9,6 @@
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
-#include "IvyMultiAccessTransferrable.h"
 //#include "std_ivy/IvyFunctional.h"
 
 
@@ -20,12 +19,9 @@ namespace std_ivy{
   };
 
   template<typename T, IvyPointerType IPT> class IvyUnifiedPtr;
-  template<typename T, IvyPointerType IPT> class IvyUnifiedPtrAccessor;
+  template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>> : public virtual transfer_memory_primitive_with_internal_memory<IvyUnifiedPtr<T, IPT>>{};
 
-  template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
-  template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_transfer_internal_memory;
-
-  template<typename T, IvyPointerType IPT> class IvyUnifiedPtr : IvyMultiAccessTransferrable{
+  template<typename T, IvyPointerType IPT> class IvyUnifiedPtr{
   public:
     typedef T element_type;
     typedef T* pointer;
@@ -44,7 +40,7 @@ namespace std_ivy{
 
     template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
-    friend class kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>;
+    friend class kernel_generic_transfer_internal_memory<IvyUnifiedPtr<T, IPT>>;
 
   protected:
     IvyMemoryType exec_mem_type_;

@@ -37,6 +37,10 @@
     static constexpr bool value = !std_ttraits::is_same_v<invalid_call_type, decltype(test<T>(0))>; \
   }; \
   template<typename T> inline constexpr bool has_call_##FCN##_v = has_call_##FCN<T>::value;
+#define DEFINE_INHERITED_ACCESSOR_CALL(FCN) \
+  template<typename T, ENABLE_IF_BOOL(std_ttraits::is_class_v<T> && !std_ttraits::is_final_v<T>)> struct inherited_accessor_call_##FCN : public T{ \
+    template<typename... Args> auto test(Args... args) -> decltype(this->FCN(args...)); \
+  };
 #define DEFINE_HAS_MEMBER(MEMBER) \
   template<typename T> class has_member_##MEMBER{ \
   private: \

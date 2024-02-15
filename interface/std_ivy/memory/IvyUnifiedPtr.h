@@ -288,15 +288,7 @@ namespace std_ivy{
   }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_internal_memory(IvyMemoryType const& new_mem_type){
-    printf("Inside IvyUnifiedPtr::transfer_internal_memory\n");
-    printf("%s:%d\n", __FILE__, __LINE__);
-//#ifndef __CUDA_DEVICE_CODE__
-//    printf("%s:%d\n", __FILE__, __LINE__);
     return this->transfer_impl(new_mem_type, true, true);
-//#else
-//    printf("%s:%d\n", __FILE__, __LINE__);
-//    return true;
-//#endif
   }
 
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ bool IvyUnifiedPtr<T, IPT>::transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr){
@@ -462,84 +454,6 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::shared>(mem_type, stream, args...); }
   template<typename T, typename... Args>
   __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::unique>(mem_type, stream, args...); }
-}
-
-// Kernel functions
-namespace std_ivy{
-  template<typename T, IvyPointerType IPT> class kernel_IvyUnifiedPtr_transfer_internal_memory : public kernel_base_noprep_nofin{
-  protected:
-    static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* const& ptr, IvyMemoryType const& mem_type){
-      // FIXME: transfer_internal_memory is an abstract function,
-      // so virtual function table does not exist on the device
-      // unless one creates the object in the device (to be tested).
-      //bool res = ptr->transfer_internal_memory(mem_type);
-      bool res = ptr->transfer_impl(mem_type, true, true);
-      return res;
-    }
-
-  public:
-    static __CUDA_HOST_DEVICE__ void kernel(
-      IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyUnifiedPtr<T, IPT>* const& ptr,
-      IvyMemoryType const& mem_type
-    ){
-      if (i<n) transfer_internal_memory(ptr+i, mem_type);
-    }
-
-    friend class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>>;
-  };
-}
-
-// Allocator primitive specializations
-namespace std_ivy{
-  template<typename T, IvyPointerType IPT> class transfer_memory_primitive<IvyUnifiedPtr<T, IPT>> : public allocation_type_properties<IvyUnifiedPtr<T, IPT>>{
-  public:
-    using base_t = allocation_type_properties<IvyUnifiedPtr<T, IPT>>;
-    using value_type = typename base_t::value_type;
-    using pointer = typename base_t::pointer;
-    using size_type = typename base_t::size_type;
-
-  protected:
-    static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyUnifiedPtr<T, IPT>* ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
-      bool res = true;
-      if (IvyMemoryHelpers::run_acc_on_host(ptr_mem_type)){
-        if (!run_kernel<kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>>(0, stream).parallel_1D(n, ptr, mem_type)){
-          __PRINT_ERROR__("transfer_memory_primitive::transfer_internal_memory: Unable to call the acc. hardware kernel...\n");
-          res = false;
-        }
-      }
-      else{
-        IvyUnifiedPtr<T, IPT>* pr = ptr;
-        for (size_type i=0; i<n; ++i){
-          res &= kernel_IvyUnifiedPtr_transfer_internal_memory<T, IPT>::transfer_internal_memory(pr, mem_type);
-          ++pr;
-        }
-      }
-      return res;
-    }
-
-  public:
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer(
-      pointer& tgt, pointer const& src, size_type n,
-      IvyMemoryType type_tgt, IvyMemoryType type_src,
-      IvyGPUStream& stream
-    ){
-      if (!src) return false;
-      bool res = true;
-      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      pointer p_int = nullptr;
-      res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
-      res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
-      // FIXME: At the next function,
-      // device mem alloc in host is done using cudaMemAlloc
-      // but if we run reset on the pointer later on
-      // (such as in deallocate calls)
-      // delete is called as deallocate will run the kernel_reset functional in device cide.
-      res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
-      res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
-      res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
-      return res;
-    }
-  };
 }
 
 #endif

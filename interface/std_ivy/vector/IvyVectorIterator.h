@@ -123,7 +123,7 @@ namespace std_ivy{
       return 0;
     }
   };
-  template<typename T> using VectorConstIterator = IvyVectorIterator<T const>;
+  template<typename T> using IvyVectorConstIterator = IvyVectorIterator<T const>;
 
   template<typename T> struct IvyVectorIteratorBuilder{
     using iterator_type = IvyVectorIterator<T>;
