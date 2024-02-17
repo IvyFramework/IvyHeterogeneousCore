@@ -8,7 +8,7 @@
 #ifdef __USE_CUDA__
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createRawStream(cudaStream_t& st, unsigned int flags, unsigned int priority){
+  template<> __CUDA_HOST_DEVICE__ void buildRawStream(cudaStream_t& st, unsigned int flags, unsigned int priority){
 #if (DEVICE_CODE == DEVICE_CODE_HOST)
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaStreamCreateWithPriority(&st, flags, priority));
 #endif
@@ -33,7 +33,7 @@ namespace IvyStreamUtils{
     destroy_stream(stream);
     unsigned int iflags = IvyCudaStream::get_stream_flags(flags);
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &stream, sizeof(IvyCudaStream), cudaMemAttachGlobal));
-    createRawStream(stream->stream(), iflags, priority);
+    buildRawStream(stream->stream(), iflags, priority);
     stream->is_owned() = true;
     stream->flags() = iflags;
     stream->priority() = priority;
@@ -59,7 +59,7 @@ __CUDA_HOST__ IvyCudaStream::IvyCudaStream(StreamFlags flags, int priority) : Iv
   flags_ = get_stream_flags(flags);
   priority_ = priority;
 
-  IvyStreamUtils::createRawStream(stream_, flags_, priority_);
+  IvyStreamUtils::buildRawStream(stream_, flags_, priority_);
 }
 __CUDA_HOST_DEVICE__ IvyCudaStream::IvyCudaStream(
   cudaStream_t st,

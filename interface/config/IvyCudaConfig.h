@@ -18,15 +18,6 @@ namespace IvyCudaConfig{
   using IvyBlockThread_signed_t = int;
   using IvyBlockThreadDim_t = dim3;
 
-  __INLINE_VAR__ __CUDA_MANAGED__ IvyBlockThread_t MAX_NUM_BLOCKS = 1;
-  __INLINE_VAR__ __CUDA_MANAGED__ IvyBlockThread_t MAX_NUM_THREADS_PER_BLOCK = 256;
-
-  __CUDA_HOST__ void set_max_num_GPU_blocks(IvyBlockThread_t n){ MAX_NUM_BLOCKS = n; }
-  __CUDA_HOST__ void set_max_num_GPU_threads_per_block(IvyBlockThread_t n){ MAX_NUM_THREADS_PER_BLOCK = n; }
-
-  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ IvyBlockThread_t const& get_max_num_GPU_blocks(){ return MAX_NUM_BLOCKS; }
-  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ IvyBlockThread_t const& get_max_num_GPU_threads_per_block(){ return MAX_NUM_THREADS_PER_BLOCK; }
-
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_GPU_usable(IvyBlockThreadDim_t& nreq_blocks, IvyBlockThreadDim_t& nreq_threads_per_block, unsigned long long int n){
     nreq_blocks.x = nreq_blocks.y = nreq_blocks.z = 0;
     nreq_threads_per_block.x = nreq_threads_per_block.y = nreq_threads_per_block.z = 0;

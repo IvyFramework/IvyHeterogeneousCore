@@ -58,46 +58,82 @@ struct kernel_base_noprep_nofin{
   static __CUDA_HOST_DEVICE__ void finalize(...){}
 };
 
+/*
+kernel_check_dims: A struct to check the dimensions of the kernel call.
+The user may define specializations on their user-defined kernels to customize the behavior of the run_kernel struct and the generic_kernel_[N]D kernel functions,
+hopefully without having to specialize them in most of their use cases.
+
+kernel_check_dims::check_dims: Checks if index i for the current thread is within the range of the dimension n of the input data.
+- In the CPU, the check is always true because dimensions are always organized to be within the range of the input data.
+- In the GPU, an explicit check for i<n is performed to avoid out-of-bounds memory access
+since the number of allocated threads, based on the warp size, may exceed the dimensions of the input data.
+
+The way to use this default implementation would look like the following:
+
+template<typename... Args> struct example_kernel_implementation{
+  static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, Args&&... args){
+    if (kernel_check_dims<example_kernel_implementation>::check_dims(i, n)){
+      // Do something with i, n, and args...
+    }
+  }
+};
+
+*/
+template<typename Kernel_t> struct kernel_check_dims{
+  static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& n){
+#if DEVICE_CODE == DEVICE_CODE_GPU
+    return (i<n);
+#else
+    return true;
+#endif
+  }
+};
+
 #ifdef __USE_CUDA__
 
 /*
-get_kernel_call_dims_1D/2D/3D: Gets the dimensions of the kernel call
-corresponding to the blockIdx and threadIdx dimensions of the current thread:
+kernel_call_dims: A struct to get the dimensions of the kernel call corresponding to the blockIdx and threadIdx dimensions of the current thread.
+We provide a struct configuration rather than functions so that if needed, the functions can be specialized/partially specialized for different kernels.
+
+kernel_call_dims::get_dims: Gets the dimensions of the kernel call corresponding to the blockIdx and threadIdx dimensions of the current thread.
 - 1D is fully flattened.
 - In 2D, the z dimension is folded into the y direction, and the x dimension is taken as is.
 - The x, y, and z dimensions are taken as they are in 3D.
 */
-__INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_1D(IvyTypes::size_t& i){
-  IvyTypes::size_t ix = blockIdx.x * blockDim.x + threadIdx.x;
-  IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
-  IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
-  i = ix + iy * blockDim.x * gridDim.x + iz * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
-}
-__INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_2D(IvyTypes::size_t& i, IvyTypes::size_t& j){
-  i = blockIdx.x * blockDim.x + threadIdx.x;
-  IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
-  IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
-  j = iy + iz * blockDim.y * gridDim.y;
-}
-__INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_kernel_call_dims_3D(IvyTypes::size_t& i, IvyTypes::size_t& j, IvyTypes::size_t& k){
-  i = blockIdx.x * blockDim.x + threadIdx.x;
-  j = blockIdx.y * blockDim.y + threadIdx.y;
-  k = blockIdx.z * blockDim.z + threadIdx.z;
-}
+template<typename Kernel_t> struct kernel_call_dims{
+  static __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_dims(IvyTypes::size_t& i){
+    IvyTypes::size_t ix = blockIdx.x * blockDim.x + threadIdx.x;
+    IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
+    IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
+    i = ix + iy * blockDim.x * gridDim.x + iz * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+  }
+  static __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_dims(IvyTypes::size_t& i, IvyTypes::size_t& j){
+    i = blockIdx.x * blockDim.x + threadIdx.x;
+    IvyTypes::size_t iy = blockIdx.y * blockDim.y + threadIdx.y;
+    IvyTypes::size_t iz = blockIdx.z * blockDim.z + threadIdx.z;
+    j = iy + iz * blockDim.y * gridDim.y;
+  }
+  static __INLINE_FCN_RELAXED__ __CUDA_DEVICE__ void get_dims(IvyTypes::size_t& i, IvyTypes::size_t& j, IvyTypes::size_t& k){
+    i = blockIdx.x * blockDim.x + threadIdx.x;
+    j = blockIdx.y * blockDim.y + threadIdx.y;
+    k = blockIdx.z * blockDim.z + threadIdx.z;
+  }
+};
+
 
 template<typename Kernel_t, typename... Args> __CUDA_GLOBAL__ void generic_kernel_1D(Args... args){
   IvyTypes::size_t i = 0;
-  get_kernel_call_dims_1D(i);
+  kernel_call_dims<Kernel_t>::get_dims(i);
   Kernel_t::kernel(i, args...);
 }
 template<typename Kernel_t, typename... Args> __CUDA_GLOBAL__ void generic_kernel_2D(Args... args){
   IvyTypes::size_t i = 0, j = 0;
-  get_kernel_call_dims_2D(i, j);
+  kernel_call_dims<Kernel_t>::get_dims(i, j);
   Kernel_t::kernel(i, j, args...);
 }
 template<typename Kernel_t, typename... Args> __CUDA_GLOBAL__ void generic_kernel_3D(Args... args){
   IvyTypes::size_t i = 0, j = 0, k = 0;
-  get_kernel_call_dims_3D(i, j, k);
+  kernel_call_dims<Kernel_t>::get_dims(i, j, k);
   Kernel_t::kernel(i, j, k, args...);
 }
 

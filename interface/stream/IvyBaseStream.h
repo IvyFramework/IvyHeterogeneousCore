@@ -13,7 +13,7 @@
 
 
 namespace IvyStreamUtils{
-  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void createRawStream(RawStream_t& st, unsigned int flags, unsigned int priority);
+  template<typename RawStream_t> __CUDA_HOST_DEVICE__ void buildRawStream(RawStream_t& st, unsigned int flags, unsigned int priority);
   template<typename RawStream_t> __CUDA_HOST_DEVICE__ void destroyRawStream(RawStream_t& st);
 
   template<typename Stream_t> __CUDA_HOST__ void make_stream(Stream_t*& stream, typename Stream_t::StreamFlags flags, unsigned int priority=0);

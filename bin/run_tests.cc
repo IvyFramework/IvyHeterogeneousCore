@@ -44,7 +44,7 @@ struct set_doubles : public kernel_base_noprep_nofin{
     if (i<3 || i==n-1) printf("ptr[%llu] = %f in stream %u\n", static_cast<unsigned long long int>(i), ptr[i], static_cast<unsigned int>(is));
   }
   static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
-    if (i < n) kernel_unified_unit(i, n, ptr, is);
+    if (kernel_check_dims<set_doubles>::check_dims(i, n)) kernel_unified_unit(i, n, ptr, is);
   }
 };
 
@@ -56,7 +56,7 @@ template<typename T, std_mem::IvyPointerType IPT> struct test_unifiedptr_fcn{
     printf("Finalizing test_unifiedptr_fcn...\n");
   }
   static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_mem::IvyUnifiedPtr<T, IPT>* ptr){
-    if (i < n){
+    if (kernel_check_dims<test_unifiedptr_fcn<T, IPT>>::check_dims(i, n)){
       printf("Inside test_unifiedptr_fcn now...\n");
       //ptr->reset();
       printf("test_unifiedptr_fcn: get = %p\n", ptr->get());
@@ -223,7 +223,7 @@ template<unsigned int nvars> void utest_basic_alloc_copy_dealloc(IvyGPUStream& s
 
   int* ptr_i = nullptr;
 
-  auto ptr_h = obj_allocator::construct(nvars, IvyMemoryType::Host, stream);
+  auto ptr_h = obj_allocator::build(nvars, IvyMemoryType::Host, stream);
   __PRINT_INFO__("ptr_h = %p\n", ptr_h);
   ptr_h[0] = 1.0;
   ptr_h[1] = 2.0;
@@ -233,15 +233,15 @@ template<unsigned int nvars> void utest_basic_alloc_copy_dealloc(IvyGPUStream& s
 
   __PRINT_INFO__("Trying device...\n");
 
-  IvyGPUEvent ev_construct(IvyGPUEvent::EventFlags::Default); ev_construct.record(stream);
-  auto ptr_d = obj_allocator::construct(nvars, IvyMemoryType::GPU, stream);
-  IvyGPUEvent ev_construct_end(IvyGPUEvent::EventFlags::Default); ev_construct_end.record(stream);
-  ev_construct_end.synchronize();
-  auto time_construct = ev_construct_end.elapsed_time(ev_construct);
-  __PRINT_INFO__("Construction time = %f ms\n", time_construct);
+  IvyGPUEvent ev_build(IvyGPUEvent::EventFlags::Default); ev_build.record(stream);
+  auto ptr_d = obj_allocator::build(nvars, IvyMemoryType::GPU, stream);
+  IvyGPUEvent ev_build_end(IvyGPUEvent::EventFlags::Default); ev_build_end.record(stream);
+  ev_build_end.synchronize();
+  auto time_build = ev_build_end.elapsed_time(ev_build);
+  __PRINT_INFO__("Construction time = %f ms\n", time_build);
   __PRINT_INFO__("ptr_d = %p\n", ptr_d);
 
-  ptr_h = obj_allocator::construct(nvars, IvyMemoryType::Host, stream);
+  ptr_h = obj_allocator::build(nvars, IvyMemoryType::Host, stream);
   __PRINT_INFO__("ptr_h new = %p\n", ptr_h);
 
   {
@@ -296,7 +296,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   }
 
   IvyVectorIteratorBuilder<dummy_D> it_builder;
-  it_builder.reset(ptr_unique, ndata);
+  it_builder.reset(ptr_unique.get(), ndata, ptr_unique.get_memory_type(), ptr_unique.gpu_stream());
 
   printf("Use count of it_builder.chain_rend: %llu\n", it_builder.chain_rend.use_count());
   printf("Use count of it_builder.chain_front: %llu\n", it_builder.chain_front.use_count());
@@ -320,6 +320,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   }
 
   it_builder.pop_back();
+  ptr_unique.pop_back();
   printf("After pop_back...\n");
   {
     auto it_begin = it_builder.begin();
@@ -333,6 +334,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
 
   auto it_middle = it_builder.find_pointable(ptr_unique.get()+3);
   it_builder.erase(it_middle);
+  ptr_unique.erase(3);
   printf("After erase...\n");
   {
     auto it_begin = it_builder.begin();
@@ -353,9 +355,6 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
 
 int main(){
   constexpr unsigned char nStreams = 3;
-
-  IvyCudaConfig::set_max_num_GPU_blocks(1024);
-  IvyCudaConfig::set_max_num_GPU_threads_per_block(1024);
 
   IvyGPUStream* streams[nStreams]{
     IvyStreamUtils::make_global_gpu_stream(),

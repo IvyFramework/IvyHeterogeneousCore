@@ -39,8 +39,7 @@ namespace IvyMemoryHelpers{
   allocate_memory: Allocates memory for an array of type T of size n. Constructors are called for the arguments args.
   - data: Pointer to the target data.
   - n: Number of elements.
-  - args: Arguments for the constructors of the elements.
-  When using CUDA, the following additional arguments are required:
+  When using CUDA, the following arguments have nontrivial meaning:
   - type: In host code, this flag determines whether to allocate the data in device, host, unified, or page-locked host memory.
     In device code, this flag is ignored, and the memory is always allocated on the device.
   - stream: In host code, this is the CUDA stream to use for the allocation.
@@ -67,11 +66,11 @@ namespace IvyMemoryHelpers{
   }
 
   /*
-  construct: Allocates memory for an array of type T of size n and constructs the objects for the arguments args.
+  construct: Constructs an array of n objects for the arguments args.
   - data: Pointer to the target data.
   - n: Number of elements.
   - args: Arguments for the constructors of the elements.
-  When using CUDA, the following additional arguments are required:
+  When using CUDA, the following arguments have nontrivial meaning:
   - type: In host code, this flag determines whether to allocate the data in device, host, unified, or page-locked host memory.
     In device code, this flag is ignored, and the memory is always allocated on the device.
   - stream: In host code, this is the CUDA stream to use for the allocation.
@@ -101,10 +100,42 @@ namespace IvyMemoryHelpers{
   }
 
   /*
+  build: Allocates memory for an array of type T of size n and builds the objects for the arguments args.
+  Calling this function is a shorthand for allocate_memory + construct.
+  - data: Pointer to the target data.
+  - n: Number of elements.
+  - args: Arguments for the buildors of the elements.
+  When using CUDA, the following arguments have nontrivial meaning:
+  - type: In host code, this flag determines whether to allocate the data in device, host, unified, or page-locked host memory.
+    In device code, this flag is ignored, and the memory is always allocated on the device.
+  - stream: In host code, this is the CUDA stream to use for the allocation.
+    In device code, any allocation and object buildion operations are always synchronous with the running thread.
+  */
+  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool build(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+    , Args&&... args
+  ){
+    return 
+      allocate_memory<T, Args...>(
+        data, n
+        , type, stream
+      )
+      &&
+      construct(
+        data, n
+        , type, stream
+        , args...
+      );
+  }
+
+  /*
   free_memory: Frees the memory storing an array of type T of size n in a way consistent with allocate_memory.
   - data: Pointer to the data.
   - n: Number of elements.
-  When using CUDA, the following additional arguments are required:
+  When using CUDA, the following arguments have nontrivial meaning:
   - type: In host code, this flag determines whether the data resides in device, host, unified, or page-locked host memory.
     In device code, this flag is ignored, and the memory is always freed from the device.
   - stream: In host code, this is the CUDA stream to use for the deallocation.
@@ -131,41 +162,79 @@ namespace IvyMemoryHelpers{
   }
 
   /*
-  destroy: Calls the destructors of each element of an array of type T of size n, and frees the memory of the pointer in a way consistent with allocate_memory.
+  destruct: Calls the destructors of each element of an array of type T of size n.
   - data: Pointer to the data.
   - n: Number of elements.
-  When using CUDA, the following additional arguments are required:
+  When using CUDA, the following arguments have nontrivial meaning:
   - type: In host code, this flag determines whether the data resides in device, host, unified, or page-locked host memory.
     In device code, this flag is ignored, and the memory is always freed from the device.
   - stream: In host code, this is the CUDA stream to use for the deallocation.
     In device code, any deallocation operations are always synchronous with the running thread.
   */
-  template<typename T> struct destroy_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(
+  template<typename T> struct destruct_fcnal{
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
       T*& data,
       size_t n
       , IvyMemoryType type
       , IvyGPUStream& stream
     );
   };
-  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destroy(
+  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destruct(
     T*& data,
     size_t n
     , IvyMemoryType type
     , IvyGPUStream& stream
   ){
-    return destroy_fcnal<T>::destroy(
+    return destruct_fcnal<T>::destruct(
       data, n
       , type, stream
     );
   }
 
   /*
-  destroy_data_kernel: Kernel function for destroying object of type T from pointer.
+  destroy: Calls the destructors of each element of an array of type T of size n, and frees the memory of the pointer in a way consistent with allocate_memory.
+  - data: Pointer to the data.
+  - n: Number of elements.
+  When using CUDA, the following arguments have nontrivial meaning:
+  - type: In host code, this flag determines whether the data resides in device, host, unified, or page-locked host memory.
+    In device code, this flag is ignored, and the memory is always freed from the device.
+  - stream: In host code, this is the CUDA stream to use for the deallocation.
+    In device code, any deallocation operations are always synchronous with the running thread.
+  */
+  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destroy(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , IvyGPUStream& stream
+  ){
+    return
+      destruct(
+        data, n
+        , type, stream
+      )
+      &&
+      free_memory(
+        data, n
+        , type, stream
+      );
+  }
+
+  /*
+  construct_data_kernel: Kernel function for constructing object of type T from pointer.
+  - n: Number of elements.
+  - data: Pointer to the data array.
+  - args: Arguments for the constructors of the elements.
+  */
+  template<typename T, typename... Args> struct construct_data_kernel : public kernel_base_noprep_nofin{
+    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data, Args&&... args);
+  };
+
+  /*
+  destruct_data_kernel: Kernel function for destructing object of type T from pointer.
   - n: Number of elements.
   - data: Pointer to the data array.
   */
-  template<typename T> struct destroy_data_kernel : public kernel_base_noprep_nofin{
+  template<typename T> struct destruct_data_kernel : public kernel_base_noprep_nofin{
     static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data);
   };
 
@@ -227,7 +296,7 @@ namespace IvyMemoryHelpers{
     , cudaStream_t stream
   ){
     IvyGPUStream sr(stream, false);
-    return allocate_memory(
+    return allocate_memory<T, Args...>(
       data, n
       , type
       , sr
@@ -248,6 +317,21 @@ namespace IvyMemoryHelpers{
       , args...
     );
   }
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool build(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , cudaStream_t stream
+    , Args&&... args
+  ){
+    IvyGPUStream sr(stream, false);
+    return build(
+      data, n
+      , type
+      , sr
+      , args...
+    );
+  }
   template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool free_memory(
     T*& data,
     size_t n
@@ -256,6 +340,19 @@ namespace IvyMemoryHelpers{
   ){
     IvyGPUStream sr(stream, false);
     return free_memory(
+      data, n
+      , type
+      , sr
+    );
+  }
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
+    T*& data,
+    size_t n
+    , IvyMemoryType type
+    , cudaStream_t stream
+  ){
+    IvyGPUStream sr(stream, false);
+    return destruct(
       data, n
       , type
       , sr
@@ -349,24 +446,23 @@ namespace IvyMemoryHelpers{
     , IvyGPUStream& stream
     , Args&&... args
   ){
-    bool res = allocate_memory_fcnal<T, Args...>::allocate_memory(data, n, type, stream);
-    if (res){
+    if (n==0 || !data) return false;
+    bool res = true;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
-      static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
-      bool const is_pl = is_pagelocked(type);
-      bool const is_acc = use_device_acc(type);
-      if (is_acc || is_pl){
-        T* temp = nullptr;
-        res &= construct(temp, n, IvyMemoryType::Host, stream, args...);
-        res &= transfer_memory(data, temp, n, type, IvyMemoryType::Host, stream);
-        stream.synchronize();
-        res &= free_memory(temp, n, IvyMemoryType::Host, stream); // Important! Destroying can also invalidate the internal components of the data pointer on the device!
-      }
-      else
+    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
+    bool const is_pl = is_pagelocked(type);
+    bool const is_acc = use_device_acc(type);
+    if (is_acc || is_pl){
+      T* temp = nullptr;
+      res &= build(temp, n, IvyMemoryType::Host, stream, args...);
+      res &= transfer_memory(data, temp, n, type, IvyMemoryType::Host, stream);
+      stream.synchronize();
+      res &= free_memory(temp, n, IvyMemoryType::Host, stream); // Important! Calling the destructor can also invalidate the internal components of the data pointer on the device!
+    }
+    else
 #endif
-      {
-        for (size_t i=0; i<n; ++i) new (data+i) T(std_util::forward<Args>(args)...);
-      }
+    {
+      for (size_t i=0; i<n; ++i) new (data+i) T(std_util::forward<Args>(args)...);
     }
     return res;
   }
@@ -407,14 +503,13 @@ namespace IvyMemoryHelpers{
     return true;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ bool destroy_fcnal<T>::destroy(
+  template<typename T> __CUDA_HOST_DEVICE__ bool destruct_fcnal<T>::destruct(
     T*& data,
     size_t n
     , IvyMemoryType type
     , IvyGPUStream& stream
   ){
-    if (!data) return true;
-    if (n==0) return false;
+    if (n==0 || !data) return false;
     bool res = true;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
     static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
@@ -443,12 +538,15 @@ namespace IvyMemoryHelpers{
         ++ptr;
       }
     }
-    res &= free_memory(data, n, type, stream);
     return res;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ void destroy_data_kernel<T>::kernel(size_t const& i, size_t const& n, T* data){
-    if (i<n) (data+i)->~T();
+  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ void construct_data_kernel<T, Args...>::kernel(size_t const& i, size_t const& n, T* data, Args&&... args){
+    if (kernel_check_dims<construct_data_kernel<T, Args...>>::check_dims(i, n)) new (data+i) T(std_util::forward<Args>(args)...);
+  }
+
+  template<typename T> __CUDA_HOST_DEVICE__ void destruct_data_kernel<T>::kernel(size_t const& i, size_t const& n, T* data){
+    if (kernel_check_dims<destruct_data_kernel<T>>::check_dims(i, n)) (data+i)->~T();
   }
 
   template<typename T, typename U> __CUDA_HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
@@ -460,7 +558,7 @@ namespace IvyMemoryHelpers{
 #endif
       assert(0);
     }
-    if (i<n_tgt) *(target+i) = *(source + (n_src==1 ? 0 : i));
+    if (kernel_check_dims<copy_data_kernel<T, U>>::check_dims(i, n_tgt)) *(target+i) = *(source + (n_src==1 ? 0 : i));
   }
 
 #ifdef __USE_CUDA__

@@ -101,7 +101,7 @@ namespace IvyMemoryHelpers{
     return use_device_GPU(type);
   }
 
-#if (DEVICE_CODE == DEVICE_CODE_CUDA)
+#if (DEVICE_CODE == DEVICE_CODE_GPU)
   __CUDA_HOST_DEVICE__ constexpr IvyMemoryType get_execution_default_memory(){ return IvyMemoryType::GPU; }
 #elif (DEVICE_CODE == DEVICE_CODE_HOST)
   __CUDA_HOST_DEVICE__ constexpr IvyMemoryType get_execution_default_memory(){ return IvyMemoryType::Host; }

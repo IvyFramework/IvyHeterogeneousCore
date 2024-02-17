@@ -59,11 +59,17 @@ namespace std_ivy{
     ){
       return IvyMemoryHelpers::construct(tgt, n, mem_type, stream, args...);
     }
-    template<typename... Args> static __CUDA_HOST_DEVICE__ pointer construct(
+
+    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool build(
+      pointer& tgt, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args
+    ){
+      return IvyMemoryHelpers::build(tgt, n, mem_type, stream, args...);
+    }
+    template<typename... Args> static __CUDA_HOST_DEVICE__ pointer build(
       size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args
     ){
       pointer res = nullptr;
-      IvyMemoryHelpers::construct(res, n, mem_type, stream, args...);
+      IvyMemoryHelpers::build(res, n, mem_type, stream, args...);
       return res;
     }
   };
@@ -77,6 +83,12 @@ namespace std_ivy{
       pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
       return IvyMemoryHelpers::free_memory(p, n, mem_type, stream);
+    }
+
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
+      pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
+    ){
+      return IvyMemoryHelpers::destruct(p, n, mem_type, stream);
     }
 
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(
@@ -106,7 +118,7 @@ namespace std_ivy{
       IvyTypes::size_t const& i, IvyTypes::size_t const& n, T* const& ptr,
       IvyMemoryType const& mem_type
     ){
-      if (i<n) transfer_internal_memory(ptr+i, mem_type);
+      if (kernel_check_dims<kernel_generic_transfer_internal_memory<T>>::check_dims(i, n)) transfer_internal_memory(ptr+i, mem_type);
     }
 
     friend class transfer_memory_primitive_with_internal_memory<T>;
@@ -162,12 +174,18 @@ namespace std_ivy{
       if (!src) return false;
       bool res = true;
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      pointer p_int = nullptr;
-      res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
-      res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
-      res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
-      res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
-      res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
+      if (def_mem_type==type_tgt && def_mem_type==type_src){
+        res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
+        res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream);
+      }
+      else{
+        pointer p_int = nullptr;
+        res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
+        res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
+        res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
+        res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
+        res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
+      }
       return res;
     }
   };
@@ -214,14 +232,20 @@ namespace std_ivy{
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool allocate(allocator_type const& a, pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return a.allocate(ptr, n, mem_type, stream);
     }
-    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer construct(allocator_type const& a, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
-      return a.construct(n, mem_type, stream, args...);
-    }
     template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(allocator_type const& a, pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
       return a.construct(ptr, n, mem_type, stream, args...);
     }
+    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer build(allocator_type const& a, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
+      return a.build(n, mem_type, stream, args...);
+    }
+    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool build(allocator_type const& a, pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
+      return a.build(ptr, n, mem_type, stream, args...);
+    }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool deallocate(allocator_type const& a, pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return a.deallocate(p, n, mem_type, stream);
+    }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(allocator_type const& a, pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
+      return a.destruct(p, n, mem_type, stream);
     }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(allocator_type const& a, pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return a.destroy(p, n, mem_type, stream);
@@ -250,8 +274,17 @@ namespace std_ivy{
     template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
       return allocator_type::construct(ptr, n, mem_type, stream, args...);
     }
+    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer build(size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
+      return allocator_type::build(n, mem_type, stream, args...);
+    }
+    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool build(pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
+      return allocator_type::build(ptr, n, mem_type, stream, args...);
+    }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool deallocate(pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return allocator_type::deallocate(p, n, mem_type, stream);
+    }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
+      return allocator_type::destruct(p, n, mem_type, stream);
     }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return allocator_type::destroy(p, n, mem_type, stream);

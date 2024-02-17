@@ -46,7 +46,7 @@ namespace std_ivy{
     }
     static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyTypes::size_t const& n_serial, T* const& vals){
       IvyTypes::size_t n_ops = C::n_ops(n, n_serial);
-      if (i < n_ops) kernel_unit_unified(i, n, n_serial, vals);
+      if (kernel_check_dims<kernel_op_parallel<C, T>>::check_dims(i, n_ops)) kernel_unit_unified(i, n, n_serial, vals);
     }
   };
   template<typename C, typename T>

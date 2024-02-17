@@ -8,7 +8,7 @@
 
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createRawStream(BlankStream& st, unsigned int flags, unsigned int priority){}
+  template<> __CUDA_HOST_DEVICE__ void buildRawStream(BlankStream& st, unsigned int flags, unsigned int priority){}
   template<> __CUDA_HOST_DEVICE__ void destroyRawStream(BlankStream& st){}
 }
 
