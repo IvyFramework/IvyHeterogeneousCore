@@ -90,7 +90,13 @@ namespace IvyMemoryHelpers{
   }
 
   __CUDA_HOST_DEVICE__ constexpr bool use_device_GPU(IvyMemoryType type){
-    return is_gpu_memory(type) || is_unified_memory(type);
+    return
+#if defined(__USE_CUDA__)
+      true
+#else
+      false
+#endif
+      && (is_gpu_memory(type) || is_unified_memory(type));
   }
 
   __CUDA_HOST_DEVICE__ constexpr bool use_device_host(IvyMemoryType type){ return !use_device_acc(type); }

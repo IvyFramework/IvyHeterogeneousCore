@@ -45,6 +45,14 @@ namespace std_ivy{
     if (ptr_) this->init_members(mem_type, n, n);
   }
   template<typename T, IvyPointerType IPT>
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream) :
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
+    ptr_(ptr),
+    stream_(stream)
+  {
+    if (ptr_) this->init_members(mem_type, n_size, n_capacity);
+  }
+  template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
     exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),

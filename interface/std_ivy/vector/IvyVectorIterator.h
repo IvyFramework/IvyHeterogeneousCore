@@ -48,14 +48,15 @@ namespace std_ivy{
       constexpr IvyGPUStream* def_stream = nullptr;
       ptr_mem_loc_ = std_mem::make_shared<pointer>(def_mem_type, def_stream, mem_loc);
     }
-    __CUDA_HOST_DEVICE__ pointer& get_mem_loc(){ return *ptr_mem_loc_; }
-    __CUDA_HOST_DEVICE__ pointer const& get_mem_loc() const{ return *ptr_mem_loc_; }
     __CUDA_HOST_DEVICE__ void set_next(pointable_t const& next){ next_ = next; }
     __CUDA_HOST_DEVICE__ void set_prev(pointable_t const& prev){ prev_ = prev; }
     __CUDA_HOST_DEVICE__ void set_next(std_cstddef::nullptr_t){ next_.reset(); }
     __CUDA_HOST_DEVICE__ void set_prev(std_cstddef::nullptr_t){ prev_.reset(); }
 
   public:
+    __CUDA_HOST_DEVICE__ pointer& get_mem_loc(){ return *ptr_mem_loc_; }
+    __CUDA_HOST_DEVICE__ pointer const& get_mem_loc() const{ return *ptr_mem_loc_; }
+
     __CUDA_HOST_DEVICE__ pointable_t& next(){ return next_; }
     __CUDA_HOST_DEVICE__ pointable_t& prev(){ return prev_; }
     __CUDA_HOST_DEVICE__ pointable_t const& next() const{ return next_; }
@@ -155,13 +156,14 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ reverse_iterator_type rbegin() const{ return reverse_iterator_type(*chain_back); }
     __CUDA_HOST_DEVICE__ reverse_iterator_type rend() const{ return reverse_iterator_type(*chain_rend); }
 
-    static __CUDA_HOST_DEVICE__ pointable_t make_pointable(pointer& mem_loc, IvyMemoryType mem_type, IvyGPUStream* stream){
+    template<typename Ptr_t> static __CUDA_HOST_DEVICE__ pointable_t make_pointable(Ptr_t const& mem_loc, IvyMemoryType mem_type, IvyGPUStream* stream){
       auto res = make_shared<iterator_type>(mem_type, stream);
-      res->set_mem_loc(mem_loc);
+      auto mem_loc_nonconst = __CONST_CAST__(std_ttraits::remove_const_t<std_ttraits::remove_reference_t<decltype(*mem_loc)>>*, mem_loc);
+      res->set_mem_loc(mem_loc_nonconst);
       return res;
     }
 
-    __CUDA_HOST_DEVICE__ pointable_t find_pointable(pointer mem_loc) const{
+    template<typename Ptr_t> __CUDA_HOST_DEVICE__ pointable_t find_pointable(Ptr_t mem_loc) const{
       auto res = chain_front;
       while (res){
         if (res->get_mem_loc() == mem_loc) break;
@@ -214,16 +216,45 @@ namespace std_ivy{
       reset_chain_end();
     }
 
-    __CUDA_HOST_DEVICE__ void push_back(pointable_t& it){
+    __CUDA_HOST_DEVICE__ void push_back(pointable_t const& it){
       if (!it || !it->is_valid()) return;
+      {
+        printf("Status before push_back:\n");
+        auto pp = chain_front;
+        while (pp){
+          if (pp->is_valid()) printf("Pointer address: %p, val: %f\n", pp->get_mem_loc(), (*pp)->a);
+          else printf("Pointer address: invalid\n");
+          pp = pp->next();
+        }
+        printf("chain_back address: %p\n", chain_back->get_mem_loc());
+        printf("chain_front address: %p\n", chain_front->get_mem_loc());
+      }
+
       auto const& prev = chain_back;
+      printf("prev address: %p\n", prev->get_mem_loc());
       it->set_prev(prev);
       if (prev) prev->set_next(it);
+      printf("it address: %p\n", it->get_mem_loc());
       chain_back = it;
+      printf("chain_back address: %p\n", chain_back->get_mem_loc());
+      reset_chain_end();
+
+      {
+        printf("Status after push_back:\n");
+        auto pp = chain_front;
+        while (pp){
+          if (pp->is_valid()) printf("Pointer address: %p, val: %f\n", pp->get_mem_loc(), (*pp)->a);
+          else printf("Pointer address: invalid\n");
+          pp = pp->next();
+        }
+        printf("chain_back address: %p\n", chain_back->get_mem_loc());
+        printf("chain_front address: %p\n", chain_front->get_mem_loc());
+      }
+
     }
 
     // Insert iterator 'it' before position 'pos'.
-    __CUDA_HOST_DEVICE__ void insert(pointable_t const& pos, pointable_t& it){
+    __CUDA_HOST_DEVICE__ void insert(pointable_t const& pos, pointable_t const& it){
       if (!pos || !it || !it->is_valid()) return;
       if (!pos->is_valid()){
         if (pos == chain_end) push_back(it);

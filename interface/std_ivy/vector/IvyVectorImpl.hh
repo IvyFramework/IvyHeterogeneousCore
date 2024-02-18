@@ -2,10 +2,7 @@
 #define IVYVECTORIMPL_HH
 
 
-#include "config/IvyCompilerConfig.h"
-#include "std_ivy/IvyUtility.h"
-#include "std_ivy/IvyMemory.h"
-#include "std_ivy/IvyIterator.h"
+#include "std_ivy/vector/IvyVectorIterator.h"
 
 
 #ifdef __USE_CUDA__
@@ -51,7 +48,7 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyVector();
     __CUDA_HOST_DEVICE__ IvyVector(IvyVector const& v);
     __CUDA_HOST_DEVICE__ IvyVector(IvyVector&& v);
-    template<typename... Args> __CUDA_HOST_DEVICE__ IvyVector(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&& args...);
+    template<typename... Args> __CUDA_HOST_DEVICE__ IvyVector(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
     template<typename InputIterator> __CUDA_HOST_DEVICE__ IvyVector(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
     __CUDA_HOST_DEVICE__ IvyVector(std_ilist::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
     __CUDA_HOST_DEVICE__ ~IvyVector();
@@ -97,18 +94,18 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void clear();
 
-    template<typename... Args> __CUDA_HOST_DEVICE__ iterator insert(const_iterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-    template<typename... Args> __CUDA_HOST_DEVICE__ iterator insert(const_iterator pos, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
-    template<typename InputIterator> __CUDA_HOST_DEVICE__ iterator insert(const_iterator pos, InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
-    __CUDA_HOST_DEVICE__ iterator insert(const_iterator pos, std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
+    template<typename PosIterator, typename... Args> __CUDA_HOST_DEVICE__ iterator insert(PosIterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+    template<typename PosIterator, typename... Args> __CUDA_HOST_DEVICE__ iterator insert(PosIterator pos, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+    template<typename PosIterator, typename InputIterator> __CUDA_HOST_DEVICE__ iterator insert(PosIterator pos, InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator insert(PosIterator pos, std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
 
-    __CUDA_HOST_DEVICE__ iterator erase(const_iterator pos);
-    __CUDA_HOST_DEVICE__ iterator erase(const_iterator first, const_iterator last);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator pos);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator first, PosIterator last);
 
     __CUDA_HOST_DEVICE__ void push_back(IvyMemoryType mem_type, IvyGPUStream* stream, value_type const& val);
     __CUDA_HOST_DEVICE__ void pop_back();
 
-    template<typename... Args> __CUDA_HOST_DEVICE__ iterator emplace(const_iterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+    template<typename PosIterator, typename... Args> __CUDA_HOST_DEVICE__ iterator emplace(PosIterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
     template<typename... Args> __CUDA_HOST_DEVICE__ void emplace_back(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
 
     template<typename... Args> __CUDA_HOST_DEVICE__ void resize(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
