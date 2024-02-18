@@ -296,7 +296,9 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   }
 
   IvyVectorIteratorBuilder<dummy_D> it_builder;
+  IvyVectorIteratorBuilder<dummy_D const> cit_builder;
   it_builder.reset(ptr_unique.get(), ndata, ptr_unique.get_memory_type(), ptr_unique.gpu_stream());
+  cit_builder.reset(ptr_unique.get(), ndata, ptr_unique.get_memory_type(), ptr_unique.gpu_stream());
 
   printf("Use count of it_builder.chain_rend: %llu\n", it_builder.chain_rend.use_count());
   printf("Use count of it_builder.chain_front: %llu\n", it_builder.chain_front.use_count());
@@ -315,9 +317,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   }
 
   printf("Testing range-based for-loop...\n");
-  for (auto const& obj:it_builder){
-    printf("obj.a = %f\n", obj.a);
-  }
+  for (auto const& obj:it_builder) printf("obj.a = %f\n", obj.a);
 
   it_builder.pop_back();
   ptr_unique.pop_back();
@@ -333,6 +333,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   }
 
   auto it_middle = it_builder.find_pointable(ptr_unique.get()+3);
+  auto cit_middle = cit_builder.find_pointable(ptr_unique.get()+3);
   it_builder.erase(it_middle);
   ptr_unique.erase(3);
   printf("After erase...\n");

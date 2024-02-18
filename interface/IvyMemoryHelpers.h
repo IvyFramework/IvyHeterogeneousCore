@@ -446,7 +446,8 @@ namespace IvyMemoryHelpers{
     , IvyGPUStream& stream
     , Args&&... args
   ){
-    if (n==0 || !data) return false;
+    if (!data) return false;
+    if (n==0) return true;
     bool res = true;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
     static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
@@ -509,7 +510,8 @@ namespace IvyMemoryHelpers{
     , IvyMemoryType type
     , IvyGPUStream& stream
   ){
-    if (n==0 || !data) return false;
+    if (!data) return false;
+    if (n==0) return true;
     bool res = true;
 #if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
     static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
@@ -592,6 +594,7 @@ namespace IvyMemoryHelpers{
     IvyGPUStream& stream
   ){
     if (!tgt || !src) return false;
+    if (n==0) return true;
 #if DEVICE_CODE == DEVICE_CODE_HOST && defined(__USE_CUDA__)
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);
     __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));

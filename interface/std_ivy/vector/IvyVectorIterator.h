@@ -161,7 +161,7 @@ namespace std_ivy{
       return res;
     }
 
-    __CUDA_HOST_DEVICE__ pointable_t find_pointable(pointer const& mem_loc) const{
+    __CUDA_HOST_DEVICE__ pointable_t find_pointable(pointer mem_loc) const{
       auto res = chain_front;
       while (res){
         if (res->get_mem_loc() == mem_loc) break;
@@ -214,7 +214,7 @@ namespace std_ivy{
       reset_chain_end();
     }
 
-    __CUDA_HOST_DEVICE__ void push_back(pointable_t const& it){
+    __CUDA_HOST_DEVICE__ void push_back(pointable_t& it){
       if (!it || !it->is_valid()) return;
       auto const& prev = chain_back;
       it->set_prev(prev);
@@ -223,7 +223,7 @@ namespace std_ivy{
     }
 
     // Insert iterator 'it' before position 'pos'.
-    __CUDA_HOST_DEVICE__ void insert(pointable_t const& pos, pointable_t const& it){
+    __CUDA_HOST_DEVICE__ void insert(pointable_t const& pos, pointable_t& it){
       if (!pos || !it || !it->is_valid()) return;
       if (!pos->is_valid()){
         if (pos == chain_end) push_back(it);
@@ -289,6 +289,15 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyVectorIteratorBuilder(IvyVectorIteratorBuilder const& other) : chain_rend(other.chain_rend), chain_front(other.chain_front), chain_back(other.chain_back), chain_end(other.chain_end){}
     __CUDA_HOST_DEVICE__ IvyVectorIteratorBuilder(IvyVectorIteratorBuilder&& other) : chain_rend(std_util::move(other.chain_rend)), chain_front(std_util::move(other.chain_front)), chain_back(std_util::move(other.chain_back)), chain_end(std_util::move(other.chain_end)){}
     __CUDA_HOST_DEVICE__ ~IvyVectorIteratorBuilder(){ this->invalidate(); }
+  };
+
+  template<typename T> struct kernel_reset_iterator : public kernel_base_noprep_nofin{
+    static __CUDA_HOST_DEVICE__ void kernel(
+      size_t const& i, size_t const& n, T* data,
+      typename T::pointer ptr, typename T::size_type n_size, IvyMemoryType mem_type, IvyGPUStream* stream
+    ){
+      if (kernel_check_dims<kernel_reset_iterator<T>>::check_dims(i, n)) (data+i)->reset(ptr, n_size, mem_type, stream);
+    }
   };
 
 }

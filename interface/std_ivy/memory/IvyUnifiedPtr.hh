@@ -57,7 +57,7 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void inc_dec_counter(bool do_inc);
     __CUDA_HOST_DEVICE__ void inc_dec_size(bool do_inc);
-    __CUDA_HOST_DEVICE__ void inc_dec_capacity(bool do_inc);
+    __CUDA_HOST_DEVICE__ void inc_dec_capacity(bool do_inc, size_type inc=1);
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type);
 
@@ -95,6 +95,9 @@ namespace std_ivy{
     template<typename U> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(U* ptr);
     __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);
 
+    // Copy n values from external pointer via memory transfer
+    __CUDA_HOST_DEVICE__ bool copy(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
+
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType const& get_exec_memory_type() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyMemoryType* get_memory_type_ptr() const __NOEXCEPT__;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const __NOEXCEPT__;
@@ -124,8 +127,12 @@ namespace std_ivy{
     template<typename U> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U> __CUDA_HOST_DEVICE__ void reset(U* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream);
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset(T* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
+    __CUDA_HOST_DEVICE__ void reset(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
+    __CUDA_HOST_DEVICE__ void reset(T* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream);
 
     template<typename U> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<U, IPT>& other) __NOEXCEPT__;
+    __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT>& other) __NOEXCEPT__;
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ counter_type use_count() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool unique() const;
@@ -141,10 +148,12 @@ namespace std_ivy{
     __CUDA_HOST__ bool transfer(IvyMemoryType const& new_mem_type, bool transfer_all);
 
     __CUDA_HOST_DEVICE__ void reserve(size_type const& n);
+    __CUDA_HOST_DEVICE__ void reserve(size_type const& n, IvyMemoryType new_mem_type, IvyGPUStream* stream);
     template<typename... Args> __CUDA_HOST_DEVICE__ void emplace_back(Args&&... args);
     template<typename... Args> __CUDA_HOST_DEVICE__ void insert(size_type const& i, Args&&... args);
     __CUDA_HOST_DEVICE__ void pop_back();
     __CUDA_HOST_DEVICE__ void erase(size_type const& i);
+    __CUDA_HOST_DEVICE__ void shrink_to_fit();
   };
 
   template<typename T> using shared_ptr = IvyUnifiedPtr<T, IvyPointerType::shared>;

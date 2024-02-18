@@ -146,7 +146,6 @@ namespace std_ivy{
     using size_type = typename base_t::size_type;
     using kernel_type = kernel_generic_transfer_internal_memory<value_type>;
 
-  protected:
     static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
       bool res = true;
       if (IvyMemoryHelpers::run_acc_on_host(ptr_mem_type)){
@@ -165,7 +164,6 @@ namespace std_ivy{
       return res;
     }
 
-  public:
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
