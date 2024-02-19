@@ -624,13 +624,18 @@ namespace std_ivy{
     auto const current_mem_type = this->get_memory_type();
     if (n_size==n_capacity) this->reserve(n_capacity+2);
     pointer ptr_here = (ptr_+i);
-    pointer ptr_next = (ptr_+(i+1));
+    pointer ptr_next = (ptr_here+1);
+    pointer tmp_ptr_ = nullptr;
+    size_type n_to_shift = n_size - i;
     operate_with_GPU_stream_from_pointer(
       stream_, ref_stream,
       __ENCAPSULATE__(
         // Shift objects via barebones memory transfer; we do not want to call any transfer_internal_memory() function.
-        IvyMemoryHelpers::transfer_memory(ptr_next, ptr_here, n_size-i, current_mem_type, current_mem_type, ref_stream);
+        IvyMemoryHelpers::allocate_memory(tmp_ptr_, n_to_shift, current_mem_type, ref_stream);
+        IvyMemoryHelpers::transfer_memory(tmp_ptr_, ptr_here, n_to_shift, current_mem_type, current_mem_type, ref_stream);
+        IvyMemoryHelpers::transfer_memory(ptr_next, tmp_ptr_, n_to_shift, current_mem_type, current_mem_type, ref_stream);
         element_allocator_traits::construct(ptr_here, 1, current_mem_type, ref_stream, args...);
+        IvyMemoryHelpers::free_memory(tmp_ptr_, n_to_shift, current_mem_type, ref_stream);
       )
     );
     this->inc_dec_size(true);
@@ -655,13 +660,18 @@ namespace std_ivy{
     auto n_capacity = this->capacity();
     auto const current_mem_type = this->get_memory_type();
     pointer ptr_here = (ptr_+i);
-    pointer ptr_next = (ptr_+(i+1));
+    pointer ptr_next = (ptr_here+1);
+    pointer tmp_ptr_ = nullptr;
+    size_type n_to_shift = n_capacity - i - 1;
     operate_with_GPU_stream_from_pointer(
       stream_, ref_stream,
       __ENCAPSULATE__(
         element_allocator_traits::destruct(ptr_here, 1, current_mem_type, ref_stream);
         // Shift objects via barebones memory transfer; we do not want to call any transfer_internal_memory() function.
-        IvyMemoryHelpers::transfer_memory(ptr_here, ptr_next, n_capacity-i-1, current_mem_type, current_mem_type, ref_stream);
+        IvyMemoryHelpers::allocate_memory(tmp_ptr_, n_to_shift, current_mem_type, ref_stream);
+        IvyMemoryHelpers::transfer_memory(tmp_ptr_, ptr_next, n_to_shift, current_mem_type, current_mem_type, ref_stream);
+        IvyMemoryHelpers::transfer_memory(ptr_here, tmp_ptr_, n_to_shift, current_mem_type, current_mem_type, ref_stream);
+        IvyMemoryHelpers::free_memory(tmp_ptr_, n_to_shift, current_mem_type, ref_stream);
       )
     );
     this->inc_dec_size(false);

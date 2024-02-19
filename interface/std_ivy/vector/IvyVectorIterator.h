@@ -48,6 +48,7 @@ namespace std_ivy{
       constexpr IvyGPUStream* def_stream = nullptr;
       ptr_mem_loc_ = std_mem::make_shared<pointer>(def_mem_type, def_stream, mem_loc);
     }
+
     __CUDA_HOST_DEVICE__ void set_next(pointable_t const& next){ next_ = next; }
     __CUDA_HOST_DEVICE__ void set_prev(pointable_t const& prev){ prev_ = prev; }
     __CUDA_HOST_DEVICE__ void set_next(std_cstddef::nullptr_t){ next_.reset(); }
@@ -218,39 +219,11 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void push_back(pointable_t const& it){
       if (!it || !it->is_valid()) return;
-      {
-        printf("Status before push_back:\n");
-        auto pp = chain_front;
-        while (pp){
-          if (pp->is_valid()) printf("Pointer address: %p, val: %f\n", pp->get_mem_loc(), (*pp)->a);
-          else printf("Pointer address: invalid\n");
-          pp = pp->next();
-        }
-        printf("chain_back address: %p\n", chain_back->get_mem_loc());
-        printf("chain_front address: %p\n", chain_front->get_mem_loc());
-      }
-
       auto const& prev = chain_back;
-      printf("prev address: %p\n", prev->get_mem_loc());
       it->set_prev(prev);
       if (prev) prev->set_next(it);
-      printf("it address: %p\n", it->get_mem_loc());
       chain_back = it;
-      printf("chain_back address: %p\n", chain_back->get_mem_loc());
       reset_chain_end();
-
-      {
-        printf("Status after push_back:\n");
-        auto pp = chain_front;
-        while (pp){
-          if (pp->is_valid()) printf("Pointer address: %p, val: %f\n", pp->get_mem_loc(), (*pp)->a);
-          else printf("Pointer address: invalid\n");
-          pp = pp->next();
-        }
-        printf("chain_back address: %p\n", chain_back->get_mem_loc());
-        printf("chain_front address: %p\n", chain_front->get_mem_loc());
-      }
-
     }
 
     // Insert iterator 'it' before position 'pos'.

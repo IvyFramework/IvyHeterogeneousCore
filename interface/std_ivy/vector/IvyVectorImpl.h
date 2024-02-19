@@ -12,7 +12,7 @@ namespace std_ivy{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector const& v) : _iterator_builder(nullptr), _const_iterator_builder(nullptr){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
-    allocator_data_container_traits::transfer(&_data, &(v._data), 1, def_mem_type, def_mem_type, stream);
+    allocator_data_container_traits::transfer(std_mem::addressof(_data), std_mem::addressof(v._data), 1, def_mem_type, def_mem_type, stream);
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector&& v) :
@@ -37,7 +37,7 @@ namespace std_ivy{
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
     _data.reset();
-    allocator_data_container_traits::transfer(&_data, &(v._data), 1, def_mem_type, def_mem_type, stream);
+    allocator_data_container_traits::transfer(std_mem::addressof(_data), std_mem::addressof(v._data), 1, def_mem_type, def_mem_type, stream);
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>& IvyVector<T, Allocator>::operator=(IvyVector<T, Allocator>&& v){
@@ -104,7 +104,14 @@ namespace std_ivy{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ bool IvyVector<T, Allocator>::transfer_internal_memory(IvyMemoryType const& new_mem_type){
     this->destroy_iterator_builders();
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    bool res = allocator_data_container::transfer_internal_memory(&_data, 1, def_mem_type, new_mem_type, _data.gpu_stream());
+    auto stream = _data.gpu_stream();
+    bool res = true;
+    operate_with_GPU_stream_from_pointer(
+      stream, ref_stream,
+      __ENCAPSULATE__(
+        res &= allocator_data_container::transfer_internal_memory(&_data, 1, def_mem_type, new_mem_type, ref_stream);
+      )
+    );
     this->reset_iterator_builders();
     return res;
   }
@@ -113,7 +120,6 @@ namespace std_ivy{
     if (_iterator_builder){
       auto const mem_type = _data.get_memory_type();
       auto const& stream = _data.gpu_stream();
-#if DEVICE_CODE == DEVICE_CODE_HOST
       if (IvyMemoryHelpers::run_acc_on_host(mem_type)){
         operate_with_GPU_stream_from_pointer(
           stream, ref_stream,
@@ -129,9 +135,7 @@ namespace std_ivy{
           )
         );
       }
-      else
-#endif
-      {
+      else{
         _iterator_builder->~iterator_builder_t();
         _const_iterator_builder->~const_iterator_builder_t();
       }
@@ -157,7 +161,6 @@ namespace std_ivy{
       __ENCAPSULATE__(
         IvyMemoryHelpers::allocate_memory(_iterator_builder, 1, mem_type, ref_stream);
         IvyMemoryHelpers::allocate_memory(_const_iterator_builder, 1, mem_type, ref_stream);
-#if DEVICE_CODE == DEVICE_CODE_HOST
         if (IvyMemoryHelpers::run_acc_on_host(mem_type)){
           if (
             !run_kernel<IvyMemoryHelpers::construct_data_kernel<iterator_builder_t>>(0, ref_stream).parallel_1D(1, _iterator_builder)
@@ -172,9 +175,7 @@ namespace std_ivy{
             return false;
           }
         }
-        else
-#endif
-        {
+        else{
           new(_iterator_builder) iterator_builder_t();
           new(_const_iterator_builder) const_iterator_builder_t();
           _iterator_builder->reset(ptr, n, mem_type, stream);
@@ -296,7 +297,10 @@ namespace std_ivy{
       typename PosIterator::pointer mem_loc_pos = std_mem::addressof(*pos);
       auto it_eff = _iterator_builder->find_pointable(mem_loc_pos);
       auto cit_eff = _const_iterator_builder->find_pointable(mem_loc_pos);
-      if (!it_eff->is_valid()) return *it_eff;
+      if (!it_eff->is_valid()){
+        __PRINT_ERROR__("IvyVector::insert: Invalid iterator position.\n");
+        return *it_eff;
+      }
       size_type iloc = _data.size();
       {
         auto ptr = _data.get();
@@ -308,9 +312,13 @@ namespace std_ivy{
           ++ptr;
         }
       }
-      if (this->size()==iloc) return this->end();
+      if (this->size()==iloc){
+        __PRINT_ERROR__("IvyVector::insert: Invalid data position.\n");
+        return this->end();
+      }
       _data.insert(iloc, args...);
       if (current_capacity!=this->capacity()){
+        mem_loc_pos = std_mem::addressof(_data[iloc]);
         this->reset_iterator_builders();
         auto it_ins = _iterator_builder->find_pointable(mem_loc_pos);
         return *it_ins;
@@ -333,10 +341,14 @@ namespace std_ivy{
     }
     else{
       IvyVector<T, Allocator>::iterator res = this->end();
+      bool first_time = true;
       for (size_type i=0; i<n; ++i){
-        res = this->insert(pos, mem_type, stream, args...);
-        if (!res.is_valid()) break;
+        if (first_time) res = this->insert(pos, mem_type, stream, args...);
+        else res = this->insert(res+1, mem_type, stream, args...);
+        first_time = false;
+        if (!res.is_valid()) return this->end();
       }
+      if (n>1) res -= (n-1);
       return res;
     }
   }
@@ -345,19 +357,34 @@ namespace std_ivy{
     PosIterator pos, InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
     IvyVector<T, Allocator>::iterator res = this->end();
+    bool first_time = true;
+    size_type n = 0;
     while (first!=last){
-      res = this->insert(pos, mem_type, stream, *first);
-      if (!res.is_valid()) break;
+      auto const& v = *first;
+      if (first_time) res = this->insert(pos, mem_type, stream, v);
+      else res = this->insert(res+1, mem_type, stream, v);
+      first_time = false;
+      if (!res.is_valid()) return this->end();
       ++first;
+      ++n;
     }
+    if (n>1) res -= (n-1);
     return res;
   }
-  template<typename T, typename Allocator> template<typename PosIterator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(PosIterator pos, std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream){
+  template<typename T, typename Allocator> template<typename PosIterator>
+  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(
+    PosIterator pos, std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream
+  ){
     IvyVector<T, Allocator>::iterator res = this->end();
+    bool first_time = true;
+    size_type const n = ilist.size();
     for (auto const& v:ilist){
-      res = this->insert(pos, mem_type, stream, v);
-      if (!res.is_valid()) break;
+      if (first_time) res = this->insert(pos, mem_type, stream, v);
+      else res = this->insert(res+1, mem_type, stream, v);
+      first_time = false;
+      if (!res.is_valid()) return this->end();
     }
+    if (n>1) res -= (n-1);
     return res;
   }
 
@@ -385,7 +412,7 @@ namespace std_ivy{
 
     if (!_data) return iterator();
     else if (this->size()<=iloc) return this->end();
-    auto mem_loc_pos_next = std_mem::addressof(*(_data[iloc]));
+    auto mem_loc_pos_next = std_mem::addressof(_data[iloc]);
     return *(_iterator_builder->find_pointable(mem_loc_pos_next));
   }
   template<typename T, typename Allocator> template<typename PosIterator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::erase(PosIterator first, PosIterator last){
@@ -436,12 +463,16 @@ namespace std_ivy{
       this->reset_iterator_builders();
     }
     else{
+      auto const current_capacity = this->capacity();
       _data.emplace_back(args...);
-      auto mem_loc = _data.get()+(_data.size()-1);
-      auto it_eff = _iterator_builder->make_pointable(mem_loc, mem_type, stream);
-      auto cit_eff = _const_iterator_builder->make_pointable(mem_loc, mem_type, stream);
-      _iterator_builder->push_back(it_eff);
-      _const_iterator_builder->push_back(cit_eff);
+      if (current_capacity!=this->capacity()) this->reset_iterator_builders();
+      else{
+        auto mem_loc = _data.get()+(_data.size()-1);
+        auto it_eff = _iterator_builder->make_pointable(mem_loc, mem_type, stream);
+        auto cit_eff = _const_iterator_builder->make_pointable(mem_loc, mem_type, stream);
+        _iterator_builder->push_back(it_eff);
+        _const_iterator_builder->push_back(cit_eff);
+      }
     }
   }
 

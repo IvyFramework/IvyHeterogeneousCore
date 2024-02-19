@@ -3,7 +3,7 @@
 #include "std_ivy/IvyTypeInfo.h"
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/IvyMemory.h"
-#include "std_ivy/vector/IvyVectorIterator.h"
+#include "std_ivy/IvyVector.h"
 //#include "std_ivy/IvyIterator.h"
 #include "std_ivy/IvyChrono.h"
 #include "std_ivy/IvyAlgorithm.h"
@@ -36,6 +36,8 @@ typedef std_mem::allocator<std_mem::unique_ptr<dummy_D>> uniqueptr_allocator;
 typedef std_mem::allocator_traits<uniqueptr_allocator> uniqueptr_allocator_traits;
 typedef std_mem::allocator<std_mem::shared_ptr<dummy_D>> sharedptr_allocator;
 typedef std_mem::allocator_traits<sharedptr_allocator> sharedptr_allocator_traits;
+typedef std_mem::allocator<std_vec::vector<dummy_D>> vector_allocator;
+typedef std_mem::allocator_traits<vector_allocator> vector_allocator_traits;
 
 
 struct set_doubles : public kernel_base_noprep_nofin{
@@ -45,6 +47,20 @@ struct set_doubles : public kernel_base_noprep_nofin{
   }
   static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
     if (kernel_check_dims<set_doubles>::check_dims(i, n)) kernel_unified_unit(i, n, ptr, is);
+  }
+};
+
+template<typename T> struct test_IvyVector : public kernel_base_noprep_nofin{
+  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::IvyVector<T>* ptr){
+    if (kernel_check_dims<test_IvyVector<T>>::check_dims(i, n)){
+      printf("Inside test_vector now...\n");
+      printf("test_IvyVector: size = %llu, capacity = %llu\n", ptr->size(), ptr->capacity());
+      size_t j = 0;
+      for (auto const& v:(*ptr)){
+        printf("test_IvyVector: ptr[%llu] = %f ?= %f\n", j, v.a, ptr->at(j).a);
+        ++j;
+      }
+    }
   }
 };
 
@@ -352,6 +368,57 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
 }
+void utest_IvyVector_basic(IvyGPUStream& stream){
+  __PRINT_INFO__("|*** Benchmarking IvyVector basic functionality... ***|\n");
+
+  std_vec::vector<dummy_D> h_vec(10, IvyMemoryType::Host, &stream, 1.);
+  { unsigned short j=0; for (auto& v:h_vec){ v.a += j; ++j; } }
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  h_vec.push_back(IvyMemoryType::Host, &stream, dummy_D(11.));
+  __PRINT_INFO__("h_vec after push_back #1...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  h_vec.reserve(h_vec.capacity()+2);
+  h_vec.push_back(IvyMemoryType::Host, &stream, dummy_D(12.));
+  __PRINT_INFO__("h_vec after push_back #2...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  {
+    std_ilist::initializer_list<dummy_D> ilist{ dummy_D(-3.), dummy_D(-5.), dummy_D(-7.) };
+    auto it_ins = h_vec.insert(h_vec.cbegin()+3, ilist, IvyMemoryType::Host, &stream);
+    __PRINT_INFO__("First inserted element (loop #1): it_ins->a = %f\n", it_ins->a);
+  }
+  __PRINT_INFO__("h_vec after insert #1...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+  {
+    std_vec::vector<dummy_D> h_ins_vec(3, IvyMemoryType::Host, &stream, -100.);
+    { unsigned short j=0; for (auto& v:h_ins_vec){ v.a -= j; ++j; } }
+    auto it_ins = h_vec.insert(h_vec.cbegin()+2, h_ins_vec.begin(), h_ins_vec.end(), IvyMemoryType::Host, &stream);
+    __PRINT_INFO__("First inserted element (loop #2): it_ins->a = %f\n", it_ins->a);
+  }
+  __PRINT_INFO__("h_vec after insert #2...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  {
+    h_vec.erase(h_vec.cbegin()+6); h_vec.erase(h_vec.cbegin()+2); auto it_ers = h_vec.erase(h_vec.cbegin()+6);
+    __PRINT_INFO__("First element after all erases: it_ers->a = %f\n", it_ers->a);
+  }
+  __PRINT_INFO__("h_vec after erase...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  h_vec.pop_back(); h_vec.pop_back();
+  __PRINT_INFO__("h_vec after pop_back...\n");
+  for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
+
+  std_vec::vector<dummy_D>* d_vec = vector_allocator_traits::allocate(1, IvyMemoryType::GPU, stream);
+  vector_allocator_traits::transfer(d_vec, &h_vec, 1, IvyMemoryType::GPU, IvyMemoryType::Host, stream);
+  run_kernel<test_IvyVector<dummy_D>>(0, stream).parallel_1D(1, d_vec);
+  vector_allocator_traits::destroy(d_vec, 1, IvyMemoryType::GPU, stream);
+
+  stream.synchronize();
+  __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
+}
 
 
 int main(){
@@ -387,6 +454,7 @@ int main(){
     utest_IvyUnifiedPtr_basic(stream);
     utest_transfer_sharedptr(stream);
     utest_IvyVectorIterator_basic(stream);
+    utest_IvyVector_basic(stream);
 
     __PRINT_INFO__("**********\n");
   }
