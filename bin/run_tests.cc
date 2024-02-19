@@ -411,6 +411,7 @@ void utest_IvyVector_basic(IvyGPUStream& stream){
   __PRINT_INFO__("h_vec after pop_back...\n");
   for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
 
+  __PRINT_INFO__("Testing vector functionality on GPU...\n");
   std_vec::vector<dummy_D>* d_vec = vector_allocator_traits::allocate(1, IvyMemoryType::GPU, stream);
   vector_allocator_traits::transfer(d_vec, &h_vec, 1, IvyMemoryType::GPU, IvyMemoryType::Host, stream);
   run_kernel<test_IvyVector<dummy_D>>(0, stream).parallel_1D(1, d_vec);

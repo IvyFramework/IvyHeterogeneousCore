@@ -141,7 +141,17 @@ namespace std_ivy{
     }
   }
 
+  // begin functions
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto begin(T& c) -> decltype(c.begin()){ return c.begin(); }
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto begin(T const& c) -> decltype(c.begin()){ return c.begin(); }
+  template<typename T, size_t N> __CUDA_HOST_DEVICE__ constexpr T* begin(T(&a)[N]) __NOEXCEPT__{ return std_mem::addressof(a[0]); }
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto cbegin(T const& c) __NOEXCEPT__ -> decltype(begin(c)){ return begin(c); }
 
+  // end functions
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto end(T& c) -> decltype(c.end()){ return c.end(); }
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto end(T const& c) -> decltype(c.end()){ return c.end(); }
+  template<typename T, size_t N> __CUDA_HOST_DEVICE__ constexpr T* end(T(&a)[N]) __NOEXCEPT__{ return (a+N); }
+  template<typename T> __CUDA_HOST_DEVICE__ constexpr auto cend(T const& c) __NOEXCEPT__ -> decltype(end(c)){ return end(c); }
 
 }
 
