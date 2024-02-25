@@ -12,7 +12,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = T;
 
-    __CUDA_HOST_DEVICE__ result_type operator()(argument_type const& v) const{
+    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type nb_T = sizeof(argument_type);
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
@@ -23,17 +23,18 @@ namespace ivy_hash_impl{
 
       result_type res = 0;
       result_type const* prc = __REINTERPRET_CAST__(result_type const*, &__CONST_CAST__(char&, __REINTERPRET_CAST__(char const volatile&, v)));
-      for (result_type i=0; i<nparts_full; ++i){
-        result_type const& pv = prc[i];
-        res ^= (pv<<((i+part_full_shift_offset)%nbits_partition));
+      if constexpr (nparts_full>0){
+        for (result_type i=0; i<nparts_full; ++i){
+          result_type const& pv = prc[i];
+          res ^= (pv<<((i+part_full_shift_offset)%nbits_partition));
+        }
       }
-      if (remainder){
+      if constexpr (remainder>0){
         result_type pv = 0;
         char const* prch = __REINTERPRET_CAST__(char const*, &__CONST_CAST__(char&, __REINTERPRET_CAST__(const volatile char&, prc[nparts_full])));
         for (result_type i=0; i<remainder; ++i) pv |= (prch[i]<<(i*8));
         res ^= pv;
       }
-
       return res;
     }
   };
@@ -41,7 +42,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = char const*;
 
-    __CUDA_HOST_DEVICE__ result_type operator()(argument_type const& v) const{
+    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nbits_arg_el = sizeof(char const)*8;
@@ -54,7 +55,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = char*;
 
-    __CUDA_HOST_DEVICE__ result_type operator()(argument_type const& v) const{
+    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nbits_arg_el = sizeof(char)*8;
