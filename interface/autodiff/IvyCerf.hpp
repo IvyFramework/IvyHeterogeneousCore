@@ -13,7 +13,8 @@ namespace faddeeva_impl{
     im = val.Im();
   }
 
-  template <typename T, unsigned int N, unsigned int NTAYLOR> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva_smabmq_impl(
+  using faddeeva_impl_size_t = unsigned short;
+  template <typename T, faddeeva_impl_size_t N, faddeeva_impl_size_t NTAYLOR> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva_smabmq_impl(
     T zre, T zim, T const& tm,
     const T(&a)[N], const T* npi,
     const T(&taylorarr)[N * NTAYLOR * 2]
@@ -25,7 +26,7 @@ namespace faddeeva_impl{
     // points, and only use it when we're close enough to the real axis
     // that there is a chance we need it
     const T zim2 = zim * zim;
-    const T maxnorm = T(9) / T(1000000);
+    constexpr T maxnorm = T(9) / T(1000000);
     if (zim2 < maxnorm){
       // we're close enough to the real axis that we need to worry about
       // singularities
@@ -37,7 +38,7 @@ namespace faddeeva_impl{
         // expansions; use w(-x+iy) = conj(w(x+iy))
         const bool negrez = zre < Zero<T>();
         // figure out closest singularity
-        const unsigned int nsing = __STATIC_CAST__<unsigned int>(Abs(dnsing) + OneHalf<T>());
+        const unsigned int nsing = __STATIC_CAST__(unsigned int, Abs(dnsing) + OneHalf<T>());
         // and calculate just how far we are from it
         const T zmnpire = Abs(zre) - npi[nsing];
         const T zmnpinorm = zmnpire * zmnpire + zim2;
@@ -49,7 +50,7 @@ namespace faddeeva_impl{
           // the value of the next iteration depend on the ones from
           // the previous iteration)
           T sumre = coeffs[0], sumim = coeffs[1];
-          for (unsigned int i = 1; i < NTAYLOR; ++i){
+          for (faddeeva_impl_size_t i = 1; i < NTAYLOR; ++i){
             const T re = sumre * zmnpire - sumim * zim;
             const T im = sumim * zmnpire + sumre * zim;
             sumre = re + coeffs[2 * i + 0];
@@ -102,8 +103,8 @@ namespace faddeeva_impl{
     const T znorm = zre * zre + zim2;
     T sumre = (-a[0] / znorm) * (numerarr[0] * zre + numerarr[1] * zim);
     T sumim = (-a[0] / znorm) * (numerarr[1] * zre - numerarr[0] * zim);
-    for (unsigned int i = 0; i < N; ++i){
-      const unsigned int j = (i << 1) & 2;
+    for (faddeeva_impl_size_t i = 0; i < N; ++i){
+      const faddeeva_impl_size_t j = (i << 1) & 2;
       // denominator
       const T wk = imtmz2 + (npi[i] + tmzre) * (npi[i] - tmzre);
       // norm of denominator
@@ -116,12 +117,12 @@ namespace faddeeva_impl{
 #else
     // BEGIN fully vectorisable code - enjoy reading... ;)
     T tmp[2 * N];
-    for (unsigned int i = 0; i < N; ++i){
+    for (faddeeva_impl_size_t i = 0; i < N; ++i){
       const T wk = imtmz2 + (npi[i] + tmzre) * (npi[i] - tmzre);
       tmp[2 * i + 0] = wk;
       tmp[2 * i + 1] = Two<T>() * tm * a[i] / (wk * wk + reimtmzm22);
     }
-    for (unsigned int i = 0; i < N / 2; ++i){
+    for (faddeeva_impl_size_t i = 0; i < N / 2; ++i){
       T wk = tmp[4 * i + 0], f = tmp[4 * i + 1];
       tmp[4 * i + 0] = -f * (numertmz[0] * wk + numertmz[1] * reimtmzm2);
       tmp[4 * i + 1] = -f * (numertmz[1] * wk - numertmz[0] * reimtmzm2);
@@ -139,7 +140,7 @@ namespace faddeeva_impl{
     const T znorm = zre * zre + zim2;
     T sumre = (-a[0] / znorm) * (numerarr[0] * zre + numerarr[1] * zim);
     T sumim = (-a[0] / znorm) * (numerarr[1] * zre - numerarr[0] * zim);
-    for (unsigned int i = 0; i < N; ++i){
+    for (faddeeva_impl_size_t i = 0; i < N; ++i){
       sumre += tmp[2 * i + 0];
       sumim += tmp[2 * i + 1];
     }
@@ -162,11 +163,11 @@ namespace faddeeva_impl{
     else return IvyComplexVariable<T>(-sumim / twosqrtpi, sumre / twosqrtpi);
   }
 
-  template<typename T, unsigned int N> struct npicomp{
+  template<typename T, faddeeva_impl_size_t N> struct npicomp{
     T arr[N];
     constexpr npicomp(){
       using namespace IvyMath;
-      for (unsigned int i=0; i<N; ++i) arr[i] = Pi<T>()*T(i);
+      for (faddeeva_impl_size_t i=0; i<N; ++i) arr[i] = Pi<T>()*T(i);
     }
     __CUDA_HOST_DEVICE__ const T* get() const{ return arr; }
   };

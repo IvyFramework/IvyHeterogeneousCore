@@ -29,8 +29,8 @@ namespace std_ivy{
   __OBJC_POINTER_CMDS__;
 #undef __OBJC_POINTER_CMD__
 
-  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T* addressof(const T&&) = delete;
-  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const T* addressof(const T&&) = delete;
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T* addressof(T const&&) = delete;
+  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ T const* addressof(T const&&) = delete;
 }
 
 #endif
