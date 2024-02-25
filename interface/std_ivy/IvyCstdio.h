@@ -16,11 +16,13 @@
 #define __PRINT_INFO__(...) {}
 #define __PRINT_ERROR__(...) {}
 #endif
+#define __PRINT_DEBUG__(...) printf(__VA_ARGS__)
 
 #else
 
 #define __PRINT_INFO__(...) fprintf(stdout, __VA_ARGS__)
 #define __PRINT_ERROR__(...) fprintf(stderr, __VA_ARGS__)
+#define __PRINT_DEBUG__(...) fprintf(stdout, __VA_ARGS__)
 
 #endif
 

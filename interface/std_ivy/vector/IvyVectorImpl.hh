@@ -9,7 +9,7 @@
 
 namespace std_ivy{
   template<typename T, typename Allocator=std_mem::allocator<T>> class IvyVector;
-  template<typename T, typename Allocator> class transfer_memory_primitive<IvyVector<T, Allocator>> : public virtual transfer_memory_primitive_with_internal_memory<IvyVector<T, Allocator>>{};
+  template<typename T, typename Allocator> class transfer_memory_primitive<IvyVector<T, Allocator>> : public transfer_memory_primitive_with_internal_memory<IvyVector<T, Allocator>>{};
 
   template<typename T, typename Allocator> class IvyVector{
   public:
@@ -23,10 +23,15 @@ namespace std_ivy{
     typedef value_type const& const_reference;
     typedef IvyVectorIteratorBuilder<value_type> iterator_builder_t;
     typedef IvyVectorIteratorBuilder<value_type const> const_iterator_builder_t;
+    typedef std_mem::allocator<iterator_builder_t> allocator_iterator_builder_t;
+    typedef std_mem::allocator<const_iterator_builder_t> allocator_const_iterator_builder_t;
+    typedef std_mem::allocator_traits<allocator_iterator_builder_t> allocator_iterator_builder_traits_t;
+    typedef std_mem::allocator_traits<allocator_const_iterator_builder_t> allocator_const_iterator_builder_traits_t;
     typedef std_mem::allocator_traits<allocator_type>::pointer pointer;
     typedef std_mem::allocator_traits<allocator_type>::const_pointer const_pointer;
     typedef std_mem::allocator_traits<allocator_type>::size_type size_type;
     typedef std_mem::allocator_traits<allocator_type>::difference_type difference_type;
+    typedef std_ivy::unique_ptr<value_type> data_container;
     typedef iterator_builder_t::iterator_type iterator;
     typedef const_iterator_builder_t::iterator_type const_iterator;
     typedef std_iter::reverse_iterator<iterator> reverse_iterator;
@@ -35,14 +40,20 @@ namespace std_ivy{
     friend class kernel_generic_transfer_internal_memory<IvyVector<T, Allocator>>;
 
   protected:
-    std_ivy::unique_ptr<value_type> _data;
-    iterator_builder_t* _iterator_builder;
-    const_iterator_builder_t* _const_iterator_builder;
+    IvyMemoryType const progenitor_mem_type;
+    data_container _data;
+    iterator_builder_t _iterator_builder;
+    const_iterator_builder_t _const_iterator_builder;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type);
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old);
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy_iterator_builders();
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool reset_iterator_builders();
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void destroy_iterator_builders();
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset_iterator_builders();
+
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access(IvyMemoryType const& mem_type) const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die(IvyMemoryType const& mem_type) const;
 
   public:
     __CUDA_HOST_DEVICE__ IvyVector();
@@ -111,6 +122,10 @@ namespace std_ivy{
     template<typename... Args> __CUDA_HOST_DEVICE__ void resize(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
 
     __CUDA_HOST_DEVICE__ void swap(IvyVector& v);
+
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ data_container const& get_data_container() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ iterator_builder_t const& get_iterator_builder() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const_iterator_builder_t const& get_const_iterator_builder() const;
   };
 
   template<typename T, typename Allocator=std_mem::allocator<T>> using vector = IvyVector<T, Allocator>;

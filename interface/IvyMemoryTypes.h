@@ -16,6 +16,11 @@ namespace IvyMemoryHelpers{
   };
 
   /*
+  get_mem_type_name: Returns the C-string name of the memory type.
+  */
+  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr const char* get_memory_type_name(IvyMemoryType type);
+
+  /*
   is_host_memory: Returns true if the memory type is host memory.
   */
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr bool is_host_memory(IvyMemoryType type);
@@ -69,6 +74,18 @@ namespace IvyMemoryHelpers{
 }
 
 namespace IvyMemoryHelpers{
+  __CUDA_HOST_DEVICE__ constexpr const char* get_memory_type_name(IvyMemoryType type){
+    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
+    switch(type){
+      case IvyMemoryType::Host: return "CPU";
+      case IvyMemoryType::GPU: return "GPU";
+      case IvyMemoryType::PageLocked: return "PageLocked";
+      case IvyMemoryType::Unified: return "Unified";
+      case IvyMemoryType::UnifiedPrefetched: return "UnifiedPrefetched";
+      default: return "Unknown";
+    }
+  }
+
   __CUDA_HOST_DEVICE__ constexpr bool is_host_memory(IvyMemoryType type){
     return type==IvyMemoryType::Host || type==IvyMemoryType::PageLocked;
   }

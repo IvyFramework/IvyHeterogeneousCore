@@ -2,9 +2,11 @@
 #define IVYTENSORSHAPE_HH
 
 
-#include "std_ivy/IvyUtility.h"
-#include "std_ivy/IvyVector.h"
+#include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyInitializerList.h"
+#include "std_ivy/IvyUtility.h"
+#include "std_ivy/IvyMemory.h"
+#include "std_ivy/IvyVector.h"
 #include "IvyBasicTypes.h"
 
 
@@ -12,7 +14,7 @@ typedef unsigned short IvyTensorRank_t;
 typedef IvyTypes::size_t IvyTensorDim_t;
 
 /*
-This is a class to define the shape of any tensor.
+IvyTensorShape: This is a class to define the shape of any tensor.
 The 'rank_' variable is the programmer's definition of rank, i.e., number of axes of the tensor.
 The 'dims' variable holds the number of bins over each axis.
 
@@ -29,8 +31,10 @@ protected:
   // Calculate the number of elements
   IvyTensorDim_t calc_num_elements() const;
 
+  __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old);
+
 public:
-  __CUDA_HOST_DEVICE__ IvyTensorShape() : rank_(0){}
+  __CUDA_HOST_DEVICE__ IvyTensorShape() : rank_(0), nel(0){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
@@ -80,6 +84,7 @@ public:
   // Print the shape
   void __CUDA_HOST_DEVICE__ print() const;
 
+  friend class kernel_generic_transfer_internal_memory<IvyTensorShape>;
 };
 
 

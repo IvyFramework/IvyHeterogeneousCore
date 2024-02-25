@@ -35,7 +35,7 @@ namespace std_ivy{
   /*
   allocator primitives
   */
-  template<typename T> class allocator_primitive : public virtual allocation_type_properties<T>{
+  template<typename T> class allocator_primitive{
   public:
     using base_t = allocation_type_properties<T>;
     using pointer = typename base_t::pointer;
@@ -73,7 +73,7 @@ namespace std_ivy{
       return res;
     }
   };
-  template<typename T> class deallocator_primitive : public virtual allocation_type_properties<T>{
+  template<typename T> class deallocator_primitive{
   public:
     using base_t = allocation_type_properties<T>;
     using pointer = typename base_t::pointer;
@@ -109,22 +109,22 @@ namespace std_ivy{
 
   template<typename T> class kernel_generic_transfer_internal_memory final : public kernel_base_noprep_nofin{
   protected:
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(T* const& ptr, IvyMemoryType const& mem_type){
-      return ptr->transfer_internal_memory(mem_type);
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(T* const& ptr, IvyMemoryType const& mem_type, bool release_old){
+      return ptr->transfer_internal_memory(mem_type, release_old);
     }
 
   public:
     static __CUDA_HOST_DEVICE__ void kernel(
       IvyTypes::size_t const& i, IvyTypes::size_t const& n, T* const& ptr,
-      IvyMemoryType const& mem_type
+      IvyMemoryType const& mem_type, bool const& release_old
     ){
-      if (kernel_check_dims<kernel_generic_transfer_internal_memory<T>>::check_dims(i, n)) transfer_internal_memory(ptr+i, mem_type);
+      if (kernel_check_dims<kernel_generic_transfer_internal_memory<T>>::check_dims(i, n)) transfer_internal_memory(ptr+i, mem_type, release_old);
     }
 
     friend class transfer_memory_primitive_with_internal_memory<T>;
   };
 
-  template<typename T> class transfer_memory_primitive_without_internal_memory : public virtual allocation_type_properties<T>{
+  template<typename T> class transfer_memory_primitive_without_internal_memory{
   public:
     using base_t = allocation_type_properties<T>;
     using pointer = typename base_t::pointer;
@@ -138,7 +138,7 @@ namespace std_ivy{
       return IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
     }
   };
-  template<typename T> class transfer_memory_primitive_with_internal_memory : public virtual allocation_type_properties<T>{
+  template<typename T> class transfer_memory_primitive_with_internal_memory{
   public:
     using base_t = allocation_type_properties<T>;
     using value_type = typename base_t::value_type;
@@ -146,10 +146,10 @@ namespace std_ivy{
     using size_type = typename base_t::size_type;
     using kernel_type = kernel_generic_transfer_internal_memory<value_type>;
 
-    static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream){
+    static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
       bool res = true;
       if (IvyMemoryHelpers::run_acc_on_host(ptr_mem_type)){
-        if (!run_kernel<kernel_type>(0, stream).parallel_1D(n, ptr, mem_type)){
+        if (!run_kernel<kernel_type>(0, stream).parallel_1D(n, ptr, mem_type, release_old)){
           __PRINT_ERROR__("transfer_memory_primitive::transfer_internal_memory: Unable to call the acc. hardware kernel...\n");
           res = false;
         }
@@ -157,7 +157,7 @@ namespace std_ivy{
       else{
         pointer pr = ptr;
         for (size_type i=0; i<n; ++i){
-          res &= kernel_type::transfer_internal_memory(pr, mem_type);
+          res &= kernel_type::transfer_internal_memory(pr, mem_type, release_old);
           ++pr;
         }
       }
@@ -171,16 +171,22 @@ namespace std_ivy{
     ){
       if (!src) return false;
       bool res = true;
+      /*
+#if DEVICE_CODE == DEVICE_CODE_HOST
+      printf("transfer_memory_primitive_with_internal_memory::transfer: type = %s | n=%llu | src = %p (%d), tgt = %p (%d)\n", typeid(T).name(), n, src, int(type_src), tgt, int(type_tgt));
+#endif
+      */
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      constexpr bool release_old = false; // We do not release existing memory from internal memory transfers in order to preserve src pointer.
       if (def_mem_type==type_tgt && def_mem_type==type_src){
         res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
-        res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream);
+        res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream, release_old);
       }
       else{
         pointer p_int = nullptr;
         res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
         res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
-        res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream);
+        res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream, release_old);
         res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
         res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       }
@@ -188,12 +194,12 @@ namespace std_ivy{
     }
   };
   // By default, we assume that the class has no internal memory to transfer.
-  template<typename T> class transfer_memory_primitive : public virtual transfer_memory_primitive_without_internal_memory<T>{};
+  template<typename T> class transfer_memory_primitive : public transfer_memory_primitive_without_internal_memory<T>{};
 
   /*
   allocator
   */
-  template<typename T> class allocator : public virtual allocation_type_properties<T>, public allocator_primitive<T>, public deallocator_primitive<T>, public transfer_memory_primitive<T>{
+  template<typename T> class allocator : public allocation_type_properties<T>, public allocator_primitive<T>, public deallocator_primitive<T>, public transfer_memory_primitive<T>{
   public:
     using base_t = allocation_type_properties<T>;
     using value_type = typename base_t::value_type;
@@ -426,7 +432,6 @@ namespace IvyMemoryHelpers{
           __PRINT_ERROR__("IvyMemoryHelpers::copy_data: Failed to copy data between host and device.\n");
           assert(0);
         }
-        //__PRINT_INFO__("IvyMemoryHelpers::copy_data: Running serial copy.\n");
 #else
       {
 #endif

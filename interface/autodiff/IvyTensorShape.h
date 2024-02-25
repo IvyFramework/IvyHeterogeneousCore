@@ -114,7 +114,7 @@ __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_contraction_shape(
       "IvyTensorShape::get_contraction_shape: Axis index = %llu of tensor 2 exceeds rank = %hu.\n", cax.second, s2_dims.size()
     );
     if (s1_dims.at(cax.first)!=s2_dims.at(cax.second)) __PRINT_ERROR__(
-      "IvyTensorShape::get_contraction_shape: Number of dimensions are not equal for axes [%llu, %llu], i.e., %llu != %llu.",
+      "IvyTensorShape::get_contraction_shape: Number of dimensions are not equal for axes [%llu, %llu], i.e., %llu != %llu.\n",
       cax.first, cax.second, s1_dims.at(cax.first), s2_dims.at(cax.second)
     );
   }
