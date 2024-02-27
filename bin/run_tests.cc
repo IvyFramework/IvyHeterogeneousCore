@@ -636,22 +636,25 @@ void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
 
   __PRINT_INFO__("|*** Benchmarking IvyBucketedIteratorBuilder basic functionality... ***|\n");
 
-  constexpr unsigned int ndata = 5;
-  std_mem::unique_ptr<mapped_type> raw_data = std_mem::make_unique<mapped_type>(ndata, IvyMemoryType::Host, &stream, 1.);
-  std_mem::unique_ptr<bucket_element_type> ptr_buckets = std_mem::make_unique<bucket_element_type>(0, ndata, IvyMemoryType::Host, &stream);
+  constexpr size_t ndata = 5;
+  size_t const bucket_capacity = IvyHashEqualEvalDefault<hash_result_type>::bucket_size(ndata, ndata);
+  size_t const preferred_data_capacity = IvyHashEqualEvalDefault<hash_result_type>::preferred_data_capacity(bucket_capacity);
+  size_t const max_n_bucket_elements = (preferred_data_capacity+1)/bucket_capacity;
+  std_mem::unique_ptr<mapped_type> raw_data = std_mem::make_unique<mapped_type>(ndata, preferred_data_capacity, IvyMemoryType::Host, &stream, 1.);
+  std_mem::unique_ptr<bucket_element_type> ptr_buckets = std_mem::make_unique<bucket_element_type>(0, bucket_capacity, IvyMemoryType::Host, &stream);
   for (size_t i=0; i<ndata; i++){
     auto& raw_data_val = raw_data[i];
     raw_data_val.a += i;
     printf("raw_data[%llu].a = %f\n", i, raw_data_val.a);
-    key_type key = raw_data_val.a;
+    key_type key = raw_data_val.a+12345;
     hash_result_type hash = hasher()(key);
     bool is_found = false;
     for (size_t ib=0; ib<ptr_buckets.size(); ++ib){
       auto& bucket_element = ptr_buckets[ib];
-      if (bucket_element.first == hash){
+      if (IvyHashEqualEvalDefault<hash_result_type>::eval(ndata, preferred_data_capacity, bucket_element.first, hash)){
         auto& data_bucket = bucket_element.second;
         for (size_t jd=0; jd<data_bucket.size(); ++jd){
-          if (data_bucket[jd].first == key){
+          if (IvyKeyEqualEvalDefault<key_type>::eval(ndata, preferred_data_capacity, data_bucket[jd].first, key)){
             data_bucket[jd].second = raw_data_val;
             is_found = true;
             break;
@@ -665,13 +668,23 @@ void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
       }
       if (is_found) break;
     }
-    if (!is_found) ptr_buckets.emplace_back(std_util::make_pair(hash, std_mem::make_unique<value_type>(1, 5, IvyMemoryType::Host, &stream, key, raw_data_val)));
+    if (!is_found) ptr_buckets.emplace_back(std_util::make_pair(hash, std_mem::make_unique<value_type>(1, max_n_bucket_elements, IvyMemoryType::Host, &stream, key, raw_data_val)));
   }
 
+  __PRINT_INFO__("Data size = %llu, capacity = %llu\n", raw_data.size(), raw_data.capacity());
   __PRINT_INFO__("Bucket size = %llu, capacity = %llu\n", ptr_buckets.size(), ptr_buckets.capacity());
+  for (size_t ib=0; ib<ptr_buckets.size(); ++ib){
+    auto& bucket_element = ptr_buckets[ib];
+    auto& data_bucket = bucket_element.second;
+    printf("Bucket %llu: hash = %llu, data size = %llu, capacity = %llu\n", ib, bucket_element.first, data_bucket.size(), data_bucket.capacity());
+    for (size_t jd=0; jd<data_bucket.size(); ++jd){
+      auto& data_element = data_bucket[jd];
+      printf("  Data %llu: key = %f, value.a = %f\n", jd, data_element.first, data_element.second.a);
+    }
+  }
 
   std_iter::IvyBucketedIteratorBuilder<key_type, mapped_type, hasher> it_builder;
-  it_builder.reset(ptr_buckets.get(), ptr_buckets.size(), ptr_buckets.get_memory_type(), ptr_buckets.gpu_stream());
+  it_builder.reset(ptr_buckets.get(), ptr_buckets.size(), raw_data.capacity(), ptr_buckets.get_memory_type(), ptr_buckets.gpu_stream());
   {
     auto it_begin = it_builder.begin();
     auto it_end = it_builder.end();

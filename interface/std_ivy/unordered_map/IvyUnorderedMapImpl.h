@@ -7,8 +7,8 @@
 
 #ifdef __USE_CUDA__
 
-#define __UMAPTPLARGSINIT__ <typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
-#define __UMAPTPLARGS__ <Key, T, Hash, KeyEqual, Allocator>
+#define __UMAPTPLARGSINIT__ <typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
+#define __UMAPTPLARGS__ <Key, T, Hash, KeyEqual, HashEqual, Allocator>
 
 namespace std_ivy{
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap() :
@@ -176,7 +176,11 @@ namespace std_ivy{
     size_type const new_capacity = (new_size>current_capacity ? new_size + 1 : current_capacity);
     size_type const current_bucket_capacity = _data.capacity();
     size_type const current_bucket_size = _data.size();
-    size_type const new_bucket_capacity = key_equal::bucket_size(new_size, new_capacity);
+    size_type const new_bucket_capacity = hash_equal::bucket_size(new_size, new_capacity);
+    size_type const preferred_new_data_capacity = hash_equal::preferred_data_capacity(new_bucket_capacity);
+    size_type const new_max_n_bucket_elements = (preferred_new_data_capacity+1)/new_bucket_capacity;
+    size_type const preferred_current_data_capacity = hash_equal::preferred_data_capacity(current_bucket_capacity);
+    size_type const current_max_n_bucket_elements = (preferred_current_data_capacity+1)/current_bucket_capacity;
     hash_result_type const hash = hasher()(key);
     allocator_type a;
     if (!_data || _data.get_memory_type()!=mem_type){
@@ -186,7 +190,7 @@ namespace std_ivy{
         std_util::make_pair<hash_result_type, bucket_data_type>(
           hash,
           std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type, key_type, mapped_type>(
-            a, 1, 2,
+            a, 1, new_max_n_bucket_elements,
             mem_type, stream, key, mapped_type(std_util::forward<Args>(args)...)
           )
         )
@@ -203,10 +207,10 @@ namespace std_ivy{
         for (size_type ib=0; ib<current_bucket_capacity; ++ib){
           auto& bucket_element = *data_ptr;
           auto const& bucket_hash = bucket_element.first;
-          if (key_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+          if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
             auto& data_bucket = bucket_element.second;
             for (size_t jd=0; jd<data_bucket.size(); ++jd){
-              if (data_bucket[jd].first == key){
+              if (key_equal::eval(current_size, current_capacity, data_bucket[jd].first, key)){
                 data_bucket[jd].second = mapped_type(std_util::forward<Args>(args)...);
                 mem_loc_pos_final = data_bucket.get() + jd;
                 is_found = true;
@@ -228,7 +232,7 @@ namespace std_ivy{
           _data.emplace_back(
             hash,
             std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type, key_type, mapped_type>(
-              a, 1, 2,
+              a, 1, current_max_n_bucket_elements,
               mem_type, stream, key, mapped_type(std_util::forward<Args>(args)...)
             )
           );
@@ -247,7 +251,7 @@ namespace std_ivy{
             for (size_type ib=0; ib<current_bucket_size; ++ib){
               auto& bucket_element = *tr_tmp_data_ptr;
               auto const& bucket_hash = bucket_element.first;
-              if (key_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+              if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
                 auto& data_bucket = bucket_element.second;
                 size_type const n_size_data_bucket = data_bucket.size();
                 value_type* bucket_data_ptr = data_bucket.get();
@@ -257,7 +261,7 @@ namespace std_ivy{
                 value_type* tr_tmp_bucket_data_ptr = tmp_bucket_data_ptr;
                 for (size_t jd=0; jd<n_size_data_bucket; ++jd){
                   value_type& data_value = *tr_tmp_bucket_data_ptr;
-                  if (data_value.first == key){
+                  if (key_equal::eval(current_size, current_capacity, data_value.first, key)){
                     data_value.second = mapped_type(std_util::forward<Args>(args)...);
                     mem_loc_pos_final = bucket_data_ptr + jd;
                     is_found = true;
@@ -282,7 +286,7 @@ namespace std_ivy{
               _data.emplace_back(
                 hash,
                 std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type, key_type, mapped_type>(
-                  a, 1, 2,
+                  a, 1, current_max_n_bucket_elements,
                   mem_type, stream, key, mapped_type(std_util::forward<Args>(args)...)
                 )
               );

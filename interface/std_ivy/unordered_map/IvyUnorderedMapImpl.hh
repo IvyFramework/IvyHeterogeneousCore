@@ -17,19 +17,21 @@ namespace std_ivy{
     typename T,
     typename Hash = std_ivy::hash<Key const>,
     typename KeyEqual = std_ivy::IvyKeyEqualEvalDefault<Key const>,
+    typename HashEqual = std_ivy::IvyHashEqualEvalDefault<typename Hash::result_type>,
     typename Allocator = std_mem::allocator<std_util::pair<Key const, T>>
   > class IvyUnorderedMap;
 
-  template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
-  class transfer_memory_primitive<IvyUnorderedMap<Key, T, Hash, KeyEqual, Allocator>> : public transfer_memory_primitive_with_internal_memory<IvyUnorderedMap<Key, T, Hash, KeyEqual, Allocator>>{};
+  template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
+  class transfer_memory_primitive<IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>> : public transfer_memory_primitive_with_internal_memory<IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>>{};
 
-  template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator> class IvyUnorderedMap{
+  template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator> class IvyUnorderedMap{
   public:
     typedef Key const key_type;
     typedef T mapped_type;
     typedef std_ivy::hash<key_type> hasher;
     typedef typename hasher::result_type hash_result_type;
     typedef KeyEqual key_equal;
+    typedef HashEqual hash_equal;
     typedef std_util::pair<key_type, mapped_type> value_type;
     typedef Allocator allocator_type;
     typedef std_mem::unique_ptr<value_type> bucket_data_type;

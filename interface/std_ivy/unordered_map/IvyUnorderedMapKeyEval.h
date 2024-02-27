@@ -26,8 +26,9 @@ namespace std_ivy{
   template<typename Key, typename BinaryPredicate> struct IvyKeyEqualBinaryEval{
     using key_type = Key;
     using binary_predicate = BinaryPredicate;
-    __CUDA_HOST_DEVICE__ static constexpr IvyTypes::size_t bucket_size(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& n_capacity){ return (n_capacity==0 ? 2 : n_capacity); }
-    __CUDA_HOST_DEVICE__ static constexpr bool eval(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& /*n_capacity*/, Key const& a, Key const& b){
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t bucket_size(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& n_capacity){ return (n_capacity<2 ? 2 : n_capacity); }
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t preferred_data_capacity(IvyTypes::size_t const& n_capacity_buckets){ return n_capacity_buckets; }
+    __CUDA_HOST_DEVICE__ static bool eval(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& /*n_capacity*/, Key const& a, Key const& b){
       return BinaryPredicate()(a, b);
     }
   };
@@ -42,8 +43,12 @@ namespace std_ivy{
   */
   template<typename Key> struct IvyKeyEqualBySqrtNSizeEval{
     using key_type = Key;
-    __CUDA_HOST_DEVICE__ static constexpr IvyTypes::size_t bucket_size(IvyTypes::size_t const& n_size, IvyTypes::size_t const& /*n_capacity*/){ return std_math::sqrt(n_size) + 1; }
-    __CUDA_HOST_DEVICE__ static constexpr bool eval(IvyTypes::size_t const& n_size, IvyTypes::size_t const& n_capacity, Key const& a, Key const& b){
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t bucket_size(IvyTypes::size_t const& n_size, IvyTypes::size_t const& /*n_capacity*/){ return std_math::sqrt(__STATIC_CAST__(double, n_size)) + 1; }
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t preferred_data_capacity(IvyTypes::size_t const& n_capacity_buckets){
+      if (n_capacity_buckets<2) return 1;
+      return n_capacity_buckets * n_capacity_buckets-1;
+    }
+    __CUDA_HOST_DEVICE__ static bool eval(IvyTypes::size_t const& n_size, IvyTypes::size_t const& n_capacity, Key const& a, Key const& b){
       IvyTypes::size_t ns = bucket_size(n_size, n_capacity);
       return (a % ns) == (b % ns);
     }
@@ -55,17 +60,26 @@ namespace std_ivy{
   */
   template<typename Key> struct IvyKeyEqualBySqrtNCapacityEval{
     using key_type = Key;
-    __CUDA_HOST_DEVICE__ static constexpr IvyTypes::size_t bucket_size(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& n_capacity){ return std_math::sqrt(n_capacity) + 1; }
-    __CUDA_HOST_DEVICE__ static constexpr bool eval(IvyTypes::size_t const& n_size, IvyTypes::size_t const& n_capacity, Key const& a, Key const& b){
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t bucket_size(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& n_capacity){ return std_math::sqrt(__STATIC_CAST__(double, n_capacity)) + 1; }
+    __CUDA_HOST_DEVICE__ static IvyTypes::size_t preferred_data_capacity(IvyTypes::size_t const& n_capacity_buckets){
+      if (n_capacity_buckets<2) return 1;
+      return n_capacity_buckets * n_capacity_buckets-1;
+    }
+    __CUDA_HOST_DEVICE__ static bool eval(IvyTypes::size_t const& n_size, IvyTypes::size_t const& n_capacity, Key const& a, Key const& b){
       IvyTypes::size_t ns = bucket_size(n_size, n_capacity);
       return (a % ns) == (b % ns);
     }
   };
 
   /*
-    IvyKeyEqualEvalDefault: The default struct to evaluate the equality of two keys. It uses IvyKeyEqualBySqrtNSizeEval.
+    IvyKeyEqualEvalDefault: The default struct to evaluate the equality of two keys. It uses IvyKeyEqualEval.
   */
-  template<typename Key> using IvyKeyEqualEvalDefault = IvyKeyEqualBySqrtNSizeEval<Key>;
+  template<typename Key> using IvyKeyEqualEvalDefault = IvyKeyEqualEval<Key>;
+
+  /*
+    IvyHashEqualEvalDefault: The default struct to evaluate the equality of two hashes. It uses IvyKeyEqualBySqrtNSizeEval.
+  */
+  template<typename Key> using IvyHashEqualEvalDefault = IvyKeyEqualBySqrtNSizeEval<Key>;
 }
 
 #endif

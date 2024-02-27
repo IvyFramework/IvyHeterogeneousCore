@@ -200,20 +200,19 @@ namespace std_ivy{
     }
 
     // FIXME: NEED TO REWRITE THIS FCN
-    __CUDA_HOST_DEVICE__ void reset(bucket_element_type* bucket_head, size_type n_buckets, IvyMemoryType mem_type, IvyGPUStream* stream){
+    __CUDA_HOST_DEVICE__ void reset(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
       this->invalidate();
 
       if (n_buckets==0) return;
 
       // First loop to determine the size and capacity of the data
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      size_type n_size = 0, n_capacity = 0;
+      size_type n_size = 0;
       if (def_mem_type == mem_type){
         bucket_element_type* b_el = bucket_head;
         for (size_type ib=0; ib<n_buckets; ++ib){
           auto const& data_uptr = b_el->second;
           n_size += data_uptr.size();
-          n_capacity += data_uptr.capacity();
           ++b_el;
         }
       }
@@ -228,13 +227,14 @@ namespace std_ivy{
               IvyMemoryHelpers::transfer_memory(b_cur, b_el, 1, def_mem_type, mem_type, ref_stream);
               auto const& data_uptr = b_cur->second;
               n_size += data_uptr.size();
-              n_capacity += data_uptr.capacity();
               IvyMemoryHelpers::free_memory(b_cur, 1, def_mem_type, ref_stream);
               ++b_el;
             }
           )
         );
       }
+
+      if (n_size>n_capacity) n_capacity = n_size+1;
 
       // Make the chains
       chain = std_mem::make_unique<iterator_type>(n_size+2, n_capacity+2, def_mem_type, stream);
@@ -309,8 +309,8 @@ namespace std_ivy{
     }
 
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(){}
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(bucket_element_type* bucket_head, size_type n_buckets, IvyMemoryType mem_type, IvyGPUStream* stream){
-      reset(bucket_head, n_buckets, mem_type, stream);
+    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
+      reset(bucket_head, n_buckets, n_capacity, mem_type, stream);
     }
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder const& other) : chain(other.chain), chain_const(other.chain_const){}
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder&& other) : chain(std_util::move(other.chain)), chain_const(std_util::move(other.chain_const)){}
