@@ -21,7 +21,9 @@ namespace std_ivy{
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector&& v) :
     progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory()),
-    _data(std_util::move(v._data))
+    _data(std_util::move(v._data)),
+    _iterator_builder(std_util::move(v._iterator_builder)),
+    _const_iterator_builder(std_util::move(v._const_iterator_builder))
   {
     check_write_access_or_die(v.progenitor_mem_type);
   }
@@ -242,9 +244,11 @@ namespace std_ivy{
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ bool IvyVector<T, Allocator>::empty() const{ return this->size()==0; }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::size_type IvyVector<T, Allocator>::size() const{ return _data.size(); }
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::size_type IvyVector<T, Allocator>::max_size() const{
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ constexpr IvyVector<T, Allocator>::size_type IvyVector<T, Allocator>::max_size() const{
     return std_limits::numeric_limits<size_type>::max();
   }
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::size_type IvyVector<T, Allocator>::capacity() const{ return _data.capacity(); }
+
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::reserve(size_type n){
     check_write_access_or_die();
     auto const current_capacity = this->capacity();
@@ -258,7 +262,6 @@ namespace std_ivy{
     _data.reserve(n, mem_type, stream);
     if (current_capacity!=this->capacity() || mem_type!=current_mem_type) this->reset_iterator_builders();
   }
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::size_type IvyVector<T, Allocator>::capacity() const{ return _data.capacity(); }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::shrink_to_fit(){
     check_write_access_or_die();
     auto const current_capacity = this->capacity();
@@ -517,13 +520,11 @@ namespace std_ivy{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::swap(IvyVector& v){
     check_write_access_or_die(v.progenitor_mem_type);
     std_mem::swap(_data, v._data);
-    std_util::swap(_iterator_builder, v._iterator_builder);
-    std_util::swap(_const_iterator_builder, v._const_iterator_builder);
+    std_ivy::swap(_iterator_builder, v._iterator_builder);
+    std_ivy::swap(_const_iterator_builder, v._const_iterator_builder);
   }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(IvyVector<T, Allocator>& a, IvyVector<T, Allocator>& b){ a.swap(b); }
-
-
 }
 
 #endif

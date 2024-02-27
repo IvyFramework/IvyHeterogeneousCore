@@ -289,9 +289,6 @@ namespace std_ivy{
         );
       }
     }
-    __CUDA_HOST_DEVICE__ void reset(pointer ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream){
-      reset(ptr, n, n, mem_type, stream);
-    }
     __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ void reset(){ this->invalidate(); }
 
     __CUDA_HOST_DEVICE__ void push_back(pointer ptr, IvyMemoryType mem_type, IvyGPUStream* stream){
@@ -312,16 +309,24 @@ namespace std_ivy{
     }
 
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(){}
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(pointer ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream){
-      reset(ptr, n, mem_type, stream);
-    }
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(pointer ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
-      reset(ptr, n_size, n_capacity, mem_type, stream);
+    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(bucket_element_type* bucket_head, size_type n_buckets, IvyMemoryType mem_type, IvyGPUStream* stream){
+      reset(bucket_head, n_buckets, mem_type, stream);
     }
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder const& other) : chain(other.chain), chain_const(other.chain_const){}
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder&& other) : chain(std_util::move(other.chain)), chain_const(std_util::move(other.chain_const)){}
     __CUDA_HOST_DEVICE__ ~IvyBucketedIteratorBuilder(){ invalidate(); }
+
+    __CUDA_HOST_DEVICE__ size_type n_valid_iterators() const{ return (chain ? chain.size()-2 : 0); }
+    __CUDA_HOST_DEVICE__ size_type n_capacity_valid_iterators() const{ return (chain ? chain.capacity()-2 : 0); }
+
+    __CUDA_HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder& other){
+      std_mem::swap(chain, other.chain);
+      std_mem::swap(chain_const, other.chain_const);
+    }
   };
+
+  template<typename Key, typename T, typename Hash>
+  __CUDA_HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder<Key, T, Hash>& a, IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
 }
 
 #endif

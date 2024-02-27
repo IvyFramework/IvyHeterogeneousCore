@@ -94,12 +94,13 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ const_reverse_iterator rend() const;
     __CUDA_HOST_DEVICE__ const_reverse_iterator crend() const;
 
-    __CUDA_HOST_DEVICE__ bool empty() const;
-    __CUDA_HOST_DEVICE__ size_type size() const;
-    __CUDA_HOST_DEVICE__ size_type max_size() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool empty() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type size() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr size_type max_size() const;
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
+
     __CUDA_HOST_DEVICE__ void reserve(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     __CUDA_HOST_DEVICE__ void reserve(size_type n);
-    __CUDA_HOST_DEVICE__ size_type capacity() const;
     __CUDA_HOST_DEVICE__ void shrink_to_fit();
 
     __CUDA_HOST_DEVICE__ void clear();

@@ -18,7 +18,6 @@ namespace ivy_hash_impl{
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nparts_full = nb_T / size_partition;
       constexpr result_type remainder = nb_T % size_partition;
-      constexpr result_type nparts = (remainder==0 ? nparts_full : nparts_full + 1);
       constexpr result_type part_full_shift_offset = (remainder==0 ? 0 : 1);
 
       result_type res = 0;
