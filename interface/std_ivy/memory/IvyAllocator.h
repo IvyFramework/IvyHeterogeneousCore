@@ -106,6 +106,12 @@ namespace std_ivy{
   template<typename T> class transfer_memory_primitive_without_internal_memory;
   template<typename T> class transfer_memory_primitive_with_internal_memory;
   template<typename T> class transfer_memory_primitive;
+  /*
+    transfer_memory_primitive<std_util::pair<T, U>>:
+    std_util::pair is a container with internal memory, so we can use this object safely only when internal memory transfer is ensured.
+    This specialization ensures that internal memory transfer routines are called for the first and second elements of the pair.
+  */
+  template<typename T, typename U> class transfer_memory_primitive<std_util::pair<T, U>>;
 
   template<typename T> class kernel_generic_transfer_internal_memory final : public kernel_base_noprep_nofin{
   protected:
@@ -130,6 +136,8 @@ namespace std_ivy{
     using pointer = typename base_t::pointer;
     using size_type = typename base_t::size_type;
 
+    // There is no memory transfer to be done, so transfer_internal_memory always returns true.
+    static __CUDA_HOST_DEVICE__ constexpr bool transfer_internal_memory(...){ return true; }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -195,6 +203,74 @@ namespace std_ivy{
   };
   // By default, we assume that the class has no internal memory to transfer.
   template<typename T> class transfer_memory_primitive : public transfer_memory_primitive_without_internal_memory<T>{};
+  /*
+    transfer_memory_primitive<std_util::pair<T, U>>:
+    std_util::pair is a container with internal memory, so we can use this object safely only when internal memory transfer is ensured.
+    This specialization ensures that internal memory transfer routines are called for the first and second elements of the pair.
+  */
+  template<typename T, typename U> class transfer_memory_primitive<std_util::pair<T, U>>{
+  public:
+    using base_t = allocation_type_properties<std_util::pair<T, U>>;
+    using value_type = typename base_t::value_type;
+    using pointer = typename base_t::pointer;
+    using size_type = typename base_t::size_type;
+
+    using transfer_primitive_T = transfer_memory_primitive<T>;
+    using transfer_primitive_U = transfer_memory_primitive<U>;
+
+    static __CUDA_HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
+      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      bool res = true;
+      if (ptr_mem_type==def_mem_type){
+        for (size_type i=0; i<n; ++i){
+          res &= (
+            transfer_primitive_T::transfer_internal_memory(ptr[i]->first, n, ptr_mem_type, mem_type, stream, release_old)
+            &&
+            transfer_primitive_U::transfer_internal_memory(ptr[i]->second, n, ptr_mem_type, mem_type, stream, release_old)
+            );
+        }
+      }
+      else{
+        pointer p_int = nullptr;
+        res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
+        res &= IvyMemoryHelpers::transfer_memory(p_int, ptr, n, def_mem_type, ptr_mem_type, stream);
+        for (size_type i=0; i<n; ++i){
+          res &= (
+            transfer_primitive_T::transfer_internal_memory(p_int[i]->first, n, def_mem_type, mem_type, stream, release_old)
+            &&
+            transfer_primitive_U::transfer_internal_memory(p_int[i]->second, n, def_mem_type, mem_type, stream, release_old)
+            );
+        }
+        res &= IvyMemoryHelpers::transfer_memory(ptr, p_int, n, ptr_mem_type, def_mem_type, stream);
+        res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
+      }
+      return res;
+    }
+
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer(
+      pointer& tgt, pointer const& src, size_type n,
+      IvyMemoryType type_tgt, IvyMemoryType type_src,
+      IvyGPUStream& stream
+    ){
+      if (!src) return false;
+      bool res = true;
+      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      constexpr bool release_old = false; // We do not release existing memory from internal memory transfers in order to preserve src pointer.
+      if (def_mem_type==type_tgt && def_mem_type==type_src){
+        res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
+        res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream, release_old);
+      }
+      else{
+        pointer p_int = nullptr;
+        res &= IvyMemoryHelpers::allocate_memory(p_int, n, def_mem_type, stream);
+        res &= IvyMemoryHelpers::transfer_memory(p_int, src, n, def_mem_type, type_src, stream);
+        res &= transfer_internal_memory(p_int, n, def_mem_type, type_tgt, stream, release_old);
+        res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
+        res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
+      }
+      return res;
+    }
+  };
 
   /*
   allocator

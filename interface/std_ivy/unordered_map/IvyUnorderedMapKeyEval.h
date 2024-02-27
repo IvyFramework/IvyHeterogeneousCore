@@ -26,7 +26,7 @@ namespace std_ivy{
   template<typename Key, typename BinaryPredicate> struct IvyKeyEqualBinaryEval{
     using key_type = Key;
     using binary_predicate = BinaryPredicate;
-    __CUDA_HOST_DEVICE__ static constexpr IvyTypes::size_t bucket_size(IvyTypes::size_t const& n_size, IvyTypes::size_t const& /*n_capacity*/){ return n_size; }
+    __CUDA_HOST_DEVICE__ static constexpr IvyTypes::size_t bucket_size(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& n_capacity){ return (n_capacity==0 ? 2 : n_capacity); }
     __CUDA_HOST_DEVICE__ static constexpr bool eval(IvyTypes::size_t const& /*n_size*/, IvyTypes::size_t const& /*n_capacity*/, Key const& a, Key const& b){
       return BinaryPredicate()(a, b);
     }

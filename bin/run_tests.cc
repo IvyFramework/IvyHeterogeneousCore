@@ -663,6 +663,7 @@ void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
           break;
         }
       }
+      if (is_found) break;
     }
     if (!is_found) ptr_buckets.emplace_back(std_util::make_pair(hash, std_mem::make_unique<value_type>(1, 5, IvyMemoryType::Host, &stream, key, raw_data_val)));
   }

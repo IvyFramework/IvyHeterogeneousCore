@@ -32,10 +32,8 @@ namespace std_ivy{
     typedef KeyEqual key_equal;
     typedef std_util::pair<key_type, mapped_type> value_type;
     typedef Allocator allocator_type;
-    typedef std_util::pair<
-      hash_result_type,
-      std_mem::unique_ptr<value_type>
-    > bucket_element;
+    typedef std_mem::unique_ptr<value_type> bucket_data_type;
+    typedef std_util::pair<hash_result_type, bucket_data_type> bucket_element;
     typedef std_mem::unique_ptr<bucket_element> data_container;
     typedef std_mem::allocator_traits<Allocator> allocator_type_traits;
     typedef std_mem::allocator<data_container> allocator_data_container;
@@ -108,6 +106,11 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
 
     __CUDA_HOST_DEVICE__ void clear();
+
+    template<typename... Args> __CUDA_HOST_DEVICE__ iterator insert(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    template<typename InputIterator> __CUDA_HOST_DEVICE__ iterator insert(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
+    __CUDA_HOST_DEVICE__ iterator insert(std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
+
 
   };
 
