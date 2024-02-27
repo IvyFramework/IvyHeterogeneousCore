@@ -2,7 +2,7 @@
 #define IVYVECTORIMPL_HH
 
 
-#include "std_ivy/vector/IvyVectorIterator.h"
+#include "std_ivy/iterator/IvyContiguousIteratorBuilder.h"
 
 
 #ifdef __USE_CUDA__
@@ -14,15 +14,15 @@ namespace std_ivy{
   template<typename T, typename Allocator> class IvyVector{
   public:
     typedef T value_type;
-    typedef std_mem::unique_ptr<value_type> data_container_type;
     typedef Allocator allocator_type;
+    typedef std_mem::unique_ptr<value_type> data_container;
     typedef std_mem::allocator_traits<Allocator> allocator_type_traits;
-    typedef std_mem::allocator<data_container_type> allocator_data_container;
+    typedef std_mem::allocator<data_container> allocator_data_container;
     typedef std_mem::allocator_traits<allocator_data_container> allocator_data_container_traits;
     typedef value_type& reference;
     typedef value_type const& const_reference;
-    typedef IvyVectorIteratorBuilder<value_type> iterator_builder_t;
-    typedef IvyVectorIteratorBuilder<value_type const> const_iterator_builder_t;
+    typedef IvyContiguousIteratorBuilder<value_type> iterator_builder_t;
+    typedef IvyContiguousIteratorBuilder<value_type const> const_iterator_builder_t;
     typedef std_mem::allocator<iterator_builder_t> allocator_iterator_builder_t;
     typedef std_mem::allocator<const_iterator_builder_t> allocator_const_iterator_builder_t;
     typedef std_mem::allocator_traits<allocator_iterator_builder_t> allocator_iterator_builder_traits_t;
@@ -31,11 +31,10 @@ namespace std_ivy{
     typedef std_mem::allocator_traits<allocator_type>::const_pointer const_pointer;
     typedef std_mem::allocator_traits<allocator_type>::size_type size_type;
     typedef std_mem::allocator_traits<allocator_type>::difference_type difference_type;
-    typedef std_ivy::unique_ptr<value_type> data_container;
     typedef iterator_builder_t::iterator_type iterator;
     typedef const_iterator_builder_t::iterator_type const_iterator;
-    typedef std_iter::reverse_iterator<iterator> reverse_iterator;
-    typedef std_iter::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef std_ivy::reverse_iterator<iterator> reverse_iterator;
+    typedef std_ivy::reverse_iterator<const_iterator> const_reverse_iterator;
 
     friend class kernel_generic_transfer_internal_memory<IvyVector<T, Allocator>>;
 

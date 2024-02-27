@@ -9,6 +9,7 @@
 #include "std_ivy/IvyChrono.h"
 #include "std_ivy/IvyAlgorithm.h"
 #include "std_ivy/IvyFunctional.h"
+#include "std_ivy/iterator/IvyBucketedIteratorBuilder.h"
 
 
 using std_ivy::IvyMemoryType;
@@ -95,23 +96,23 @@ template<typename T> struct test_IvyVector : public kernel_base_noprep_nofin{
     }
   }
 };
-template<typename T> struct test_IvyVectorIterator : public kernel_base_noprep_nofin{
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::IvyVectorIteratorBuilder<T>* it_builder){
-    if (kernel_check_dims<test_IvyVectorIterator<T>>::check_dims(i, n)){
-      printf("Inside test_IvyVectorIterator now...\n");
+template<typename T> struct test_IvyContiguousIterator : public kernel_base_noprep_nofin{
+  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_iter::IvyContiguousIteratorBuilder<T>* it_builder){
+    if (kernel_check_dims<test_IvyContiguousIterator<T>>::check_dims(i, n)){
+      printf("Inside test_IvyContiguousIterator now...\n");
       auto& chain = it_builder->chain;
       printf("chain address = %p, size_ptr = %p, capacity_ptr = %p, mem_type_ptr = %p, stream = %p\n", &chain, chain.size_ptr(), chain.capacity_ptr(), chain.get_memory_type_ptr(), chain.gpu_stream());
       auto const n_size = chain.size();
       auto const n_capacity = chain.capacity();
-      printf("test_IvyVectorIterator: chain n_size = %llu, n_capacity = %llu, mem_type = %d\n", n_size, n_capacity, int(chain.get_memory_type()));
+      printf("test_IvyContiguousIterator: chain n_size = %llu, n_capacity = %llu, mem_type = %d\n", n_size, n_capacity, int(chain.get_memory_type()));
 
       for (auto const& v:(*it_builder)){
-        printf("test_IvyVectorIterator: v.a = %f\n", v.a);
+        printf("test_IvyContiguousIterator: v.a = %f\n", v.a);
       }
 
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      std_vec::IvyVectorIteratorBuilder<T> it_builder_copy(std_mem::addressof(*(it_builder->begin())), n_size-2, def_mem_type, nullptr);
-      for (auto const& v:it_builder_copy) printf("test_IvyVectorIterator: it_builder_copy.a = %f\n", v.a);
+      std_iter::IvyContiguousIteratorBuilder<T> it_builder_copy(std_mem::addressof(*(it_builder->begin())), n_size-2, def_mem_type, nullptr);
+      for (auto const& v:it_builder_copy) printf("test_IvyContiguousIterator: it_builder_copy.a = %f\n", v.a);
     }
   }
 };
@@ -242,6 +243,7 @@ void utest_IvyUnifiedPtr_basic(IvyGPUStream& stream){
 
   {
     __PRINT_INFO__("Testing shared_ptr...\n");
+    __PRINT_INFO__("  Size of shared_ptr<dummy_D>: %llu\n", sizeof(std_mem::shared_ptr<dummy_D>));
     std_mem::shared_ptr<dummy_D> ptr_shared = std_mem::make_shared<dummy_D>(IvyMemoryType::GPU, &stream, 1.);
     std_mem::shared_ptr<dummy_B> ptr_shared_copy = ptr_shared; ptr_shared_copy.reset(); ptr_shared_copy = ptr_shared;
     __PRINT_INFO__("  ptr_shared no. of copies: %i\n", ptr_shared.use_count());
@@ -254,6 +256,7 @@ void utest_IvyUnifiedPtr_basic(IvyGPUStream& stream){
   }
   {
     __PRINT_INFO__("Testing unique_ptr...\n");
+    __PRINT_INFO__("  Size of unique_ptr<dummy_D>: %llu\n", sizeof(std_mem::unique_ptr<dummy_D>));
     std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(IvyMemoryType::GPU, &stream, 1.);
     std_mem::unique_ptr<dummy_B> ptr_unique_copy = ptr_unique;
     __PRINT_INFO__("ptr_unique no. of copies: %i\n", ptr_unique.use_count());
@@ -411,17 +414,17 @@ template<unsigned int nvars> void utest_basic_alloc_copy_dealloc(IvyGPUStream& s
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
 }
-void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
+void utest_IvyContiguousIterator_basic(IvyGPUStream& stream){
   using namespace std_ivy;
 
-  typedef std_vec::IvyVectorIteratorBuilder<dummy_D> iterator_builder_t;
-  typedef std_vec::IvyVectorIteratorBuilder<dummy_D const> const_iterator_builder_t;
+  typedef std_iter::IvyContiguousIteratorBuilder<dummy_D> iterator_builder_t;
+  typedef std_iter::IvyContiguousIteratorBuilder<dummy_D const> const_iterator_builder_t;
   typedef std_mem::allocator<iterator_builder_t> allocator_iterator_builder_t;
   typedef std_mem::allocator<const_iterator_builder_t> allocator_const_iterator_builder_t;
   typedef std_mem::allocator_traits<allocator_iterator_builder_t> allocator_iterator_builder_traits_t;
   typedef std_mem::allocator_traits<allocator_const_iterator_builder_t> allocator_const_iterator_builder_traits_t;
 
-  __PRINT_INFO__("|*** Benchmarking IvyVectorIterator basic functionality... ***|\n");
+  __PRINT_INFO__("|*** Benchmarking IvyContiguousIterator basic functionality... ***|\n");
 
   constexpr unsigned int ndata = 10;
   std_mem::unique_ptr<dummy_D> ptr_unique = std_mem::make_unique<dummy_D>(ndata, IvyMemoryType::Host, &stream, 1.);
@@ -430,8 +433,8 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
     printf("ptr_unique[%llu].a = %f\n", i, ptr_unique[i].a);
   }
 
-  IvyVectorIteratorBuilder<dummy_D> it_builder;
-  IvyVectorIteratorBuilder<dummy_D const> cit_builder;
+  IvyContiguousIteratorBuilder<dummy_D> it_builder;
+  IvyContiguousIteratorBuilder<dummy_D const> cit_builder;
   it_builder.reset(ptr_unique.get(), ndata, ptr_unique.get_memory_type(), ptr_unique.gpu_stream());
   cit_builder.reset(ptr_unique.get(), ndata, ptr_unique.get_memory_type(), ptr_unique.gpu_stream());
 
@@ -498,7 +501,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
 
   printf("Testing empty data...\n");
   std_mem::unique_ptr<dummy_D> h_data_empty;
-  IvyVectorIteratorBuilder<dummy_D> it_builder_empty(h_data_empty.get(), 0, h_data_empty.get_memory_type(), h_data_empty.gpu_stream());
+  IvyContiguousIteratorBuilder<dummy_D> it_builder_empty(h_data_empty.get(), 0, h_data_empty.get_memory_type(), h_data_empty.gpu_stream());
   {
     auto it_begin = it_builder_empty.begin();
     auto it_end = it_builder_empty.end();
@@ -532,7 +535,7 @@ void utest_IvyVectorIterator_basic(IvyGPUStream& stream){
 
   printf("d_it_builder address: %p\n", d_it_builder);
   printf("Running the test kernel on d_it_builder...\n");
-  if (IvyMemoryHelpers::use_device_acc(mem_gpu)) run_kernel<test_IvyVectorIterator<dummy_D>>(0, stream).parallel_1D(1, d_it_builder);
+  if (IvyMemoryHelpers::use_device_acc(mem_gpu)) run_kernel<test_IvyContiguousIterator<dummy_D>>(0, stream).parallel_1D(1, d_it_builder);
   stream.synchronize();
   printf("Destroying d_it_builder...\n");
   allocator_iterator_builder_traits_t::destroy(d_it_builder, 1, mem_gpu, stream);
@@ -612,6 +615,76 @@ void utest_IvyVector_basic(IvyGPUStream& stream){
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
 }
+void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
+  using namespace std_ivy;
+
+  typedef double key_type;
+  typedef dummy_D mapped_type;
+  typedef std_util::pair<key_type, mapped_type> value_type;
+  typedef std_ivy::hash<key_type> hasher;
+  typedef hasher::result_type hash_result_type;
+  typedef std_iter::IvyBucketedIteratorBuilder<key_type, value_type, std_ivy::hash<key_type>> iterator_builder_t;
+  typedef std_mem::allocator<iterator_builder_t> allocator_iterator_builder_t;
+  typedef std_mem::allocator_traits<allocator_iterator_builder_t> allocator_iterator_builder_traits_t;
+  typedef std_util::pair<
+    hash_result_type,
+    std_mem::unique_ptr<value_type>
+  > bucket_element_type;
+  typedef std_mem::allocator<bucket_element_type> allocator_bucket_element_type;
+  typedef std_mem::unique_ptr<bucket_element_type> data_type;
+  typedef std_mem::allocator<data_type> allocator_data_type;
+
+  __PRINT_INFO__("|*** Benchmarking IvyBucketedIteratorBuilder basic functionality... ***|\n");
+
+  constexpr unsigned int ndata = 5;
+  std_mem::unique_ptr<mapped_type> raw_data = std_mem::make_unique<mapped_type>(ndata, IvyMemoryType::Host, &stream, 1.);
+  std_mem::unique_ptr<bucket_element_type> ptr_buckets = std_mem::make_unique<bucket_element_type>(0, ndata, IvyMemoryType::Host, &stream);
+  for (size_t i=0; i<ndata; i++){
+    auto& raw_data_val = raw_data[i];
+    raw_data_val.a += i;
+    printf("raw_data[%llu].a = %f\n", i, raw_data_val.a);
+    key_type key = raw_data_val.a;
+    hash_result_type hash = hasher()(key);
+    bool is_found = false;
+    for (size_t ib=0; ib<ptr_buckets.size(); ++ib){
+      auto& bucket_element = ptr_buckets[ib];
+      if (bucket_element.first == hash){
+        auto& data_bucket = bucket_element.second;
+        for (size_t jd=0; jd<data_bucket.size(); ++jd){
+          if (data_bucket[jd].first == key){
+            data_bucket[jd].second = raw_data_val;
+            is_found = true;
+            break;
+          }
+        }
+        if (!is_found){
+          data_bucket.emplace_back(key, raw_data_val);
+          is_found = true;
+          break;
+        }
+      }
+    }
+    if (!is_found) ptr_buckets.emplace_back(std_util::make_pair(hash, std_mem::make_unique<value_type>(1, 5, IvyMemoryType::Host, &stream, key, raw_data_val)));
+  }
+
+  __PRINT_INFO__("Bucket size = %llu, capacity = %llu\n", ptr_buckets.size(), ptr_buckets.capacity());
+
+  std_iter::IvyBucketedIteratorBuilder<key_type, mapped_type, hasher> it_builder;
+  it_builder.reset(ptr_buckets.get(), ptr_buckets.size(), ptr_buckets.get_memory_type(), ptr_buckets.gpu_stream());
+  {
+    auto it_begin = it_builder.begin();
+    auto it_end = it_builder.end();
+    auto it = it_begin;
+    while (it != it_end){
+      printf("it->first = %f, it->second.a = %f\n", it->first, it->second.a);
+      ++it;
+    }
+  }
+
+  stream.synchronize();
+  __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
+}
+
 
 int main(){
   constexpr unsigned char nStreams = 3;
@@ -656,8 +729,9 @@ int main(){
     utest_sumparallel<nsum, nsum_serial>(stream, sum_vals);
     utest_IvyUnifiedPtr_basic(stream);
     utest_transfer_sharedptr(stream);
-    utest_IvyVectorIterator_basic(stream);
+    utest_IvyContiguousIterator_basic(stream);
     utest_IvyVector_basic(stream);
+    utest_IvyBucketedIteratorBuilder_basic(stream);
 
     __PRINT_INFO__("**********\n");
   }

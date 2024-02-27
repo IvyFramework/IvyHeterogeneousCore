@@ -43,13 +43,13 @@ namespace std_ivy{
     friend class kernel_generic_transfer_internal_memory<IvyUnifiedPtr<T, IPT>>;
 
   protected:
-    IvyMemoryType exec_mem_type_;
-    IvyMemoryType* mem_type_;
     pointer ptr_;
+    IvyMemoryType* mem_type_;
     size_type* size_;
     size_type* capacity_;
     counter_type* ref_count_;
     IvyGPUStream* stream_;
+    IvyMemoryType exec_mem_type_;
 
     __CUDA_HOST_DEVICE__ void init_members(IvyMemoryType mem_type, size_type n_size, size_type n_capacity);
     __CUDA_HOST_DEVICE__ void release();

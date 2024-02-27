@@ -11,52 +11,52 @@
 
 namespace std_ivy{
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr() :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
-    mem_type_(nullptr),
     ptr_(nullptr),
+    mem_type_(nullptr),
     size_(nullptr),
     capacity_(nullptr),
     ref_count_(nullptr),
-    stream_(nullptr)
+    stream_(nullptr),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {}
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(std_cstddef::nullptr_t) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
-    mem_type_(nullptr),
     ptr_(nullptr),
+    mem_type_(nullptr),
     size_(nullptr),
     capacity_(nullptr),
     ref_count_(nullptr),
-    stream_(nullptr)
+    stream_(nullptr),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {}
   template<typename T, IvyPointerType IPT>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
     ptr_(ptr),
-    stream_(stream)
+    stream_(stream),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {
     if (ptr_) this->init_members(mem_type, 1, 1);
   }
   template<typename T, IvyPointerType IPT>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
     ptr_(ptr),
-    stream_(stream)
+    stream_(stream),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {
     if (ptr_) this->init_members(mem_type, n, n);
   }
   template<typename T, IvyPointerType IPT>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(T* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
     ptr_(ptr),
-    stream_(stream)
+    stream_(stream),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {
     if (ptr_) this->init_members(mem_type, n_size, n_capacity);
   }
   template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
-    stream_(stream)
+    stream_(stream),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {
     ptr_ = __DYNAMIC_CAST__(pointer, ptr);
     if (ptr_) this->init_members(mem_type, 1, 1);
@@ -64,64 +64,63 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT>
   template<typename U>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
-    stream_(stream)
+    stream_(stream),
+    exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {
     ptr_ = __DYNAMIC_CAST__(pointer, ptr);
     if (ptr_) this->init_members(mem_type, n, n);
   }
   template<typename T, IvyPointerType IPT>
   template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other) :
-    stream_(other.gpu_stream())
-  {
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other){
     ptr_ = __DYNAMIC_CAST__(pointer, other.get());
     if (!ptr_ && other.get()){
       __PRINT_ERROR__("IvyUnifiedPtr copy constructor failed: Incompatible types\n");
       assert(false);
     }
     else{
-      exec_mem_type_ = other.get_exec_memory_type();
       mem_type_ = other.get_memory_type_ptr();
       size_ = other.size_ptr();
       capacity_ = other.capacity_ptr();
       ref_count_ = other.counter();
+      stream_ = other.gpu_stream();
+      exec_mem_type_ = other.get_exec_memory_type();
       if (ref_count_) this->inc_dec_counter(true);
     }
     if (IPU==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
   }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other) :
-    stream_(other.gpu_stream())
+    ptr_(other.ptr_),
+    mem_type_(other.mem_type_),
+    size_(other.size_),
+    capacity_(other.capacity_),
+    ref_count_(other.ref_count_),
+    stream_(other.stream_),
+    exec_mem_type_(other.exec_mem_type_)
   {
-    ptr_ = other.ptr_;
-    exec_mem_type_ = other.exec_mem_type_;
-    mem_type_ = other.mem_type_;
-    size_ = other.size_;
-    capacity_ = other.capacity_;
-    ref_count_ = other.ref_count_;
     if (ref_count_) this->inc_dec_counter(true);
     if (IPT==IvyPointerType::unique) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
   }
   template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other) :
-    exec_mem_type_(std_util::move(other.get_exec_memory_type())),
-    mem_type_(std_util::move(other.get_memory_type_ptr())),
     ptr_(std_util::move(other.get())),
+    mem_type_(std_util::move(other.get_memory_type_ptr())),
     size_(std_util::move(other.size_ptr())),
     capacity_(std_util::move(other.capacity_ptr())),
     ref_count_(std_util::move(other.counter())),
-    stream_(std_util::move(other.gpu_stream()))
+    stream_(std_util::move(other.gpu_stream())),
+    exec_mem_type_(std_util::move(other.get_exec_memory_type()))
   {
     other.dump();
   }
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr&& other) :
-    exec_mem_type_(std_util::move(other.exec_mem_type_)),
-    mem_type_(std_util::move(other.mem_type_)),
     ptr_(std_util::move(other.ptr_)),
+    mem_type_(std_util::move(other.mem_type_)),
     size_(std_util::move(other.size_)),
     capacity_(std_util::move(other.capacity_)),
     ref_count_(std_util::move(other.ref_count_)),
-    stream_(std_util::move(other.gpu_stream()))
+    stream_(std_util::move(other.gpu_stream())),
+    exec_mem_type_(std_util::move(other.exec_mem_type_))
   {
     other.dump();
   }

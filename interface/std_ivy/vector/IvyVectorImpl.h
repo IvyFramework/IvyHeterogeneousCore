@@ -88,13 +88,13 @@ namespace std_ivy{
     using category = typename std_ivy::iterator_traits<InputIterator>::iterator_category;
     static_assert(std_ttraits::is_base_of_v<std_ivy::input_iterator_tag, category>);
     allocator_type a;
-    typename InputIterator::difference_type n = std_iter::distance(first, last);
+    typename InputIterator::difference_type n = std_ivy::distance(first, last);
     if (n<0){
       n = -n;
       std_util::swap(first, last);
     }
     _data.reset();
-    if constexpr(std_ttraits::is_base_of_v<std_iter::contiguous_iterator_tag, category>){
+    if constexpr(std_ttraits::is_base_of_v<std_ivy::contiguous_iterator_tag, category>){
       auto ptr_first = std_mem::addressof(*first);
       _data.copy(ptr_first, __STATIC_CAST__(size_type, n), mem_type, stream);
     }
@@ -102,8 +102,8 @@ namespace std_ivy{
       operate_with_GPU_stream_from_pointer(
         stream, ref_stream,
         __ENCAPSULATE__(
-          typename data_container_type::pointer new_ptr = a.allocate(__STATIC_CAST__(size_type, n), mem_type, ref_stream);
-          typename data_container_type::pointer data_first = new_ptr;
+          typename data_container::pointer new_ptr = a.allocate(__STATIC_CAST__(size_type, n), mem_type, ref_stream);
+          typename data_container::pointer data_first = new_ptr;
           while (first!=last){
             auto ptr_first = std_mem::addressof(*first);
             allocator_type_traits::transfer(a, data_first, ptr_first, 1, mem_type, mem_type, ref_stream);
@@ -126,7 +126,7 @@ namespace std_ivy{
       operate_with_GPU_stream_from_pointer(
         stream, ref_stream,
         __ENCAPSULATE__(
-          typename data_container_type::pointer new_ptr = a.allocate(__STATIC_CAST__(size_type, n), mem_type, ref_stream);
+          typename data_container::pointer new_ptr = a.allocate(__STATIC_CAST__(size_type, n), mem_type, ref_stream);
           allocator_type_traits::transfer(a, new_ptr, ptr_first, n, mem_type, IvyMemoryHelpers::get_execution_default_memory(), ref_stream);
           _data.reset(new_ptr, __STATIC_CAST__(size_type, n), mem_type, stream);
         )

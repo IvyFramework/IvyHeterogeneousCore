@@ -10,7 +10,7 @@
 namespace ivy_hash_impl{
   template<typename T> struct IvyHash{
     using result_type = IvyTypes::size_t;
-    using argument_type = T;
+    using argument_type = std_ttraits::remove_cv_t<T>;
 
     __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type nb_T = sizeof(argument_type);
@@ -45,9 +45,12 @@ namespace ivy_hash_impl{
     __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
-      constexpr result_type nbits_arg_el = sizeof(char const)*8;
+      constexpr result_type nbits_arg_el = sizeof(char)*8;
       result_type res = 0;
-      for (result_type i=0; v[i]; ++i) res ^= (v[i]<<((i*8)%(nbits_partition-nbits_arg_el+1)));
+      {
+        argument_type vv = v;
+        for (result_type i=0; *vv; ++i){ res ^= ((*vv)<<((i*8)%(nbits_partition-nbits_arg_el+1))); ++vv; }
+      }
       return res;
     }
   };
@@ -60,7 +63,10 @@ namespace ivy_hash_impl{
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nbits_arg_el = sizeof(char)*8;
       result_type res = 0;
-      for (result_type i=0; v[i]; ++i) res ^= (v[i]<<((i*8)%(nbits_partition-nbits_arg_el+1)));
+      {
+        argument_type vv = v;
+        for (result_type i=0; *vv; ++i){ res ^= ((*vv)<<((i*8)%(nbits_partition-nbits_arg_el+1))); ++vv; }
+      }
       return res;
     }
   };
