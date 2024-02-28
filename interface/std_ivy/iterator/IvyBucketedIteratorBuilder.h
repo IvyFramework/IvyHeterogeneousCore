@@ -199,7 +199,6 @@ namespace std_ivy{
       return nullptr;
     }
 
-    // FIXME: NEED TO REWRITE THIS FCN
     __CUDA_HOST_DEVICE__ void reset(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
       this->invalidate();
 

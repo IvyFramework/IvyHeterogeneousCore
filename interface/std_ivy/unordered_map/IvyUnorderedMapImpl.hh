@@ -73,6 +73,8 @@ namespace std_ivy{
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type get_predicted_bucket_count() const;
 
+    __CUDA_HOST_DEVICE__ iterator erase_impl(Key const& key, size_type& n_erased);
+
   public:
     __CUDA_HOST_DEVICE__ IvyUnorderedMap();
     __CUDA_HOST_DEVICE__ IvyUnorderedMap(IvyUnorderedMap const& v);
@@ -113,6 +115,17 @@ namespace std_ivy{
     template<typename InputIterator> __CUDA_HOST_DEVICE__ iterator insert(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
     __CUDA_HOST_DEVICE__ iterator insert(std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
 
+    template<typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ iterator emplace(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+
+    __CUDA_HOST_DEVICE__ size_type erase(Key const& key);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator pos);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator first, PosIterator last);
+
+    __CUDA_HOST_DEVICE__ size_type bucket_count() const;
+    __CUDA_HOST_DEVICE__ size_type bucket_capacity() const;
+    __CUDA_HOST_DEVICE__ constexpr size_type max_bucket_count() const;
+
+    __CUDA_HOST_DEVICE__ void rehash(size_type new_n_buckets);
 
   };
 

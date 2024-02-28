@@ -229,8 +229,9 @@ namespace std_ivy{
       fix_prev_next(pos+1, +1);
     }
     __CUDA_HOST_DEVICE__ void erase(size_type const& pos){
+      if (!chain) return;
       size_type n_size = chain.size();
-      if (!chain || pos+2>=n_size) return;
+      if (pos+2>=n_size) return;
       chain[pos+1].invalidate();
       chain.erase(pos+1);
       fix_prev_next(pos+1, -1);

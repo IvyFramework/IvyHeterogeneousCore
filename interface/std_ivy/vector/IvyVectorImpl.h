@@ -418,7 +418,6 @@ namespace std_ivy{
   template<typename T, typename Allocator> template<typename PosIterator>
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::erase(PosIterator first, PosIterator last){
     check_write_access_or_die();
-
     IvyVector<T, Allocator>::iterator res = this->end();
     while (first!=last){
       res = this->erase(first);
