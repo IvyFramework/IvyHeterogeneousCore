@@ -646,7 +646,7 @@ void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
     auto& raw_data_val = raw_data[i];
     raw_data_val.a += i;
     printf("raw_data[%llu].a = %f\n", i, raw_data_val.a);
-    key_type key = raw_data_val.a+12345;
+    key_type key = raw_data_val.a + 100; // Add an arbitrary offset that is not confusing.
     hash_result_type hash = hasher()(key);
     bool is_found = false;
     for (size_t ib=0; ib<ptr_buckets.size(); ++ib){
@@ -698,6 +698,33 @@ void utest_IvyBucketedIteratorBuilder_basic(IvyGPUStream& stream){
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
 }
+void utest_IvyUnorderedMap_basic(IvyGPUStream& stream){
+  using namespace std_ivy;
+  typedef double key_type;
+  typedef dummy_D mapped_type;
+
+  __PRINT_INFO__("|*** Benchmarking IvyUnorderedMap basic functionality... ***|\n");
+
+  constexpr size_t ndata = 10;
+  std_mem::unique_ptr<mapped_type> raw_data = std_mem::make_unique<mapped_type>(ndata, IvyMemoryType::Host, &stream, 1.);
+  std_umap::unordered_map<key_type, mapped_type> h_map;
+  __PRINT_INFO__("Adding key-value pairs to h_map...\n");
+  for (size_t i=0; i<raw_data.size(); ++i){
+    raw_data[i].a += i;
+    h_map.emplace(IvyMemoryType::Host, &stream, raw_data[i].a, raw_data[i]);
+  }
+
+  __PRINT_INFO__("Extracting h_map iterators...\n");
+  auto it_begin = h_map.begin();
+  auto it_end = h_map.end();
+  __PRINT_INFO__("Iterating over h_map...\n");
+  for (auto it=it_begin; it!=it_end; ++it){ __PRINT_INFO__("(iterator loop) h_map[%f].a = %f\n", it->first, it->second.a); }
+  for (auto const& kv:h_map) __PRINT_INFO__("(range-based loop) h_map[%f].a = %f\n", kv.first, kv.second.a);
+  __PRINT_INFO__("h_map[3].a = %f\n", h_map[3].a);
+
+  stream.synchronize();
+  __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
+}
 
 
 int main(){
@@ -745,6 +772,7 @@ int main(){
     utest_IvyContiguousIterator_basic(stream);
     utest_IvyVector_basic(stream);
     utest_IvyBucketedIteratorBuilder_basic(stream);
+    utest_IvyUnorderedMap_basic(stream);
 
     __PRINT_INFO__("**********\n");
   }

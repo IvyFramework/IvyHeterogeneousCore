@@ -44,7 +44,7 @@ namespace std_ivy{
     const_iterator_collection_t chain_const;
 
   protected:
-    template<typename Ptr> static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ auto _pref(Ptr const& ptr) -> decltype(*ptr){ return *ptr; }
+    template<typename Iterator> static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ Iterator get_iterator(Iterator* const& ptr){ return (ptr ? *ptr : Iterator()); }
 
     template<typename Chain_t> __CUDA_HOST_DEVICE__ bool fix_prev_next(Chain_t& ch_obj, size_type pos){
       typedef typename Chain_t::pointer chain_pointer_t;
@@ -169,18 +169,18 @@ namespace std_ivy{
       invalidate(chain_const);
     }
 
-    __CUDA_HOST_DEVICE__ iterator_type begin() const{ return _pref(chain_front()); }
-    __CUDA_HOST_DEVICE__ iterator_type front() const{ return _pref(chain_front()); }
-    __CUDA_HOST_DEVICE__ iterator_type back() const{ return _pref(chain_back()); }
-    __CUDA_HOST_DEVICE__ iterator_type end() const{ return _pref(chain_end()); }
-    __CUDA_HOST_DEVICE__ reverse_iterator_type rbegin() const{ return reverse_iterator_type(_pref(chain_back())); }
-    __CUDA_HOST_DEVICE__ reverse_iterator_type rend() const{ return reverse_iterator_type(_pref(chain_rend())); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cbegin() const{ return _pref(chain_const_front()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cfront() const{ return _pref(chain_const_front()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cback() const{ return _pref(chain_const_back()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cend() const{ return _pref(chain_const_end()); }
-    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crbegin() const{ return reverse_const_iterator_type(_pref(chain_const_back())); }
-    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crend() const{ return reverse_const_iterator_type(_pref(chain_const_rend())); }
+    __CUDA_HOST_DEVICE__ iterator_type begin() const{ return get_iterator(chain_front()); }
+    __CUDA_HOST_DEVICE__ iterator_type front() const{ return get_iterator(chain_front()); }
+    __CUDA_HOST_DEVICE__ iterator_type back() const{ return get_iterator(chain_back()); }
+    __CUDA_HOST_DEVICE__ iterator_type end() const{ return get_iterator(chain_end()); }
+    __CUDA_HOST_DEVICE__ reverse_iterator_type rbegin() const{ return reverse_iterator_type(get_iterator(chain_back())); }
+    __CUDA_HOST_DEVICE__ reverse_iterator_type rend() const{ return reverse_iterator_type(get_iterator(chain_rend())); }
+    __CUDA_HOST_DEVICE__ const_iterator_type cbegin() const{ return get_iterator(chain_const_front()); }
+    __CUDA_HOST_DEVICE__ const_iterator_type cfront() const{ return get_iterator(chain_const_front()); }
+    __CUDA_HOST_DEVICE__ const_iterator_type cback() const{ return get_iterator(chain_const_back()); }
+    __CUDA_HOST_DEVICE__ const_iterator_type cend() const{ return get_iterator(chain_const_end()); }
+    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crbegin() const{ return reverse_const_iterator_type(get_iterator(chain_const_back())); }
+    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crend() const{ return reverse_const_iterator_type(get_iterator(chain_const_rend())); }
 
     __CUDA_HOST_DEVICE__ pointable_t find_pointable(pointer ptr) const{
       pointable_t current = chain_front();

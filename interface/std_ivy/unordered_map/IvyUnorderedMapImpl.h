@@ -177,28 +177,24 @@ namespace std_ivy{
     return std_limits::numeric_limits<size_type>::max();
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
-  void IvyUnorderedMap __UMAPTPLARGS__::rehash(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets){
-    check_write_access_or_die();
+  template __UMAPTPLARGSINIT__
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find_iterator(Key const& key) const{
+    // Implemented in terms of _iterator_builder.begin/end because this is a const function, and const overloads of begin/end return const_iterator, not iterator.
+    for (auto it = _iterator_builder.begin(); it!=_iterator_builder.end(); ++it){ if (it->first==key) return it; }
+    return _iterator_builder.end();
+  }
+
+
+  template __UMAPTPLARGSINIT__
+  __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::calculate_data_size_capacity(IvyUnorderedMap __UMAPTPLARGS__::size_type& n_size, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_capacity) const{
+    n_size = n_capacity = 0;
     if (!_data) return;
 
-    size_type const current_n_capacity_buckets = this->bucket_capacity();
-    if (new_n_buckets<=current_n_capacity_buckets) return;
-    size_type const current_n_size_buckets = this->bucket_count();
-
-    size_type const preferred_data_capacity = hash_equal::preferred_data_capacity(new_n_buckets);
-    size_type const max_n_bucket_elements = (preferred_data_capacity+1)/new_n_buckets;
-
-    allocator_type a;
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     IvyMemoryType const mem_type = _data.get_memory_type();
     IvyGPUStream* stream = _data.gpu_stream();
-    data_container new_data = std_mem::make_unique<bucket_element>(
-      0, new_n_buckets,
-      mem_type, stream
-    );
+    size_type const current_n_size_buckets = this->bucket_count();
 
-    size_type n_size = 0, n_capacity = 0;
     if (mem_type==def_mem_type){
       auto data_ptr = _data.get();
       for (size_type ib=0; ib<current_n_size_buckets; ++ib){
@@ -209,26 +205,47 @@ namespace std_ivy{
       }
     }
     else{
-      operate_with_GPU_stream_from_pointer(
-        stream, ref_stream,
-        __ENCAPSULATE__(
-          auto data_ptr = _data.get();
-          bucket_element* tmp_data_ptr = nullptr;
-          IvyMemoryHelpers::allocate_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
-          IvyMemoryHelpers::transfer_memory(tmp_data_ptr, data_ptr, current_n_size_buckets, def_mem_type, mem_type, ref_stream);
-          bucket_element* tr_tmp_data_ptr = tmp_data_ptr;
-          for (size_type ib=0; ib<current_n_size_buckets; ++ib){
-            auto& data_bucket = tr_tmp_data_ptr->second;
-            n_size += data_bucket.size();
-            n_capacity += data_bucket.capacity();
-            ++tr_tmp_data_ptr;
-          }
-          IvyMemoryHelpers::free_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
-        )
-      );
-    }
+      build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-    // Now that we have the actual size and capacity of the data, we can rehash safely.
+      auto data_ptr = _data.get();
+      bucket_element* tmp_data_ptr = nullptr;
+      IvyMemoryHelpers::allocate_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
+      IvyMemoryHelpers::transfer_memory(tmp_data_ptr, data_ptr, current_n_size_buckets, def_mem_type, mem_type, ref_stream);
+      {
+        bucket_element* tr_tmp_data_ptr = tmp_data_ptr;
+        for (size_type ib=0; ib<current_n_size_buckets; ++ib){
+          auto& data_bucket = tr_tmp_data_ptr->second;
+          n_size += data_bucket.size();
+          n_capacity += data_bucket.capacity();
+          ++tr_tmp_data_ptr;
+        }
+      }
+      IvyMemoryHelpers::free_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
+
+      destroy_GPU_stream_reference_from_pointer(stream);
+    }
+  }
+
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
+  IvyUnorderedMap __UMAPTPLARGS__::data_container IvyUnorderedMap __UMAPTPLARGS__::get_rehashed_data(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets) const{
+    size_type const current_n_size_buckets = this->bucket_count();
+
+    size_type const preferred_data_capacity = hash_equal::preferred_data_capacity(new_n_buckets);
+    size_type const max_n_bucket_elements = (preferred_data_capacity+1)/new_n_buckets;
+
+    allocator_type a;
+    constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    IvyMemoryType const mem_type = _data.get_memory_type();
+    IvyGPUStream* stream = _data.gpu_stream();
+    size_type const n_size = this->size();
+    size_type const n_capacity = this->capacity();
+
+    // Make a new data container to which we can copy the data with size = 0 and capacity = new_n_buckets.
+    data_container new_data = std_mem::make_unique<bucket_element>(
+      0, new_n_buckets,
+      mem_type, stream
+    );
+
     if (mem_type==def_mem_type){
       auto data_ptr = _data.get();
       for (size_type ib=0; ib<current_n_size_buckets; ++ib){
@@ -241,42 +258,29 @@ namespace std_ivy{
           auto const& value = data_value.second;
           auto const& hash = hasher()(key);
 
-          {
-            bool is_inserted = false;
-            auto new_data_ptr = new_data.get();
-            for (size_type jb=0; jb<new_data.size(); ++jb){
-              auto& new_bucket_element = *new_data_ptr;
-              auto const& new_bucket_hash = new_bucket_element.first;
-              if (hash_equal::eval(n_size, n_capacity, hash, new_bucket_hash)){
-                auto& new_data_bucket = new_bucket_element.second;
-                for (size_t kd=0; kd<new_data_bucket.size(); ++kd){
-                  auto& new_bucket_data_el = new_data_bucket[kd];
-                  if (key_equal::eval(n_size, n_capacity, new_bucket_data_el.first, key)){
-                    new_bucket_data_el.second = value;
-                    is_inserted = true;
-                    break;
-                  }
-                }
-                if (!is_inserted){
-                  if (new_data_bucket.capacity()==0) new_data_bucket.reserve(max_n_bucket_elements, mem_type, stream);
-                  new_data_bucket.emplace_back(key, value);
-                  is_inserted = true;
-                  break;
-                }
-              }
-              if (is_inserted) break;
-              ++new_data_ptr;
+          bool is_inserted = false;
+          auto new_data_ptr = new_data.get();
+          for (size_type jb=0; jb<new_data.size(); ++jb){
+            auto& new_bucket_element = *new_data_ptr;
+            auto const& new_bucket_hash = new_bucket_element.first;
+            if (hash_equal::eval(n_size, n_capacity, hash, new_bucket_hash)){
+              auto& new_data_bucket = new_bucket_element.second;
+              if (new_data_bucket.capacity()==0) new_data_bucket.reserve(max_n_bucket_elements, mem_type, stream);
+              new_data_bucket.emplace_back(key, value);
+              is_inserted = true;
+              break;
             }
-            if (!is_inserted){
-              // If we stil have not found the bucket, we need to create a new one.
-              new_data.emplace_back(
-                hash,
-                std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type>(
-                  a, 1, max_n_bucket_elements,
-                  mem_type, stream, data_value
-                )
-              );
-            }
+            ++new_data_ptr;
+          }
+          if (!is_inserted){
+            // If we stil have not found the bucket, we need to create a new one.
+            new_data.emplace_back(
+              hash,
+              std_mem::build_unique<value_type>(
+                a, 1, max_n_bucket_elements,
+                mem_type, stream, data_value
+              )
+            );
           }
 
           ++data_bucket_ptr;
@@ -285,11 +289,84 @@ namespace std_ivy{
       }
     }
     else{
+      build_GPU_stream_reference_from_pointer(stream, ref_stream);
+
+      auto d_data_ptr = _data.get();
+      bucket_element* h_data_ptr = nullptr;
+      IvyMemoryHelpers::allocate_memory(h_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
+      IvyMemoryHelpers::transfer_memory(h_data_ptr, d_data_ptr, current_n_size_buckets, def_mem_type, mem_type, ref_stream);
+      {
+        auto data_ptr = h_data_ptr;
+        for (size_type ib=0; ib<current_n_size_buckets; ++ib){
+          auto& data_bucket = data_ptr->second;
+          size_type const n_size_data_bucket = data_bucket.size();
+          auto d_data_bucket_ptr = data_bucket.get();
+          value_type* h_data_bucket_ptr = nullptr;
+          IvyMemoryHelpers::allocate_memory(h_data_bucket_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+          IvyMemoryHelpers::transfer_memory(h_data_bucket_ptr, d_data_bucket_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+          {
+            auto data_bucket_ptr = h_data_bucket_ptr;
+            for (size_type jd=0; jd<n_size_data_bucket; ++jd){
+              auto const& data_value = *data_bucket_ptr;
+              auto const& key = data_value.first;
+              auto const& value = data_value.second;
+              auto const& hash = hasher()(key);
+
+              bool is_inserted = false;
+              size_type const new_current_n_size_buckets = new_data.size();
+              auto& d_new_data_ptr = new_data.get();
+              bucket_element* h_new_data_ptr = nullptr;
+              IvyMemoryHelpers::allocate_memory(h_new_data_ptr, new_current_n_size_buckets, def_mem_type, ref_stream);
+              IvyMemoryHelpers::transfer_memory(h_new_data_ptr, d_new_data_ptr, new_current_n_size_buckets, def_mem_type, mem_type, ref_stream);
+              {
+                auto new_data_ptr = h_new_data_ptr;
+                for (size_type jb=0; jb<new_current_n_size_buckets; ++jb){
+                  auto& new_bucket_element = *new_data_ptr;
+                  auto const& new_bucket_hash = new_bucket_element.first;
+                  if (hash_equal::eval(n_size, n_capacity, hash, new_bucket_hash)){
+                    auto& new_data_bucket = new_bucket_element.second;
+                    if (new_data_bucket.capacity()==0) new_data_bucket.reserve(max_n_bucket_elements, mem_type, stream);
+                    new_data_bucket.emplace_back(key, value);
+                    auto tmp_tgt = d_new_data_ptr + jb;
+                    IvyMemoryHelpers::transfer_memory(tmp_tgt, new_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+                    is_inserted = true;
+                    break;
+                  }
+                  ++new_data_ptr;
+                }
+                if (!is_inserted){
+                  // If we stil have not found the bucket, we need to create a new one.
+                  new_data.emplace_back(
+                    hash,
+                    std_mem::build_unique<value_type>(
+                      a, 1, max_n_bucket_elements,
+                      mem_type, stream, data_value
+                    )
+                  );
+                }
+              }
+              IvyMemoryHelpers::free_memory(h_new_data_ptr, new_current_n_size_buckets, def_mem_type, ref_stream);
+              ++data_bucket_ptr;
+            }
+          }
+          IvyMemoryHelpers::free_memory(h_data_bucket_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+          ++data_ptr;
+        }
+      }
+      IvyMemoryHelpers::free_memory(h_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
+
+      destroy_GPU_stream_reference_from_pointer(stream);
     }
 
-    std_mem::swap(_data, new_data);
-    new_data.reset();
-
+    return new_data;
+  }
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
+  void IvyUnorderedMap __UMAPTPLARGS__::rehash(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets){
+    check_write_access_or_die();
+    if (!_data) return;
+    size_type const current_n_capacity_buckets = this->bucket_capacity();
+    if (new_n_buckets<=current_n_capacity_buckets) return;
+    _data = this->get_rehashed_data(new_n_buckets);
     this->reset_iterator_builder();
   }
 
@@ -297,64 +374,67 @@ namespace std_ivy{
   template __UMAPTPLARGSINIT__ template<typename... Args>
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::emplace(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
-  ){ this->insert(mem_type, stream, key, args...); }
+  ){ return this->insert(mem_type, stream, key, args...); }
   template __UMAPTPLARGSINIT__ template<typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
+  __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::insert_impl(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
   ){
     check_write_access_or_die();
-    constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    size_type const current_capacity = this->capacity();
+
     size_type const current_size = this->size();
+    size_type const current_capacity = this->capacity();
+    size_type const current_bucket_size = this->bucket_count();
+    size_type const current_bucket_capacity = this->bucket_capacity();
+    size_type const preferred_current_data_capacity = hash_equal::preferred_data_capacity(current_bucket_capacity);
+    size_type const current_max_n_bucket_elements = (preferred_current_data_capacity+1)/current_bucket_capacity;
+
     size_type const new_size = current_size + 1;
     size_type const new_capacity = (new_size>current_capacity ? new_size + 1 : current_capacity);
-    size_type const current_bucket_capacity = _data.capacity();
-    size_type const current_bucket_size = this->bucket_count();
     size_type const new_bucket_capacity = hash_equal::bucket_size(new_size, new_capacity);
     size_type const preferred_new_data_capacity = hash_equal::preferred_data_capacity(new_bucket_capacity);
     size_type const new_max_n_bucket_elements = (preferred_new_data_capacity+1)/new_bucket_capacity;
-    size_type const preferred_current_data_capacity = hash_equal::preferred_data_capacity(current_bucket_capacity);
-    size_type const current_max_n_bucket_elements = (preferred_current_data_capacity+1)/current_bucket_capacity;
+
+    constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     hash_result_type const hash = hasher()(key);
     allocator_type a;
+    bool trigger_it_reset = false;
+
     if (!_data || _data.get_memory_type()!=mem_type){
       _data = std_mem::make_unique<bucket_element>(
         1, new_bucket_capacity,
         mem_type, stream,
-        std_util::make_pair<hash_result_type, bucket_data_type>(
+        std_util::pair<hash_result_type, bucket_data_type>(
           hash,
-          std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, value_type>(
+          std_mem::build_unique<value_type>(
             a, 1, new_max_n_bucket_elements,
             mem_type, stream,
-            std_util::make_pair<key_type, mapped_type>(key, mapped_type(std_util::forward<Args>(args)...))
+            value_type(key, mapped_type(std_util::forward<Args>(args)...))
           )
         )
       );
       this->reset_iterator_builder();
-      return this->begin();
     }
     else{
       bool is_found = false;
       value_type* mem_loc_pos = nullptr;
-      value_type* mem_loc_pos_final = nullptr;
       if (mem_type==def_mem_type){
         auto data_ptr = _data.get();
         for (size_type ib=0; ib<current_bucket_size; ++ib){
-          auto& bucket_element = *data_ptr;
-          auto const& bucket_hash = bucket_element.first;
+          auto& current_bucket_element = *data_ptr;
+          auto const& bucket_hash = current_bucket_element.first;
           if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-            auto& data_bucket = bucket_element.second;
+            auto& data_bucket = current_bucket_element.second;
             for (size_t jd=0; jd<data_bucket.size(); ++jd){
-              if (key_equal::eval(current_size, current_capacity, data_bucket[jd].first, key)){
+              if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)){
                 data_bucket[jd].second = mapped_type(std_util::forward<Args>(args)...);
-                mem_loc_pos_final = data_bucket.get() + jd;
                 is_found = true;
                 break;
               }
             }
             if (!is_found){
+              trigger_it_reset = (data_bucket.size()==data_bucket.capacity());
               data_bucket.emplace_back(key, mapped_type(std_util::forward<Args>(args)...));
-              mem_loc_pos_final = mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
+              mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
               is_found = true;
               break;
             }
@@ -366,120 +446,139 @@ namespace std_ivy{
           // If we stil have not found the bucket, we need to create a new one.
           _data.emplace_back(
             hash,
-            std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type>(
+            std_mem::build_unique<value_type>(
               a, 1, current_max_n_bucket_elements,
               mem_type, stream,
-              std_util::make_pair<key_type, mapped_type>(key, mapped_type(std_util::forward<Args>(args)...))
+              value_type(key, mapped_type(std_util::forward<Args>(args)...))
             )
           );
-          mem_loc_pos_final = mem_loc_pos = _data[_data.size()-1].second.get();
+          mem_loc_pos = _data[_data.size()-1].second.get();
         }
       }
       else{
-        operate_with_GPU_stream_from_pointer(
-          stream, ref_stream,
-          __ENCAPSULATE__(
-            bucket_element*& data_ptr = _data.get();
-            bucket_element* tmp_data_ptr = nullptr;
-            IvyMemoryHelpers::allocate_memory(tmp_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
-            IvyMemoryHelpers::transfer_memory(tmp_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
-            bucket_element* tr_tmp_data_ptr = tmp_data_ptr;
-            for (size_type ib=0; ib<current_bucket_size; ++ib){
-              auto& bucket_element = *tr_tmp_data_ptr;
-              auto const& bucket_hash = bucket_element.first;
-              if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-                auto& data_bucket = bucket_element.second;
-                size_type const n_size_data_bucket = data_bucket.size();
-                value_type*& bucket_data_ptr = data_bucket.get();
-                value_type* tmp_bucket_data_ptr = nullptr;
-                IvyMemoryHelpers::allocate_memory(tmp_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-                IvyMemoryHelpers::transfer_memory(tmp_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
-                value_type* tr_tmp_bucket_data_ptr = tmp_bucket_data_ptr;
-                for (size_t jd=0; jd<n_size_data_bucket; ++jd){
-                  value_type& data_value = *tr_tmp_bucket_data_ptr;
-                  if (key_equal::eval(current_size, current_capacity, data_value.first, key)){
-                    data_value.second = mapped_type(std_util::forward<Args>(args)...);
-                    mem_loc_pos_final = bucket_data_ptr + jd;
-                    is_found = true;
-                    break;
-                  }
-                  ++tr_tmp_bucket_data_ptr;
-                }
-                if (!is_found){
-                  data_bucket.emplace_back(key, mapped_type(std_util::forward<Args>(args)...));
-                  mem_loc_pos_final = mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
+        build_GPU_stream_reference_from_pointer(stream, ref_stream);
+
+        bucket_element*& data_ptr = _data.get();
+        bucket_element* h_data_ptr = nullptr;
+        IvyMemoryHelpers::allocate_memory(h_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
+        IvyMemoryHelpers::transfer_memory(h_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
+        bucket_element* tr_h_data_ptr = h_data_ptr;
+        for (size_type ib=0; ib<current_bucket_size; ++ib){
+          auto& current_bucket_element = *tr_h_data_ptr;
+          auto const& bucket_hash = current_bucket_element.first;
+          auto& data_bucket = current_bucket_element.second;
+          if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+            size_type const n_size_data_bucket = data_bucket.size();
+            value_type*& bucket_data_ptr = data_bucket.get();
+
+            value_type* h_bucket_data_ptr = nullptr;
+            IvyMemoryHelpers::allocate_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+            IvyMemoryHelpers::transfer_memory(h_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+            {
+              value_type* tr_h_bucket_data_ptr = h_bucket_data_ptr;
+              for (size_t jd=0; jd<n_size_data_bucket; ++jd){
+                value_type& data_value = *tr_h_bucket_data_ptr;
+                if (key_equal::eval(current_size, current_capacity, key, data_value.first)){
+                  data_value.second = mapped_type(std_util::forward<Args>(args)...);
+                  auto tmp_tgt = bucket_data_ptr + jd;
+                  IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_bucket_data_ptr, 1, mem_type, def_mem_type, ref_stream);
                   is_found = true;
                   break;
                 }
-                else IvyMemoryHelpers::transfer_memory(bucket_data_ptr, tmp_bucket_data_ptr, n_size_data_bucket, mem_type, def_mem_type, ref_stream);
-                IvyMemoryHelpers::free_memory(tmp_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+                ++tr_h_bucket_data_ptr;
               }
-              if (is_found) break;
-              ++tr_tmp_data_ptr;
             }
             if (!is_found){
-              // If we stil have not found the bucket, we need to create a new one.
-              _data.emplace_back(
-                hash,
-                std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, bucket_data_type>(
-                  a, 1, current_max_n_bucket_elements,
-                  mem_type, stream, std_util::make_pair<key_type, mapped_type>(key, mapped_type(std_util::forward<Args>(args)...))
-                )
-              );
-              IvyMemoryHelpers::transfer_memory(tmp_data_ptr+current_bucket_size, _data.get()+current_bucket_size, 1, def_mem_type, mem_type, ref_stream);
-              bucket_element* tr_tmp_data_ptr = tmp_data_ptr+current_bucket_size;
-              auto& data_bucket = (*tr_tmp_data_ptr).second;
-              mem_loc_pos_final = mem_loc_pos = data_bucket.get();
+              trigger_it_reset = (data_bucket.size()==data_bucket.capacity());
+              data_bucket.emplace_back(key, mapped_type(std_util::forward<Args>(args)...));
+              mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
+              is_found = true;
             }
-            else IvyMemoryHelpers::transfer_memory(data_ptr, tmp_data_ptr, current_bucket_size, mem_type, def_mem_type, ref_stream);
-            IvyMemoryHelpers::free_memory(tmp_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
-          )
-        );
+            IvyMemoryHelpers::free_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+          }
+          if (is_found){
+            auto tmp_tgt = data_ptr + ib;
+            IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+            break;
+          }
+          ++tr_h_data_ptr;
+        }
+        if (!is_found){
+          // If we stil have not found the bucket, we need to create a new one.
+          _data.emplace_back(
+            hash,
+            std_mem::build_unique<value_type>(
+              a, 1, current_max_n_bucket_elements,
+              mem_type, stream, value_type(key, mapped_type(std_util::forward<Args>(args)...))
+            )
+          );
+          auto tmp_tgt = h_data_ptr + current_bucket_size;
+          IvyMemoryHelpers::transfer_memory(tmp_tgt, _data.get()+current_bucket_size, 1, def_mem_type, mem_type, ref_stream);
+          bucket_element* tr_h_data_ptr = h_data_ptr+current_bucket_size;
+          auto& data_bucket = (*tr_h_data_ptr).second;
+          mem_loc_pos = data_bucket.get();
+        }
+        IvyMemoryHelpers::free_memory(h_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
+
+        destroy_GPU_stream_reference_from_pointer(stream);
       }
 
+      // We need to update the iterators if a new element is inserted.
+      // We do this even if we rehash later, which will invalidate the iterators.
+      // The reason is to make sure size() and capacity() are updated, which are need to be up-to-date in rehashing.
+      // Notice that the correct test for genuine new insertion is to check if mem_loc_pos is not a nullptr
+      // because it is also possible to find the inserted key to exist and just update the corresponding value.
       if (mem_loc_pos){
-        // We need to update the iterators if a new element is inserted.
-        // If bucket capacity needs to be increased, we just rehash, which will update the iterator builder in the process.
-        // Otherwise, we need to insert a new iterator into the existing iterator builder construct.
-        if (new_bucket_capacity!=current_bucket_capacity) this->rehash(new_bucket_capacity);
+        // If the new size is greater than the current capacity, we need to reset the iterator builder;
+        // the push_back function does not invalidate existing iterators if the existing capacity of the iterator builder is exceeded.
+        // Otherwise, we just push the new element to its back.
+        if (new_size>current_capacity || trigger_it_reset) this->reset_iterator_builder();
         else _iterator_builder.push_back(mem_loc_pos, mem_type, stream);
       }
-
-      return _iterator_builder.find_pointable(mem_loc_pos_final);
     }
+  }
+  template __UMAPTPLARGSINIT__ template<typename... Args>
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
+    IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
+  ){
+    this->insert_impl(mem_type, stream, key, args...);
+
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
+    return find_iterator(key);
   }
   template __UMAPTPLARGSINIT__ template<typename InputIterator>
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
     InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
-    check_write_access_or_die();
-    IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
-    bool first_time = true;
-    while (first!=last){
-      auto const& v = *first;
-      if (first_time) res = this->insert(mem_type, stream, v.first, v.second);
-      else this->insert(mem_type, stream, v.first, v.second);
-      first_time = false;
-      ++first;
+    InputIterator it = first;
+    while (it!=last){
+      auto const& v = *it;
+      this->insert_impl(mem_type, stream, v.first, v.second);
+      ++it;
     }
-    return res;
+
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
+    return find_iterator(first->first);
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
     std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
-    check_write_access_or_die();
-    IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
-    bool first_time = true;
-    for (auto const& v:ilist){
-      if (first_time) res = this->insert(mem_type, stream, v.first, v.second);
-      else this->insert(mem_type, stream, v.first, v.second);
-      first_time = false;
-    }
-    return res;
+    if (!_data) return iterator();
+    if (ilist.size()==0) return this->end();
+    for (auto const& v:ilist) this->insert_impl(mem_type, stream, v.first, v.second);
+
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
+    return find_iterator(ilist.begin()->first);
   }
 
   // erase functions
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::erase_impl(Key const& key, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_erased){
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::erase_impl(Key const& key, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_erased){
     check_write_access_or_die();
     if (!_data) return iterator();
     IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
@@ -487,104 +586,169 @@ namespace std_ivy{
     IvyMemoryType const mem_type = _data.get_memory_type();
     IvyGPUStream* stream = _data.gpu_stream();
 
-    value_type* mem_loc_pos = nullptr;
-    size_type const current_capacity = this->capacity();
+    // Note that current_size and current_capacity come from the size and capacity of the iterator builder.
+    // Since erase_impl does not update iterators, the actual values of the size and capacity of the _data container may be different.
+    // However, since erase_impl also does not launch rehashing, hash_equal::eval and key_equal::eval NEED current_size and current_capacity
+    // to correspond to the _data shape after the last rehashing operation.
+    // For that reason, we are using current_size and current_capacity correctly here.
     size_type const current_size = this->size();
-    size_type const current_bucket_capacity = _data.capacity();
+    size_type const current_capacity = this->capacity();
     size_type const current_bucket_size = this->bucket_count();
+
     hash_result_type const hash = hasher()(key);
     allocator_type a;
 
     if (mem_type==def_mem_type){
-      auto& data_ptr = _data.get();
-      for (size_type ib=0; ib<current_bucket_size; ++ib){
-        auto& bucket_element = *data_ptr;
-        auto const& bucket_hash = bucket_element.first;
+      auto data_ptr = _data.get() + current_bucket_size - 1;
+      for (size_type rib=0; rib<current_bucket_size; ++rib){
+        size_type const ib = current_bucket_size-1-rib;
+        auto& current_bucket_element = *data_ptr;
+        auto const& bucket_hash = current_bucket_element.first;
+        auto& data_bucket = current_bucket_element.second;
         if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-          auto& data_bucket = bucket_element.second;
           size_t n_size_data_bucket = data_bucket.size();
-          for (size_t jjd=0; jjd<n_size_data_bucket; ++jjd){
-            size_t const jd = n_size_data_bucket-1-jjd;
-            if (key_equal::eval(current_size, current_capacity, data_bucket[jd].first, key)){
+          for (size_t rjd=0; rjd<n_size_data_bucket; ++rjd){
+            size_t const jd = n_size_data_bucket-1-rjd;
+            if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)){
               data_bucket.erase(jd);
-              mem_loc_pos = data_bucket.get()+jd;
               ++n_erased;
             }
           }
         }
-        ++data_ptr;
+        if (data_bucket.size()==0) _data.erase(ib);
+        --data_ptr;
       }
     }
     else{
-      operate_with_GPU_stream_from_pointer(
-        stream, ref_stream,
-        __ENCAPSULATE__(
-          bucket_element*& data_ptr = _data.get();
-          bucket_element* tmp_data_ptr = nullptr;
-          IvyMemoryHelpers::allocate_memory(tmp_data_ptr, current_bucket_size, def_mem_type, ref_stream);
-          IvyMemoryHelpers::transfer_memory(tmp_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
-          bucket_element* tr_tmp_data_ptr = tmp_data_ptr;
-          for (size_type ib=0; ib<current_bucket_size; ++ib){
-            auto& bucket_element = *tr_tmp_data_ptr;
-            auto const& bucket_hash = bucket_element.first;
-            if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-              auto& data_bucket = bucket_element.second;
-              size_type const n_size_data_bucket = data_bucket.size();
-              if (n_size_data_bucket==0) continue;
-              value_type*& bucket_data_ptr = data_bucket.get();
-              value_type* tmp_bucket_data_ptr = nullptr;
-              IvyMemoryHelpers::allocate_memory(tmp_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-              IvyMemoryHelpers::transfer_memory(tmp_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
-              for (size_t jjd=0; jjd<n_size_data_bucket; ++jjd){
-                size_t const jd = n_size_data_bucket-1-jjd;
-                value_type* tr_tmp_bucket_data_ptr = tmp_bucket_data_ptr + jd;
-                if (key_equal::eval(current_size, current_capacity, tr_tmp_bucket_data_ptr->first, key)){
+      build_GPU_stream_reference_from_pointer(stream, ref_stream);
+
+      bucket_element*& data_ptr = _data.get();
+      bucket_element* h_data_ptr = nullptr;
+      IvyMemoryHelpers::allocate_memory(h_data_ptr, current_bucket_size, def_mem_type, ref_stream);
+      IvyMemoryHelpers::transfer_memory(h_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
+      {
+        bucket_element* tr_h_data_ptr = h_data_ptr + current_bucket_size - 1;
+        for (size_type rib=0; rib<current_bucket_size; ++rib){
+          size_type const ib = current_bucket_size-1-rib;
+          auto& current_bucket_element = *tr_h_data_ptr;
+          auto const& bucket_hash = current_bucket_element.first;
+          auto& data_bucket = current_bucket_element.second;
+          size_type const n_size_data_bucket = data_bucket.size();
+          if (n_size_data_bucket>0 && hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+            bool data_bucket_modified = false;
+
+            value_type*& bucket_data_ptr = data_bucket.get();
+            value_type* h_bucket_data_ptr = nullptr;
+            IvyMemoryHelpers::allocate_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
+            IvyMemoryHelpers::transfer_memory(h_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+            {
+              value_type* tr_h_bucket_data_ptr = h_bucket_data_ptr + n_size_data_bucket - 1;
+              for (size_t rjd=0; rjd<n_size_data_bucket; ++rjd){
+                size_t const jd = n_size_data_bucket-1-rjd;
+                if (key_equal::eval(current_size, current_capacity, key, tr_h_bucket_data_ptr->first)){
                   data_bucket.erase(jd);
-                  mem_loc_pos = data_bucket.get()+jd;
+                  data_bucket_modified = true;
                   ++n_erased;
                 }
+                --tr_h_bucket_data_ptr;
               }
-              IvyMemoryHelpers::free_memory(tmp_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
             }
-            ++tr_tmp_data_ptr;
-          }
-          IvyMemoryHelpers::transfer_memory(data_ptr, tmp_data_ptr, current_bucket_size, mem_type, def_mem_type, ref_stream);
-          IvyMemoryHelpers::free_memory(tmp_data_ptr, current_bucket_size, def_mem_type, ref_stream);
-        )
-      );
-    }
+            IvyMemoryHelpers::free_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
 
-    this->reset_iterator_builder();
-    return _iterator_builder.find_pointable(mem_loc_pos);
+            if (data_bucket_modified){
+              auto tmp_tgt = data_ptr + ib;
+              IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+            }
+          }
+          if (data_bucket.size()==0) _data.erase(ib);
+          --tr_h_data_ptr;
+        }
+      }
+      IvyMemoryHelpers::free_memory(h_data_ptr, current_bucket_size, def_mem_type, ref_stream);
+
+      destroy_GPU_stream_reference_from_pointer(stream);
+    }
   }
   template __UMAPTPLARGSINIT__
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(Key const& key){
     size_type n_erased = 0;
     this->erase_impl(key, n_erased);
+
+    // Because data is not fully contiguous, iterators cannot be kept after an erase operation over _iterator_builder.
+    // The surest way is to make a clean set of them.
+    this->reset_iterator_builder();
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
     return n_erased;
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator pos){
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator pos){
     check_write_access_or_die();
-    if (!_data) return iterator();
-    IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
-    if (!pos.is_valid()) return res;
-    value_type const& val = *pos;
-    key_type const& key = val.first;
     size_type n_erased = 0;
-    return this->erase_impl(key, n_erased);
+    if (!_data || !pos.is_valid()) return n_erased;
+    key_type const& key = pos->first;
+    this->erase_impl(key, n_erased);
+
+    // Because data is not fully contiguous, iterators cannot be kept after an erase operation over _iterator_builder.
+    // The surest way is to make a clean set of them.
+    this->reset_iterator_builder();
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
+    return n_erased;
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator first, PosIterator last){
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator first, PosIterator last){
     check_write_access_or_die();
-    if (!_data) return iterator();
-    IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
+    size_type n_erased = 0;
+    if (!_data) return n_erased;
     while (first!=last){
-      res = this->erase(first);
-      if (!res.is_valid()) break;
+      n_erased += this->erase(first);
       ++first;
     }
-    return res;
+
+    // Because data is not fully contiguous, iterators cannot be kept after an erase operation over _iterator_builder.
+    // The surest way is to make a clean set of them.
+    this->reset_iterator_builder();
+    // Rehash if needed
+    this->rehash(hash_equal::bucket_size(this->size(), this->capacity()));
+
+    return n_erased;
+  }
+
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type const& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key) const{
+    if (!_data){
+      __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called on an empty map.");
+      assert(false);
+    }
+    if (_data.get_memory_type()!=IvyMemoryHelpers::get_execution_default_memory()){
+      __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called for data that resides in another device.");
+      assert(false);
+    }
+
+    size_type const current_size = this->size();
+    size_type const current_capacity = this->capacity();
+    size_type const current_bucket_size = this->bucket_count();
+
+    auto const hash = hasher()(key);
+    auto data_ptr = _data.get();
+    for (size_type ib=0; ib<current_bucket_size; ++ib){
+      auto& current_bucket_element = *data_ptr;
+      auto const& bucket_hash = current_bucket_element.first;
+      auto& data_bucket = current_bucket_element.second;
+      if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+        size_t n_size_data_bucket = data_bucket.size();
+        for (size_t jd=0; jd<n_size_data_bucket; ++jd){
+          if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)) return data_bucket[jd].second;
+        }
+        ++data_ptr;
+      }
+    }
+
+    __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot find the key.\n");
+    assert(false);
+    return this->begin()->second;
   }
 
 }

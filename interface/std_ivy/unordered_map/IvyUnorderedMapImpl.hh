@@ -73,7 +73,17 @@ namespace std_ivy{
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type get_predicted_bucket_count() const;
 
-    __CUDA_HOST_DEVICE__ iterator erase_impl(Key const& key, size_type& n_erased);
+    __CUDA_HOST_DEVICE__ data_container get_rehashed_data(size_type new_n_buckets) const;
+
+    template<typename... Args> __CUDA_HOST_DEVICE__ void insert_impl(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    __CUDA_HOST_DEVICE__ void erase_impl(Key const& key, size_type& n_erased);
+
+    /*
+    IvyUnorderedMap::calculate_data_size_capacity: Brute-force calculation of the actual size and capacity of the data container.
+    */
+    __CUDA_HOST_DEVICE__ void calculate_data_size_capacity(size_type& n_size, size_type& n_capacity) const;
+
+    __CUDA_HOST_DEVICE__ iterator find_iterator(Key const& key) const;
 
   public:
     __CUDA_HOST_DEVICE__ IvyUnorderedMap();
@@ -118,8 +128,8 @@ namespace std_ivy{
     template<typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ iterator emplace(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
 
     __CUDA_HOST_DEVICE__ size_type erase(Key const& key);
-    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator pos);
-    template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator first, PosIterator last);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ size_type erase(PosIterator pos);
+    template<typename PosIterator> __CUDA_HOST_DEVICE__ size_type erase(PosIterator first, PosIterator last);
 
     __CUDA_HOST_DEVICE__ size_type bucket_count() const;
     __CUDA_HOST_DEVICE__ size_type bucket_capacity() const;
@@ -127,10 +137,20 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void rehash(size_type new_n_buckets);
 
-  };
+    __CUDA_HOST_DEVICE__ mapped_type const& operator[](Key const& key) const;
 
-  template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
-  __CUDA_HOST_DEVICE__ void swap(IvyUnorderedMap<Key, T, Hash, KeyEqual, Allocator>& a, IvyUnorderedMap<Key, T, Hash, KeyEqual, Allocator>& b);
+  };
+  template<
+    typename Key,
+    typename T,
+    typename Hash = std_ivy::hash<Key const>,
+    typename KeyEqual = std_ivy::IvyKeyEqualEvalDefault<Key const>,
+    typename HashEqual = std_ivy::IvyHashEqualEvalDefault<typename Hash::result_type>,
+    typename Allocator = std_mem::allocator<std_util::pair<Key const, T>>
+  > using unordered_map = IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>;
+
+  template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
+  __CUDA_HOST_DEVICE__ void swap(IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
 }
 
 #endif

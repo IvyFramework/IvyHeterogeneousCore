@@ -82,7 +82,7 @@ namespace std_ivy{
   template<typename T, typename Allocator> template<typename... Args> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::assign(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
     check_write_access_or_die();
     allocator_type a;
-    _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, Args...>(a, n, mem_type, stream, args...);
+    _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> template<typename InputIterator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::assign(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream){
@@ -283,7 +283,7 @@ namespace std_ivy{
     check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
-      _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, Args...>(a, 1, 2, mem_type, stream, args...);
+      _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, 1, 2, mem_type, stream, args...);
       this->reset_iterator_builders();
       return this->begin();
     }
@@ -325,7 +325,7 @@ namespace std_ivy{
     check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
-      _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, Args...>(a, n, mem_type, stream, args...);
+      _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
       this->reset_iterator_builders();
       return this->begin();
     }
@@ -435,7 +435,7 @@ namespace std_ivy{
     auto const current_capacity = this->capacity();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
-      _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type>(a, 1, 2, mem_type, stream, val);
+      _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, 1, 2, mem_type, stream, val);
       this->reset_iterator_builders();
     }
     else{
@@ -468,7 +468,7 @@ namespace std_ivy{
     check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
-      _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, Args...>(a, 1, 2, mem_type, stream, args...);
+      _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, 1, 2, mem_type, stream, args...);
       this->reset_iterator_builders();
     }
     else{
@@ -488,7 +488,7 @@ namespace std_ivy{
     check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
-      _data = std_mem::build_unified<value_type, IvyPointerType::unique, allocator_type, Args...>(a, n, mem_type, stream, args...);
+      _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
       this->reset_iterator_builders();
     }
     auto s = this->size();

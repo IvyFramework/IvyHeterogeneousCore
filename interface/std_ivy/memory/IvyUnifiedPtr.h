@@ -736,7 +736,12 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(IvyUnifiedPtr<T, IPT>& a, IvyUnifiedPtr<T, IPT>& b) __NOEXCEPT__{ a.swap(b); }
 
   template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(Allocator_t const& a, typename IvyUnifiedPtr<T, IPT>::size_type n_size, typename IvyUnifiedPtr<T, IPT>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(
+    Allocator_t const& a,
+    typename IvyUnifiedPtr<T, IPT>::size_type n_size, typename IvyUnifiedPtr<T, IPT>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){
     if (n_capacity==0) return IvyUnifiedPtr<T, IPT>();
     operate_with_GPU_stream_from_pointer(
       stream, ref_stream,
@@ -748,20 +753,47 @@ namespace std_ivy{
     return IvyUnifiedPtr<T, IPT>(ptr, n_size, n_capacity, mem_type, stream);
   }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(Allocator_t const& a, typename shared_ptr<T>::size_type n_size, typename shared_ptr<T>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::shared>(a, n_size, n_capacity, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(
+    Allocator_t const& a,
+    typename shared_ptr<T>::size_type n_size, typename shared_ptr<T>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::shared, Allocator_t>(a, n_size, n_capacity, mem_type, stream, args...); }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(Allocator_t const& a, typename unique_ptr<T>::size_type n_size, typename unique_ptr<T>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::unique>(a, n_size, n_capacity, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(
+    Allocator_t const& a,
+    typename unique_ptr<T>::size_type n_size, typename unique_ptr<T>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::unique, Allocator_t>(a, n_size, n_capacity, mem_type, stream, args...); }
+
   template<typename T, IvyPointerType IPT, typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(typename IvyUnifiedPtr<T, IPT>::size_type n_size, typename IvyUnifiedPtr<T, IPT>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    return build_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), n_size, n_capacity, mem_type, stream, args...);
-  }
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(
+    typename IvyUnifiedPtr<T, IPT>::size_type n_size, typename IvyUnifiedPtr<T, IPT>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), n_size, n_capacity, mem_type, stream, args...); }
   template<typename T, typename... Args>
-  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(typename shared_ptr<T>::size_type n_size, typename shared_ptr<T>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::shared>(n_size, n_capacity, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(
+    typename shared_ptr<T>::size_type n_size, typename shared_ptr<T>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return make_unified<T, IvyPointerType::shared>(n_size, n_capacity, mem_type, stream, args...); }
   template<typename T, typename... Args>
-  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(typename shared_ptr<T>::size_type n_size, typename shared_ptr<T>::size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::unique>(n_size, n_capacity, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(
+    typename unique_ptr<T>::size_type n_size, typename unique_ptr<T>::size_type n_capacity,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return make_unified<T, IvyPointerType::unique>(n_size, n_capacity, mem_type, stream, args...); }
+
 
   template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(Allocator_t const& a, typename IvyUnifiedPtr<T, IPT>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(
+    Allocator_t const& a,
+    typename IvyUnifiedPtr<T, IPT>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){
     if (n==0) return IvyUnifiedPtr<T, IPT>();
     operate_with_GPU_stream_from_pointer(
       stream, ref_stream,
@@ -772,26 +804,58 @@ namespace std_ivy{
     return IvyUnifiedPtr<T, IPT>(ptr, n, mem_type, stream);
   }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(Allocator_t const& a, typename shared_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::shared>(a, n, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(
+    Allocator_t const& a,
+    typename shared_ptr<T>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::shared, Allocator_t>(a, n, mem_type, stream, args...); }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(Allocator_t const& a, typename unique_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::unique>(a, n, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(
+    Allocator_t const& a,
+    typename unique_ptr<T>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::unique, Allocator_t>(a, n, mem_type, stream, args...); }
+
   template<typename T, IvyPointerType IPT, typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(typename IvyUnifiedPtr<T, IPT>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    return build_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), n, mem_type, stream, args...);
-  }
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(
+    typename IvyUnifiedPtr<T, IPT>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), n, mem_type, stream, args...); }
   template<typename T, typename... Args>
-  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(typename shared_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::shared>(n, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ shared_ptr<T> make_shared(
+    typename shared_ptr<T>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return make_unified<T, IvyPointerType::shared>(n, mem_type, stream, args...); }
   template<typename T, typename... Args>
-  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(typename shared_ptr<T>::size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return make_unified<T, IvyPointerType::unique>(n, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(
+    typename unique_ptr<T>::size_type n,
+    IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return make_unified<T, IvyPointerType::unique>(n, mem_type, stream, args...); }
+
 
   template<typename T, IvyPointerType IPT, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    return build_unified<T, IPT, Allocator_t, Args...>(a, __STATIC_CAST__(__ENCAPSULATE__(typename IvyUnifiedPtr<T, IPT>::size_type), 1), mem_type, stream, args...);
+  __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> build_unified(
+    Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){
+    return build_unified<T, IPT, Allocator_t>(a, __STATIC_CAST__(__ENCAPSULATE__(typename IvyUnifiedPtr<T, IPT>::size_type), 1), mem_type, stream, args...);
   }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::shared>(a, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ shared_ptr<T> build_shared(
+    Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::shared, Allocator_t>(a, mem_type, stream, args...); }
   template<typename T, typename Allocator_t, typename... Args>
-  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){ return build_unified<T, Allocator_t, IvyPointerType::unique>(a, mem_type, stream, args...); }
+  __CUDA_HOST_DEVICE__ unique_ptr<T> build_unique(
+    Allocator_t const& a, IvyMemoryType mem_type, IvyGPUStream* stream,
+    Args&&... args
+  ){ return build_unified<T, IvyPointerType::unique, Allocator_t>(a, mem_type, stream, args...); }
+
   template<typename T, IvyPointerType IPT, typename... Args>
   __CUDA_HOST_DEVICE__ IvyUnifiedPtr<T, IPT> make_unified(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
     return build_unified<T, IPT, std_ivy::allocator<T>>(std_ivy::allocator<T>(), mem_type, stream, args...);

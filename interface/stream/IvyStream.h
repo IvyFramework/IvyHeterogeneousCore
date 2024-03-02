@@ -43,12 +43,17 @@ using IvyStreamUtils::IvyGPUStream;
 namespace IvyStreamUtils{
   __CUDA_HOST_DEVICE__ IvyGPUStream* make_global_gpu_stream(){ return make_stream<IvyGPUStream>(GlobalGPUStreamRaw, false); }
 }
-#define operate_with_GPU_stream_from_pointer(ptr, ref, CALL) \
+
+#define build_GPU_stream_reference_from_pointer(ptr, ref) \
 IvyGPUStream* new_##ptr = nullptr; \
 if (!ptr) new_##ptr = IvyStreamUtils::make_global_gpu_stream(); \
-IvyGPUStream& ref = (ptr ? *ptr : *new_##ptr); \
-CALL \
+IvyGPUStream& ref = (ptr ? *ptr : *new_##ptr);
+#define destroy_GPU_stream_reference_from_pointer(ptr) \
 IvyStreamUtils::destroy_stream(new_##ptr);
+#define operate_with_GPU_stream_from_pointer(ptr, ref, CALL) \
+build_GPU_stream_reference_from_pointer(ptr, ref) \
+CALL \
+destroy_GPU_stream_reference_from_pointer(ptr)
 
 
 #endif
