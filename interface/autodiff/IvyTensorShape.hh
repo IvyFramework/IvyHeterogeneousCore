@@ -5,7 +5,6 @@
 #include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyInitializerList.h"
 #include "std_ivy/IvyUtility.h"
-#include "std_ivy/IvyMemory.h"
 #include "std_ivy/IvyVector.h"
 #include "IvyBasicTypes.h"
 
