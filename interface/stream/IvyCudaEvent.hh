@@ -81,6 +81,9 @@ public:
   static __CUDA_HOST_DEVICE__ unsigned int get_record_flags(RecordFlags const& flags);
   static __CUDA_HOST_DEVICE__ unsigned int get_wait_flags(WaitFlags const& flags);
 };
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b);
+}
 
 #endif
 

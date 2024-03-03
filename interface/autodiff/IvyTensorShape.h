@@ -24,6 +24,15 @@ __CUDA_HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape&& 
   this->nel = std_util::move(other.nel);
   return *this;
 }
+__CUDA_HOST_DEVICE__ void IvyTensorShape::swap(IvyTensorShape& other){
+  std_util::swap(this->rank_, other.rank_);
+  std_util::swap(this->dims, other.dims);
+  std_util::swap(this->nel, other.nel);
+}
+namespace std_util{
+  void swap(IvyTensorShape& a, IvyTensorShape& b){ a.swap(b); }
+}
+
 
 __CUDA_HOST_DEVICE__ bool IvyTensorShape::transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
   bool res = true;

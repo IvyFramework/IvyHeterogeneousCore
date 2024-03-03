@@ -39,7 +39,6 @@ namespace std_ivy{
     friend class kernel_generic_transfer_internal_memory<IvyVector<T, Allocator>>;
 
   protected:
-    IvyMemoryType const progenitor_mem_type;
     data_container _data;
     iterator_builder_t _iterator_builder;
     const_iterator_builder_t _const_iterator_builder;
@@ -48,11 +47,6 @@ namespace std_ivy{
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void destroy_iterator_builders();
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset_iterator_builders();
-
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access(IvyMemoryType const& mem_type) const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die(IvyMemoryType const& mem_type) const;
 
   public:
     __CUDA_HOST_DEVICE__ IvyVector();
@@ -132,10 +126,10 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ iterator_builder_t const& get_iterator_builder() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const_iterator_builder_t const& get_const_iterator_builder() const;
   };
-
   template<typename T, typename Allocator=std_mem::allocator<T>> using vector = IvyVector<T, Allocator>;
-
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(IvyVector<T, Allocator>& a, IvyVector<T, Allocator>& b);
+}
+namespace std_util{
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b);
 }
 
 #endif

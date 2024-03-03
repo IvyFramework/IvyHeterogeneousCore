@@ -8,12 +8,8 @@
 #ifdef __USE_CUDA__
 
 namespace std_ivy{
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector() :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {}
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector const& v) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(){}
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector const& v){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.gpu_stream();
     data_container* ptr_data = std_mem::addressof(_data);
@@ -27,49 +23,25 @@ namespace std_ivy{
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector&& v) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory()),
     _data(std_util::move(v._data)),
     _iterator_builder(std_util::move(v._iterator_builder)),
     _const_iterator_builder(std_util::move(v._const_iterator_builder))
-  {
-    check_write_access_or_die(v.progenitor_mem_type);
-  }
+  {}
   template<typename T, typename Allocator> template<typename... Args>
-  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {
+  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
     this->assign(n, mem_type, stream, args...);
   }
   template<typename T, typename Allocator> template<typename InputIterator>
-  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {
+  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream){
     this->assign(first, last, mem_type, stream);
   }
   template<typename T, typename Allocator>
-  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(std_ilist::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {
+  __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(std_ilist::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream){
     this->assign(ilist, mem_type, stream);
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::~IvyVector(){
     this->destroy_iterator_builders();
     _data.reset();
-  }
-
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ bool IvyVector<T, Allocator>::check_write_access() const{ return (progenitor_mem_type==IvyMemoryHelpers::get_execution_default_memory()); }
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ bool IvyVector<T, Allocator>::check_write_access(IvyMemoryType const& mem_type) const{ return (progenitor_mem_type==mem_type); }
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::check_write_access_or_die() const{
-    if (!this->check_write_access()){
-      __PRINT_ERROR__("IvyVector: Write access denied.\n");
-      assert(false);
-    }
-  }
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::check_write_access_or_die(IvyMemoryType const& mem_type) const{
-    if (!this->check_write_access(mem_type)){
-      __PRINT_ERROR__("IvyVector: Write access denied.\n");
-      assert(false);
-    }
   }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>& IvyVector<T, Allocator>::operator=(IvyVector<T, Allocator> const& v){
@@ -88,7 +60,6 @@ namespace std_ivy{
     return *this;
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>& IvyVector<T, Allocator>::operator=(IvyVector<T, Allocator>&& v){
-    check_write_access_or_die(v.progenitor_mem_type);
     _data = std_util::move(v._data);
     _iterator_builder = std_util::move(v._iterator_builder);
     _const_iterator_builder = std_util::move(v._const_iterator_builder);
@@ -96,13 +67,11 @@ namespace std_ivy{
   }
 
   template<typename T, typename Allocator> template<typename... Args> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::assign(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    check_write_access_or_die();
     allocator_type a;
     _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> template<typename InputIterator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::assign(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream){
-    check_write_access_or_die();
     using category = typename std_ivy::iterator_traits<InputIterator>::iterator_category;
     static_assert(std_ttraits::is_base_of_v<std_ivy::input_iterator_tag, category>);
     allocator_type a;
@@ -112,7 +81,7 @@ namespace std_ivy{
       std_util::swap(first, last);
     }
     _data.reset();
-    if constexpr(std_ttraits::is_base_of_v<std_ivy::contiguous_iterator_tag, category>){
+    if constexpr (std_ttraits::is_base_of_v<std_ivy::contiguous_iterator_tag, category>){
       auto ptr_first = std_mem::addressof(*first);
       _data.copy(ptr_first, __STATIC_CAST__(size_type, n), mem_type, stream);
     }
@@ -135,7 +104,6 @@ namespace std_ivy{
     this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::assign(std_ilist::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream){
-    check_write_access_or_die();
     size_type const n = ilist.size();
     if (n>0){
       allocator_type a;
@@ -171,12 +139,10 @@ namespace std_ivy{
   }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::destroy_iterator_builders(){
-    check_write_access_or_die();
     _iterator_builder.reset();
     _const_iterator_builder.reset();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::reset_iterator_builders(){
-    check_write_access_or_die();
     auto const mem_type = _data.get_memory_type();
     auto const& stream = _data.gpu_stream();
     auto const s = _data.size();
@@ -265,27 +231,23 @@ namespace std_ivy{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ IvyGPUStream* IvyVector<T, Allocator>::gpu_stream() const{ return _data.gpu_stream(); }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::reserve(size_type n){
-    check_write_access_or_die();
     auto const current_capacity = this->capacity();
     _data.reserve(n);
     if (current_capacity!=this->capacity()) this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::reserve(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream){
-    check_write_access_or_die();
     auto const current_capacity = this->capacity();
     auto const current_mem_type = _data.get_memory_type();
     _data.reserve(n, mem_type, stream);
     if (current_capacity!=this->capacity() || mem_type!=current_mem_type) this->reset_iterator_builders();
   }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::shrink_to_fit(){
-    check_write_access_or_die();
     auto const current_capacity = this->capacity();
     _data.shrink_to_fit();
     if (current_capacity!=this->capacity()) this->reset_iterator_builders();
   }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::clear(){
-    check_write_access_or_die();
     _data.reset();
     this->reset_iterator_builders();
   }
@@ -295,7 +257,6 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(
     PosIterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args
   ){
-    check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
       _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, 1, 2, mem_type, stream, args...);
@@ -337,7 +298,6 @@ namespace std_ivy{
   }
   template<typename T, typename Allocator> template<typename PosIterator, typename... Args>
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(PosIterator pos, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
       _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
@@ -361,7 +321,6 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(
     PosIterator pos, InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
-    check_write_access_or_die();
     IvyVector<T, Allocator>::iterator res = this->end();
     bool first_time = true;
     size_type n = 0;
@@ -381,7 +340,6 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::insert(
     PosIterator pos, std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
-    check_write_access_or_die();
     IvyVector<T, Allocator>::iterator res = this->end();
     bool first_time = true;
     size_type const n = ilist.size();
@@ -398,8 +356,6 @@ namespace std_ivy{
   // erase functions
   template<typename T, typename Allocator> template<typename PosIterator>
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::erase(PosIterator pos){
-    check_write_access_or_die();
-
     if (!_data) return iterator();
 
     typename PosIterator::pointer mem_loc_pos_const = std_mem::addressof(*pos);
@@ -432,7 +388,6 @@ namespace std_ivy{
   }
   template<typename T, typename Allocator> template<typename PosIterator>
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::erase(PosIterator first, PosIterator last){
-    check_write_access_or_die();
     IvyVector<T, Allocator>::iterator res = this->end();
     while (first!=last){
       res = this->erase(first);
@@ -448,8 +403,6 @@ namespace std_ivy{
   template<typename T, typename Allocator>
   __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::push_back(IvyMemoryType mem_type, IvyGPUStream* stream, value_type const& val){ this->emplace_back(mem_type, stream, val); }
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::pop_back(){
-    check_write_access_or_die();
-
     if (!_data) return;
     _iterator_builder.pop_back();
     _const_iterator_builder.pop_back();
@@ -459,12 +412,10 @@ namespace std_ivy{
   // emplace and emplace_back
   template<typename T, typename Allocator> template<typename PosIterator, typename... Args>
   __CUDA_HOST_DEVICE__ IvyVector<T, Allocator>::iterator IvyVector<T, Allocator>::emplace(PosIterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    check_write_access_or_die();
     return this->insert(pos, mem_type, stream, args...);
   }
   template<typename T, typename Allocator> template<typename... Args>
   __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::emplace_back(Args&&... args){
-    check_write_access_or_die();
     auto const current_capacity = this->capacity();
     if (!_data) _data.reserve(2);
     _data.emplace_back(args...);
@@ -479,7 +430,6 @@ namespace std_ivy{
   }
   template<typename T, typename Allocator> template<typename... Args>
   __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::emplace_back(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
       _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, 1, 2, mem_type, stream, args...);
@@ -499,7 +449,6 @@ namespace std_ivy{
 
   template<typename T, typename Allocator> template<typename... Args>
   __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::resize(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
-    check_write_access_or_die();
     if (!_data || _data.get_memory_type()!=mem_type){
       allocator_type a;
       _data = std_mem::build_unified<value_type, IvyPointerType::unique>(a, n, mem_type, stream, args...);
@@ -531,13 +480,13 @@ namespace std_ivy{
   }
 
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void IvyVector<T, Allocator>::swap(IvyVector& v){
-    check_write_access_or_die(v.progenitor_mem_type);
-    std_mem::swap(_data, v._data);
-    std_ivy::swap(_iterator_builder, v._iterator_builder);
-    std_ivy::swap(_const_iterator_builder, v._const_iterator_builder);
+    std_util::swap(_data, v._data);
+    std_util::swap(_iterator_builder, v._iterator_builder);
+    std_util::swap(_const_iterator_builder, v._const_iterator_builder);
   }
-
-  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(IvyVector<T, Allocator>& a, IvyVector<T, Allocator>& b){ a.swap(b); }
+}
+namespace std_util{
+  template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b){ a.swap(b); }
 }
 
 #endif

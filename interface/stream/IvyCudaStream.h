@@ -5,6 +5,7 @@
 #include "stream/IvyCudaStream.hh"
 #include "stream/IvyCudaEvent.h"
 
+
 #ifdef __USE_CUDA__
 
 namespace IvyStreamUtils{
@@ -121,6 +122,9 @@ __CUDA_HOST_DEVICE__ IvyCudaStream::StreamFlags IvyCudaStream::get_stream_flags_
   return StreamFlags::Default;
 }
 
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& a, IvyCudaStream& b){ a.swap(b); }
+}
 
 #endif
 

@@ -55,6 +55,9 @@ public:
   __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape const& other);
   __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape&& other);
 
+  // Swap operation
+  __CUDA_HOST_DEVICE__ void swap(IvyTensorShape& other);
+
   // Get memory type and stream
   __CUDA_HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return dims.get_memory_type(); }
   __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return dims.gpu_stream(); }
@@ -103,6 +106,9 @@ public:
 
   friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensorShape>;
 };
+namespace std_util{
+  void swap(IvyTensorShape& a, IvyTensorShape& b);
+}
 
 
 #endif

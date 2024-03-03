@@ -16,11 +16,11 @@ namespace std_ivy{
   DEFINE_HAS_CALL(data);
   DEFINE_HAS_CALL(begin);
   template<typename T, std_ttraits::enable_if_t<has_call_data_v<T>, bool> = true> __CUDA_HOST_DEVICE__
-  auto get_data_head(T& t){ return t.data(); }
-  template<typename T, std_ttraits::enable_if_t<!has_call_data_v<T> && has_call_begin_v<T>, bool> = true> __CUDA_HOST_DEVICE__
-  auto get_data_head(T& t){ return t.begin(); }
+    auto get_data_head(T& t){ return t.data(); }
+  template<typename T, std_ttraits::enable_if_t<!has_call_data_v<T>&& has_call_begin_v<T>, bool> = true> __CUDA_HOST_DEVICE__
+    auto get_data_head(T& t){ return t.begin(); }
   template<typename T, std_ttraits::enable_if_t<!has_call_data_v<T> && !has_call_begin_v<T>, bool> = true> __CUDA_HOST_DEVICE__
-  auto get_data_head(T& t){ return t; }
+    auto get_data_head(T& t){ return t; }
 
   // Iterators
   template<
@@ -39,7 +39,7 @@ namespace std_ivy{
 
   protected:
     pointer ptr_;
-    
+
     __CUDA_HOST_DEVICE__ void dump() __NOEXCEPT__{ ptr_ = nullptr; }
     __CUDA_HOST_DEVICE__ pointer get() const __NOEXCEPT__{ return ptr_; }
 
@@ -77,9 +77,12 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ bool operator>(IvyInputIterator<T, D, P, R> const& x, IvyInputIterator<T, D, P, R> const& y){ return y<x; }
   template<typename T, typename D, typename P, typename R>
   __CUDA_HOST_DEVICE__ bool operator<=(IvyInputIterator<T, D, P, R> const& x, IvyInputIterator<T, D, P, R> const& y){ return !(y<x); }
+}
+namespace std_util{
   template<typename T, typename D, typename P, typename R>
-  __CUDA_HOST_DEVICE__ void swap(IvyInputIterator<T, D, P, R>& x, IvyInputIterator<T, D, P, R>& y){ return x.swap(y); }
-
+  __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyInputIterator<T, D, P, R>& x, std_ivy::IvyInputIterator<T, D, P, R>& y){ return x.swap(y); }
+}
+namespace std_ivy{
   template<
     typename T,
     typename Distance = IvyTypes::ptrdiff_t,
@@ -123,10 +126,12 @@ namespace std_ivy{
 
     __CUDA_HOST_DEVICE__ void swap(IvyOutputIterator& it){ std_util::swap(ptr_, it.ptr_); }
   };
+}
+namespace std_util{
   template<typename T, typename D, typename P, typename R>
-  __CUDA_HOST_DEVICE__ void swap(IvyOutputIterator<T, D, P, R>& x, IvyOutputIterator<T, D, P, R>& y){ return x.swap(y); }
-
-
+  __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyOutputIterator<T, D, P, R>& x, std_ivy::IvyOutputIterator<T, D, P, R>& y){ return x.swap(y); }
+}
+namespace std_ivy{
   template<typename It> __CUDA_HOST_DEVICE__ constexpr typename std_ivy::iterator_traits<It>::difference_type distance(It const& first, It const& last){
     using category = typename std_ivy::iterator_traits<It>::iterator_category;
     static_assert(std_ttraits::is_base_of_v<std_ivy::input_iterator_tag, category>);

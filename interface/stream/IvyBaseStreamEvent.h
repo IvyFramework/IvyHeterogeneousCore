@@ -54,7 +54,6 @@ public:
     std_util::swap(this->flags_, other.flags_);
     std_util::swap(this->event_, other.event_);
   }
-
 };
 
 

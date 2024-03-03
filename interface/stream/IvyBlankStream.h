@@ -54,7 +54,6 @@ public:
     }
     return StreamFlags::Default;
   }
-
 };
 
 namespace IvyStreamUtils{
@@ -71,6 +70,9 @@ namespace IvyStreamUtils{
     destroy_stream(stream);
     stream = new IvyBlankStream(st, is_owned);
   }
+}
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyBlankStream& a, IvyBlankStream& b){ a.swap(b); }
 }
 
 

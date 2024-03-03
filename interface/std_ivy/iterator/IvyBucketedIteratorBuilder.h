@@ -330,13 +330,13 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ size_type n_capacity_valid_iterators() const{ return (chain ? chain.capacity()-2 : 0); }
 
     __CUDA_HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder& other){
-      std_mem::swap(chain, other.chain);
-      std_mem::swap(chain_const, other.chain_const);
+      std_util::swap(chain, other.chain);
+      std_util::swap(chain_const, other.chain_const);
     }
   };
-
-  template<typename Key, typename T, typename Hash>
-  __CUDA_HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder<Key, T, Hash>& a, IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
+}
+namespace std_util{
+  template<typename Key, typename T, typename Hash> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& a, std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
 }
 
 #endif

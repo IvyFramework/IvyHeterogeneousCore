@@ -100,6 +100,10 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& 
   return cudaEventWaitDefault;
 }
 
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b){ a.swap(b); }
+}
+
 #endif
 
 

@@ -11,12 +11,8 @@
 #define __UMAPTPLARGS__ <Key, T, Hash, KeyEqual, HashEqual, Allocator>
 
 namespace std_ivy{
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap() :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {}
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap const& v) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory())
-  {
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(){}
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap const& v){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
     data_container* ptr_data = std_mem::addressof(_data);
@@ -30,12 +26,9 @@ namespace std_ivy{
     this->reset_iterator_builder();
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap&& v) :
-    progenitor_mem_type(IvyMemoryHelpers::get_execution_default_memory()),
     _data(std_util::move(v._data)),
     _iterator_builder(std_util::move(v._iterator_builder))
-  {
-    check_write_access_or_die(v.progenitor_mem_type);
-  }
+  {}
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::~IvyUnorderedMap(){
     this->destroy_iterator_builder();
     _data.reset();
@@ -57,36 +50,18 @@ namespace std_ivy{
     return *this;
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__&& v){
-    check_write_access_or_die(v.progenitor_mem_type);
     _data = std_util::move(v._data);
     _iterator_builder = std_util::move(v._iterator_builder);
     return *this;
-  }
-
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::check_write_access() const{ return (progenitor_mem_type==IvyMemoryHelpers::get_execution_default_memory()); }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::check_write_access(IvyMemoryType const& mem_type) const{ return (progenitor_mem_type==mem_type); }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::check_write_access_or_die() const{
-    if (!this->check_write_access()){
-      __PRINT_ERROR__("IvyUnorderedMap: Write access denied.\n");
-      assert(false);
-    }
-  }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::check_write_access_or_die(IvyMemoryType const& mem_type) const{
-    if (!this->check_write_access(mem_type)){
-      __PRINT_ERROR__("IvyUnorderedMap: Write access denied.\n");
-      assert(false);
-    }
   }
 
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyMemoryType IvyUnorderedMap __UMAPTPLARGS__::get_memory_type() const{ return _data.get_memory_type(); }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyGPUStream* IvyUnorderedMap __UMAPTPLARGS__::gpu_stream() const{ return _data.gpu_stream(); }
 
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::destroy_iterator_builder(){
-    check_write_access_or_die();
     _iterator_builder.reset();
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::reset_iterator_builder(){
-    check_write_access_or_die();
     auto const mem_type = _data.get_memory_type();
     auto const& stream = _data.gpu_stream();
     auto const s = this->bucket_count();
@@ -165,7 +140,6 @@ namespace std_ivy{
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::capacity() const{ return _iterator_builder.n_capacity_valid_iterators(); }
 
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::clear(){
-    check_write_access_or_die();
     _data.reset();
     this->reset_iterator_builder();
   }
@@ -176,12 +150,9 @@ namespace std_ivy{
 
   template __UMAPTPLARGSINIT__
     __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::swap(IvyUnorderedMap __UMAPTPLARGS__& v){
-    check_write_access_or_die(v.progenitor_mem_type);
-    std_mem::swap(_data, v._data);
-    std_ivy::swap(_iterator_builder, v._iterator_builder);
+    std_util::swap(_data, v._data);
+    std_util::swap(_iterator_builder, v._iterator_builder);
   }
-  template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ void swap(IvyUnorderedMap __UMAPTPLARGS__& a, IvyUnorderedMap __UMAPTPLARGS__& b);
 
   template __UMAPTPLARGSINIT__
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::bucket_count() const{
@@ -394,7 +365,6 @@ namespace std_ivy{
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
   void IvyUnorderedMap __UMAPTPLARGS__::rehash(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets){
-    check_write_access_or_die();
     if (!_data) return;
     size_type const current_n_capacity_buckets = this->bucket_capacity();
     if (new_n_buckets<=current_n_capacity_buckets) return;
@@ -411,8 +381,6 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::insert_impl(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
   ){
-    check_write_access_or_die();
-
     size_type const current_size = this->size();
     size_type const current_capacity = this->capacity();
     size_type const current_bucket_size = this->bucket_count();
@@ -611,7 +579,6 @@ namespace std_ivy{
 
   // erase functions
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::erase_impl(Key const& key, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_erased){
-    check_write_access_or_die();
     if (!_data) return iterator();
     IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -716,7 +683,6 @@ namespace std_ivy{
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator pos){
-    check_write_access_or_die();
     size_type n_erased = 0;
     if (!_data || !pos.is_valid()) return n_erased;
     key_type const& key = pos->first;
@@ -732,7 +698,6 @@ namespace std_ivy{
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator first, PosIterator last){
-    check_write_access_or_die();
     size_type n_erased = 0;
     if (!_data) return n_erased;
     while (first!=last){
@@ -828,7 +793,11 @@ namespace std_ivy{
   IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(Key const& key, Args&&... args){
     return this->operator()(_data.get_memory_type(), _data.gpu_stream(), key, args...);
   }
-
+}
+namespace std_util{
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap __UMAPTPLARGS__& a, std_ivy::IvyUnorderedMap __UMAPTPLARGS__& b){
+    a.swap(b);
+  }
 }
 
 #undef __UMAPTPLARGS__

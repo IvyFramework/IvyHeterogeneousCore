@@ -135,6 +135,11 @@ namespace std_ivy{
       prev_ = std_util::move(other.prev_); other.prev_ = nullptr;
       return *this;
     }
+    __CUDA_HOST_DEVICE__ void swap(IvyContiguousIterator& other){
+      std_util::swap(ptr_mem_loc_, other.ptr_mem_loc_);
+      std_util::swap(next_, other.next_);
+      std_util::swap(prev_, other.prev_);
+    }
 
     __CUDA_HOST_DEVICE__ reference operator*() const{ return *(this->get_mem_loc_fast()); }
     __CUDA_HOST_DEVICE__ pointer const& operator->() const{ return this->get_mem_loc_fast(); }
@@ -196,6 +201,9 @@ namespace std_ivy{
     }
   };
   template<typename T> using IvyVectorConstIterator = IvyContiguousIterator<T const>;
+}
+namespace std_util{
+  template<typename T> void swap(std_ivy::IvyContiguousIterator<T>& a, std_ivy::IvyContiguousIterator<T>& b){ a.swap(b); }
 }
 
 #endif

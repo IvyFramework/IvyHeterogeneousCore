@@ -82,6 +82,9 @@ namespace IvyStreamUtils{
   template<> __CUDA_HOST_DEVICE__ void make_stream(IvyCudaStream*& stream, IvyCudaStream::RawStream_t st, bool is_owned);
 }
 
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyCudaStream& a, IvyCudaStream& b);
+}
 
 #endif
 

@@ -57,7 +57,6 @@ namespace std_ivy{
     friend class kernel_generic_transfer_internal_memory<IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>>;
 
   protected:
-    IvyMemoryType const progenitor_mem_type;
     data_container _data;
     iterator_builder_t _iterator_builder;
 
@@ -65,11 +64,6 @@ namespace std_ivy{
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void destroy_iterator_builder();
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset_iterator_builder();
-
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_write_access(IvyMemoryType const& mem_type) const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void check_write_access_or_die(IvyMemoryType const& mem_type) const;
 
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type get_predicted_bucket_count() const;
 
@@ -157,9 +151,10 @@ namespace std_ivy{
     typename HashEqual = std_ivy::IvyHashEqualEvalDefault<typename Hash::result_type>,
     typename Allocator = std_mem::allocator<std_util::pair<Key const, T>>
   > using unordered_map = IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>;
-
+}
+namespace std_util{
   template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
-  __CUDA_HOST_DEVICE__ void swap(IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
+  __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
 }
 
 #endif

@@ -47,6 +47,9 @@ public:
 
   __CUDA_HOST_DEVICE__ void swap(IvyBlankStreamEvent& other){ Base_t::swap(other); }
 };
+namespace std_util{
+  __CUDA_HOST_DEVICE__ void swap(IvyBlankStreamEvent& a, IvyBlankStreamEvent& b){ a.swap(b); }
+}
 
 
 #endif
