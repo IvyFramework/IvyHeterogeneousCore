@@ -10,6 +10,9 @@
 // and std_ivy::hash at the same time.
 #include "std_ivy/functional/IvyHash.h"
 
+// In case we need to define our own set of classes, we can also define them in the std_ivy namespace.
+#include "std_ivy/functional/IvyMultiplies.h"
+
 
 #ifdef __USE_CUDA__
 

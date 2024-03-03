@@ -19,7 +19,14 @@ namespace std_ivy{
   {
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
-    allocator_data_container_traits::transfer(std_mem::addressof(_data), std_mem::addressof(v._data), 1, def_mem_type, def_mem_type, stream);
+    data_container* ptr_data = std_mem::addressof(_data);
+    data_container* ptr_v_data = __CONST_CAST__(data_container*, std_mem::addressof(v._data));
+    operate_with_GPU_stream_from_pointer(
+      stream, ref_stream,
+      __ENCAPSULATE__(
+        allocator_data_container_traits::transfer(ptr_data, ptr_v_data, 1, def_mem_type, def_mem_type, ref_stream);
+      )
+    );
     this->reset_iterator_builder();
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap&& v) :
@@ -38,13 +45,22 @@ namespace std_ivy{
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
     _data.reset();
-    allocator_data_container_traits::transfer(std_mem::addressof(_data), std_mem::addressof(v._data), 1, def_mem_type, def_mem_type, stream);
+    data_container* ptr_data = std_mem::addressof(_data);
+    data_container* ptr_v_data = __CONST_CAST__(data_container*, std_mem::addressof(v._data));
+    operate_with_GPU_stream_from_pointer(
+      stream, ref_stream,
+      __ENCAPSULATE__(
+        allocator_data_container_traits::transfer(ptr_data, ptr_v_data, 1, def_mem_type, def_mem_type, ref_stream);
+      )
+    );
     this->reset_iterator_builder();
+    return *this;
   }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__&& v){
     check_write_access_or_die(v.progenitor_mem_type);
     _data = std_util::move(v._data);
     _iterator_builder = std_util::move(v._iterator_builder);
+    return *this;
   }
 
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::check_write_access() const{ return (progenitor_mem_type==IvyMemoryHelpers::get_execution_default_memory()); }
@@ -61,6 +77,9 @@ namespace std_ivy{
       assert(false);
     }
   }
+
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyMemoryType IvyUnorderedMap __UMAPTPLARGS__::get_memory_type() const{ return _data.get_memory_type(); }
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyGPUStream* IvyUnorderedMap __UMAPTPLARGS__::gpu_stream() const{ return _data.gpu_stream(); }
 
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::destroy_iterator_builder(){
     check_write_access_or_die();
@@ -177,13 +196,26 @@ namespace std_ivy{
     return std_limits::numeric_limits<size_type>::max();
   }
 
+  // find functions
   template __UMAPTPLARGSINIT__
   __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find_iterator(Key const& key) const{
     // Implemented in terms of _iterator_builder.begin/end because this is a const function, and const overloads of begin/end return const_iterator, not iterator.
     for (auto it = _iterator_builder.begin(); it!=_iterator_builder.end(); ++it){ if (it->first==key) return it; }
     return _iterator_builder.end();
   }
-
+  template __UMAPTPLARGSINIT__
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find_const_iterator(Key const& key) const{
+    for (auto it = this->cbegin(); it!=this->cend(); ++it){ if (it->first==key) return it; }
+    return this->cend();
+  }
+  template __UMAPTPLARGSINIT__
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key){
+    return this->find_iterator(key);
+  }
+  template __UMAPTPLARGSINIT__
+  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key) const{
+    return this->find_const_iterator(key);
+  }
 
   template __UMAPTPLARGSINIT__
   __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::calculate_data_size_capacity(IvyUnorderedMap __UMAPTPLARGS__::size_type& n_size, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_capacity) const{

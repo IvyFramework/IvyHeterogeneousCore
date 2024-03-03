@@ -315,6 +315,17 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder&& other) : chain(std_util::move(other.chain)), chain_const(std_util::move(other.chain_const)){}
     __CUDA_HOST_DEVICE__ ~IvyBucketedIteratorBuilder(){ invalidate(); }
 
+    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder const& other){
+      chain = other.chain;
+      chain_const = other.chain_const;
+      return *this;
+    }
+    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder&& other){
+      chain = std_util::move(other.chain);
+      chain_const = std_util::move(other.chain_const);
+      return *this;
+    }
+
     __CUDA_HOST_DEVICE__ size_type n_valid_iterators() const{ return (chain ? chain.size()-2 : 0); }
     __CUDA_HOST_DEVICE__ size_type n_capacity_valid_iterators() const{ return (chain ? chain.capacity()-2 : 0); }
 

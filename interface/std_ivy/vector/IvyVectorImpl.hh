@@ -99,6 +99,9 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr size_type max_size() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
 
+    __CUDA_HOST_DEVICE__ IvyMemoryType get_memory_type() const;
+    __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const;
+
     __CUDA_HOST_DEVICE__ void reserve(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     __CUDA_HOST_DEVICE__ void reserve(size_type n);
     __CUDA_HOST_DEVICE__ void shrink_to_fit();
@@ -113,10 +116,12 @@ namespace std_ivy{
     template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator pos);
     template<typename PosIterator> __CUDA_HOST_DEVICE__ iterator erase(PosIterator first, PosIterator last);
 
-    __CUDA_HOST_DEVICE__ void push_back(IvyMemoryType mem_type, IvyGPUStream* stream, value_type const& val);
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void push_back(value_type const& val);
+    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void push_back(IvyMemoryType mem_type, IvyGPUStream* stream, value_type const& val);
     __CUDA_HOST_DEVICE__ void pop_back();
 
     template<typename PosIterator, typename... Args> __CUDA_HOST_DEVICE__ iterator emplace(PosIterator pos, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
+    template<typename... Args> __CUDA_HOST_DEVICE__ void emplace_back(Args&&... args);
     template<typename... Args> __CUDA_HOST_DEVICE__ void emplace_back(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);
 
     template<typename... Args> __CUDA_HOST_DEVICE__ void resize(size_type n, IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args);

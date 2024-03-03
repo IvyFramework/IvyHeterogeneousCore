@@ -84,6 +84,7 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void calculate_data_size_capacity(size_type& n_size, size_type& n_capacity) const;
 
     __CUDA_HOST_DEVICE__ iterator find_iterator(Key const& key) const;
+    __CUDA_HOST_DEVICE__ const_iterator find_const_iterator(Key const& key) const;
 
   public:
     __CUDA_HOST_DEVICE__ IvyUnorderedMap();
@@ -119,6 +120,9 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr size_type max_size() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
 
+    __CUDA_HOST_DEVICE__ IvyMemoryType get_memory_type() const;
+    __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const;
+
     __CUDA_HOST_DEVICE__ void clear();
 
     template<typename... Args> __CUDA_HOST_DEVICE__ iterator insert(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
@@ -142,6 +146,8 @@ namespace std_ivy{
     template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
     template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(Key const& key, Args&&... args);
 
+    __CUDA_HOST_DEVICE__ iterator find(Key const& key);
+    __CUDA_HOST_DEVICE__ const_iterator find(Key const& key) const;
   };
   template<
     typename Key,

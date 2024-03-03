@@ -248,6 +248,15 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ IvyContiguousIteratorBuilder(IvyContiguousIteratorBuilder&& other) : chain(std_util::move(other.chain)){}
     __CUDA_HOST_DEVICE__ ~IvyContiguousIteratorBuilder(){ invalidate(); }
 
+    __CUDA_HOST_DEVICE__ IvyContiguousIteratorBuilder& operator=(IvyContiguousIteratorBuilder const& other){
+      chain = other.chain;
+      return *this;
+    }
+    __CUDA_HOST_DEVICE__ IvyContiguousIteratorBuilder& operator=(IvyContiguousIteratorBuilder&& other){
+      chain = std_util::move(other.chain);
+      return *this;
+    }
+
     __CUDA_HOST_DEVICE__ void swap(IvyContiguousIteratorBuilder& other){
       std_mem::swap(chain, other.chain);
     }

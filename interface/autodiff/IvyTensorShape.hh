@@ -3,9 +3,11 @@
 
 
 #include "config/IvyCompilerConfig.h"
+#include "stream/IvyStream.h"
 #include "std_ivy/IvyInitializerList.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyVector.h"
+#include "std_ivy/IvyMemory.h"
 #include "IvyBasicTypes.h"
 
 
@@ -28,20 +30,26 @@ protected:
   IvyTensorDim_t nel; // Cached number of elements
 
   // Calculate the number of elements
-  IvyTensorDim_t calc_num_elements() const;
+  __CUDA_HOST_DEVICE__ IvyTensorDim_t calc_num_elements() const;
 
-  __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old);
+  __CUDA_HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
 
 public:
   __CUDA_HOST_DEVICE__ IvyTensorShape() : rank_(0), nel(0){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
-  __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
+  __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) : rank_(dims_.size()), dims(dims_, mem_type, stream), nel(this->calc_num_elements()){}
+  __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr), nel(this->calc_num_elements()){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
   __CUDA_HOST_DEVICE__ ~IvyTensorShape(){}
 
   // Assignment operator
   __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape const& other);
+  __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape&& other);
+
+  // Get memory type and stream
+  __CUDA_HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return dims.get_memory_type(); }
+  __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return dims.gpu_stream(); }
 
   // Get the total number of elements, i.e., product of the elements of the 'dims' vector
   __CUDA_HOST_DEVICE__ IvyTensorDim_t const& num_elements() const{ return nel; }
@@ -83,7 +91,7 @@ public:
   // Print the shape
   void __CUDA_HOST_DEVICE__ print() const;
 
-  friend class kernel_generic_transfer_internal_memory<IvyTensorShape>;
+  friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensorShape>;
 };
 
 
