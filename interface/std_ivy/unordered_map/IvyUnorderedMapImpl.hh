@@ -54,7 +54,7 @@ namespace std_ivy{
     typedef std_ivy::reverse_iterator<iterator> reverse_iterator;
     typedef std_ivy::reverse_iterator<const_iterator> const_reverse_iterator;
 
-    friend class kernel_generic_transfer_internal_memory<IvyUnorderedMap<Key, T, Hash, KeyEqual, Allocator>>;
+    friend class kernel_generic_transfer_internal_memory<IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>>;
 
   protected:
     IvyMemoryType const progenitor_mem_type;

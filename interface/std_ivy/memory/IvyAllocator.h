@@ -9,6 +9,7 @@
 
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyLimits.h"
+#include "std_ivy/memory/IvyAddressof.h"
 
 
 namespace std_ivy{
@@ -25,8 +26,23 @@ namespace std_ivy{
     typedef IvyTypes::size_t size_type;
     typedef IvyTypes::ptrdiff_t difference_type;
 
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer address(reference x){ return &x; }
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const_pointer address(const_reference x){ return &x; }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer address(reference x){ return addressof(x); }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const_pointer address(const_reference x){ return addressof(x); }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type max_size() noexcept{
+      return std_limits::numeric_limits<size_type>::max() / sizeof(T);
+    }
+  };
+  template<typename T> class allocation_type_properties<T const>{
+  public:
+    typedef T const value_type;
+    typedef T const* pointer;
+    typedef T const* const_pointer;
+    typedef T const& reference;
+    typedef T const& const_reference;
+    typedef IvyTypes::size_t size_type;
+    typedef IvyTypes::ptrdiff_t difference_type;
+
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer address(reference x){ return addressof(x); }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type max_size() noexcept{
       return std_limits::numeric_limits<size_type>::max() / sizeof(T);
     }
@@ -137,7 +153,9 @@ namespace std_ivy{
     using size_type = typename base_t::size_type;
 
     // There is no memory transfer to be done, so transfer_internal_memory always returns true.
-    static __CUDA_HOST_DEVICE__ constexpr bool transfer_internal_memory(...){ return true; }
+    static __CUDA_HOST_DEVICE__ constexpr bool transfer_internal_memory(pointer, IvyTypes::size_t const&, IvyMemoryType const&, IvyMemoryType const&, IvyGPUStream&, bool){
+      return true;
+    }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -224,9 +242,9 @@ namespace std_ivy{
       if (ptr_mem_type==def_mem_type){
         for (size_type i=0; i<n; ++i){
           res &= (
-            transfer_primitive_T::transfer_internal_memory(ptr[i]->first, n, ptr_mem_type, mem_type, stream, release_old)
+            transfer_primitive_T::transfer_internal_memory(&(ptr[i].first), n, ptr_mem_type, mem_type, stream, release_old)
             &&
-            transfer_primitive_U::transfer_internal_memory(ptr[i]->second, n, ptr_mem_type, mem_type, stream, release_old)
+            transfer_primitive_U::transfer_internal_memory(&(ptr[i].second), n, ptr_mem_type, mem_type, stream, release_old)
             );
         }
       }
@@ -236,9 +254,9 @@ namespace std_ivy{
         res &= IvyMemoryHelpers::transfer_memory(p_int, ptr, n, def_mem_type, ptr_mem_type, stream);
         for (size_type i=0; i<n; ++i){
           res &= (
-            transfer_primitive_T::transfer_internal_memory(p_int[i]->first, n, def_mem_type, mem_type, stream, release_old)
+            transfer_primitive_T::transfer_internal_memory(&(p_int[i].first), n, def_mem_type, mem_type, stream, release_old)
             &&
-            transfer_primitive_U::transfer_internal_memory(p_int[i]->second, n, def_mem_type, mem_type, stream, release_old)
+            transfer_primitive_U::transfer_internal_memory(&(p_int[i].second), n, def_mem_type, mem_type, stream, release_old)
             );
         }
         res &= IvyMemoryHelpers::transfer_memory(ptr, p_int, n, ptr_mem_type, def_mem_type, stream);

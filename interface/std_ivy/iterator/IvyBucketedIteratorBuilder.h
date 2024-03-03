@@ -92,7 +92,7 @@ namespace std_ivy{
         stream, ref_stream,
         __ENCAPSULATE__(
           res &= std_mem::allocator<iterator_collection_t>::transfer_internal_memory(&chain, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-          res &= std_mem::allocator<iterator_collection_t>::transfer_internal_memory(&chain_const, 1, def_mem_type, new_mem_type, ref_stream, release_old);
+          res &= std_mem::allocator<const_iterator_collection_t>::transfer_internal_memory(&chain_const, 1, def_mem_type, new_mem_type, ref_stream, release_old);
           // After internal memory transfer, prev and next pointers are broken, so we need to fix them.
           res &= fix_prev_next(1);
         )

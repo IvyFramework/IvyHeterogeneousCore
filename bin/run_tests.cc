@@ -48,6 +48,9 @@ typedef std_mem::allocator_traits<sharedptr_sharedptr_allocator> sharedptr_share
 typedef std_mem::allocator<std_vec::vector<dummy_D>> vector_allocator;
 typedef std_mem::allocator_traits<vector_allocator> vector_allocator_traits;
 
+typedef std_mem::allocator<std_umap::unordered_map<double, dummy_D>> umap_allocator;
+typedef std_mem::allocator_traits<umap_allocator> umap_allocator_traits;
+
 
 struct set_doubles : public kernel_base_noprep_nofin{
   static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void kernel_unified_unit(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
@@ -60,7 +63,7 @@ struct set_doubles : public kernel_base_noprep_nofin{
 };
 
 template<typename T> struct test_IvyVector : public kernel_base_noprep_nofin{
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::IvyVector<T>* ptr){
+  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::vector<T>* ptr){
     if (kernel_check_dims<test_IvyVector<T>>::check_dims(i, n)){
       printf("Inside test_IvyVector now...\n");
       printf("test_IvyVector: ptr = %p, size = %llu, capacity = %llu\n", ptr, ptr->size(), ptr->capacity());
@@ -116,6 +119,35 @@ template<typename T> struct test_IvyContiguousIterator : public kernel_base_nopr
     }
   }
 };
+
+
+template<typename T, typename U> struct test_IvyUMap : public kernel_base_noprep_nofin{
+  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_umap::unordered_map<T, U>* ptr){
+    if (kernel_check_dims<test_IvyUMap<T, U>>::check_dims(i, n)){
+      printf("Inside test_IvyUMap now...\n");
+      printf("test_IvyUMap: ptr = %p, size = %llu, capacity = %llu\n", ptr, ptr->size(), ptr->capacity());
+
+      printf("Obtaining begin...\n");
+      auto it_begin = ptr->begin();
+      printf("Obtaining end...\n");
+      auto it_end = ptr->end();
+      printf("Looping from begin to end...\n");
+      size_t j = 0;
+      for (auto it=it_begin; it!=it_end; ++it){
+        printf("test_IvyUMap: ptr[%llu] = %f\n", j, it->second.a);
+        printf("  it.prev = %p, it.next = %p\n", it.prev(), it.next());
+        ++j;
+      }
+      j = 0;
+      printf("Range-based version:\n");
+      for (auto const& v:(*ptr)){
+        printf("test_IvyUMap: ptr[%llu] = %f\n", j, v.second.a);
+        ++j;
+      }
+    }
+  }
+};
+
 
 template<typename T, std_mem::IvyPointerType IPT> struct test_unifiedptr_fcn{
   static __CUDA_HOST_DEVICE__ void prepare(...){
@@ -707,22 +739,34 @@ void utest_IvyUnorderedMap_basic(IvyGPUStream& stream){
 
   constexpr size_t ndata = 10;
   std_mem::unique_ptr<mapped_type> raw_data = std_mem::make_unique<mapped_type>(ndata, IvyMemoryType::Host, &stream, 1.);
-  std_umap::unordered_map<key_type, mapped_type> h_map;
-  __PRINT_INFO__("Adding key-value pairs to h_map...\n");
+  std_umap::unordered_map<key_type, mapped_type> h_umap;
+  __PRINT_INFO__("Adding key-value pairs to h_umap...\n");
   for (size_t i=0; i<raw_data.size(); ++i){
     raw_data[i].a += i;
-    h_map.emplace(IvyMemoryType::Host, &stream, raw_data[i].a, raw_data[i]);
+    h_umap.emplace(IvyMemoryType::Host, &stream, raw_data[i].a, raw_data[i]);
   }
 
-  __PRINT_INFO__("h_map[3].a = %f\n", h_map[3].a);
-  __PRINT_INFO__("h_map[-1].a = %f\n", h_map(-1, dummy_D(-1)).a);
+  __PRINT_INFO__("h_umap[3].a = %f\n", h_umap[3].a);
+  __PRINT_INFO__("h_umap[-1].a = %f\n", h_umap(-1, dummy_D(-1)).a);
 
-  __PRINT_INFO__("Extracting h_map iterators...\n");
-  auto it_begin = h_map.begin();
-  auto it_end = h_map.end();
-  __PRINT_INFO__("Iterating over h_map...\n");
-  for (auto it=it_begin; it!=it_end; ++it){ __PRINT_INFO__("(iterator loop) h_map[%f].a = %f\n", it->first, it->second.a); }
-  for (auto const& kv:h_map) __PRINT_INFO__("(range-based loop) h_map[%f].a = %f\n", kv.first, kv.second.a);
+  __PRINT_INFO__("Extracting h_umap iterators...\n");
+  auto it_begin = h_umap.begin();
+  auto it_end = h_umap.end();
+  __PRINT_INFO__("Iterating over h_umap...\n");
+  for (auto it=it_begin; it!=it_end; ++it){ __PRINT_INFO__("(iterator loop) h_umap[%f].a = %f\n", it->first, it->second.a); }
+  for (auto const& kv:h_umap) __PRINT_INFO__("(range-based loop) h_umap[%f].a = %f\n", kv.first, kv.second.a);
+
+  __PRINT_INFO__("Testing unordered_map functionality on GPU...\n");
+  __PRINT_INFO__("Allocating d_umap...\n");
+  std_umap::unordered_map<key_type, mapped_type>* d_umap = umap_allocator_traits::allocate(1, IvyMemoryType::GPU, stream);
+  __PRINT_INFO__("Transferring h_umap to d_umap...\n");
+  umap_allocator_traits::transfer(d_umap, &h_umap, 1, IvyMemoryType::GPU, IvyMemoryType::Host, stream);
+  __PRINT_INFO__("Running the test kernel on d_umap...\n");
+  run_kernel<test_IvyUMap<key_type, mapped_type>>(0, stream).parallel_1D(1, d_umap);
+  stream.synchronize();
+  __PRINT_INFO__("Destroying d_umap...\n");
+  umap_allocator_traits::destroy(d_umap, 1, IvyMemoryType::GPU, stream);
+  stream.synchronize();
 
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
