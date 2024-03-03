@@ -356,6 +356,14 @@ namespace std_ivy{
     ){
       return a.transfer(tgt, src, n, type_tgt, type_src, stream);
     }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(
+      allocator_type const& a,
+      pointer ptr, IvyTypes::size_t const& n,
+      IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream,
+      bool release_old
+    ){
+      return a.transfer_internal_memory(ptr, n, ptr_mem_type, mem_type, stream, release_old);
+    }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type max_size(allocator_type const& a) noexcept{
       return a.max_size();
     }
@@ -365,9 +373,6 @@ namespace std_ivy{
     }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool allocate(pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return allocator_type::allocate(ptr, n, mem_type, stream);
-    }
-    template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ pointer construct(size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
-      return allocator_type::construct(n, mem_type, stream, args...);
     }
     template<typename... Args> static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(pointer& ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args){
       return allocator_type::construct(ptr, n, mem_type, stream, args...);
@@ -394,6 +399,13 @@ namespace std_ivy{
     ){
       return allocator_type::transfer(tgt, src, n, type_tgt, type_src, stream);
     }
+    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(
+      pointer ptr, IvyTypes::size_t const& n,
+      IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream,
+      bool release_old
+    ){
+      return allocator_type::transfer_internal_memory(ptr, n, ptr_mem_type, mem_type, stream, release_old);
+    }
     static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type max_size() noexcept{
       return allocator_type::max_size();
     }
@@ -404,10 +416,6 @@ namespace std_ivy{
   */
   struct allocator_arg_t { explicit /*__CUDA_HOST_DEVICE__*/ allocator_arg_t() = default; };
   inline constexpr allocator_arg_t allocator_arg;
-
-  /*
-  
-  */
 
 }
 

@@ -24,9 +24,17 @@ Use the 'get_contraction_shape' function to get the dimensions of a contraction 
 - In this context, note that a matrix multiplication is simply the contraction of two rank=2 tensors with over a common axis.
 */
 class IvyTensorShape{
+public:
+  typedef std_vec::vector<IvyTensorDim_t> data_container;
+  typedef std_mem::allocator<data_container> allocator_data_container;
+  typedef std_mem::allocator_traits<allocator_data_container> allocator_data_container_traits;
+  typedef std_vec::vector<IvyTensorRank_t> rank_container;
+  typedef std_mem::allocator<rank_container> allocator_rank_container;
+  typedef std_mem::allocator_traits<allocator_rank_container> allocator_rank_container_traits;
+
 protected:
   IvyTensorRank_t rank_; // Number of dimension indices per dimension
-  std_vec::vector<IvyTensorDim_t> dims; // Range of indices per dimension
+  data_container dims; // Range of indices per dimension
   IvyTensorDim_t nel; // Cached number of elements
 
   // Calculate the number of elements
@@ -68,9 +76,11 @@ public:
   // Get sliced shape along the specified axes at particular index positions.
   __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(IvyTensorRank_t const& axis) const;
   __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<IvyTensorRank_t> const& axes) const;
+  __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<IvyTensorRank_t> const& axes) const;
 
   // Convenience functions calling the versions above
   __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_util::pair<IvyTensorRank_t, IvyTensorDim_t> const& sp) const;
+  __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
   __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
 
   // Get the shape of a tensor resulting from the contraction of two tensors

@@ -29,9 +29,9 @@ public:
   __CUDA_HOST_DEVICE__ value_t const& value() const{ return this->value_; }
 };
 
-// Make global functions for ease of use
-template<typename T> __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t< IvyConstant<T> > Constant(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream){ return make_IvyThreadSafePtr< IvyConstant<T> >(mem_type, stream); }
-template<typename T> __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t< IvyConstant<T> > Constant(T const& val, std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream){ return make_IvyThreadSafePtr< IvyConstant<T> >(mem_type, stream, val); }
+template<typename T> using IvyConstantPtr_t = IvyThreadSafePtr_t< IvyConstant<T> >;
+
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyConstantPtr_t<T> Constant(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyConstant<T> >(mem_type, stream, args...); }
 
 
 #endif

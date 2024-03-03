@@ -57,10 +57,7 @@ public:
 
 template<typename T> using IvyComplexVariablePtr_t = IvyThreadSafePtr_t< IvyComplexVariable<T> >;
 
-// Make global functions for ease of use
-template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(mem_type, stream); }
-template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(T const& re, std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(mem_type, stream, re); }
-template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(T const& re, T const& im, std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(mem_type, stream, re, im); }
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(mem_type, stream, args...); }
 
 
 #endif

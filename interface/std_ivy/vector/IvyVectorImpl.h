@@ -161,13 +161,9 @@ namespace std_ivy{
     operate_with_GPU_stream_from_pointer(
       stream, ref_stream,
       __ENCAPSULATE__(
-        //printf("IvyVector::transfer_internal_memory: Transferring data.\n");
         res &= allocator_data_container::transfer_internal_memory(&_data, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-        //printf("IvyVector::transfer_internal_memory: Transferring _iterator_builder.\n");
         res &= allocator_iterator_builder_t::transfer_internal_memory(&_iterator_builder, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-        //printf("IvyVector::transfer_internal_memory: Transferring _const_iterator_builder.\n");
         res &= allocator_const_iterator_builder_t::transfer_internal_memory(&_const_iterator_builder, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-        //printf("IvyVector::transfer_internal_memory: Reset its.\n");
         this->reset_iterator_builders();
       )
     );
