@@ -17,10 +17,10 @@ protected:
 
 public:
   // Constructors
-  __CUDA_HOST_DEVICE__ IvyConstant() : IvyBaseConstant(), value_(0){};
-  __CUDA_HOST_DEVICE__ IvyConstant(T const& value) : IvyBaseConstant(), value_(value){}
-  __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant const& other) : IvyBaseConstant(other), value_(other.value_){}
-  __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant const&& other) : IvyBaseConstant(std_util::move(other)), value_(std_util::move(other.value_)){}
+  __CUDA_HOST_DEVICE__ IvyConstant() : value_(0){};
+  __CUDA_HOST_DEVICE__ IvyConstant(T const& value) : value_(value){}
+  __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant const& other) : value_(other.value_){}
+  __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant const&& other) : value_(std_util::move(other.value_)){}
 
   // Empty virtual destructor
   __CUDA_HOST_DEVICE__ ~IvyConstant(){}

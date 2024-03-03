@@ -8,7 +8,10 @@
 #include "stream/IvyStream.h"
 
 
-template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyComplexVariable final : public IvyBaseComplexVariable{
+template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyComplexVariable;
+template<typename T> struct IvyNodeSelfRelations<IvyComplexVariable<T>>;
+
+template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> class IvyComplexVariable final : public IvyBaseComplexVariable{
 public:
   using dtype_t = T;
   using value_t = IvyComplexVariable<T>;
@@ -19,11 +22,11 @@ protected:
 
 public:
   // Constructors
-  __CUDA_HOST_DEVICE__ IvyComplexVariable() : IvyBaseComplexVariable(), re(0), im(0){}
-  __CUDA_HOST_DEVICE__ IvyComplexVariable(T const& re_) : IvyBaseComplexVariable(), re(re_), im(0){}
-  __CUDA_HOST_DEVICE__ IvyComplexVariable(T const& re_, T const& im_) : IvyBaseComplexVariable(), re(re_), im(im_){}
-  __CUDA_HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable const& other) : IvyBaseComplexVariable(other), re(other.re), im(other.im){}
-  __CUDA_HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable const&& other) : IvyBaseComplexVariable(std_util::move(other)), re(std_util::move(other.re)), im(std_util::move(other.im)){}
+  __CUDA_HOST_DEVICE__ IvyComplexVariable() : re(0), im(0){}
+  __CUDA_HOST_DEVICE__ IvyComplexVariable(T const& re_) : re(re_), im(0){}
+  __CUDA_HOST_DEVICE__ IvyComplexVariable(T const& re_, T const& im_) : re(re_), im(im_){}
+  __CUDA_HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable const& other) : re(other.re), im(other.im){}
+  __CUDA_HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable const&& other) : re(std_util::move(other.re)), im(std_util::move(other.im)){}
 
   // Empty destructor
   __CUDA_HOST_DEVICE__ ~IvyComplexVariable(){}
@@ -50,10 +53,15 @@ public:
     im = v*std_math::sin(phi);
   }
 
-  // Perform the conjugation operation
-  __CUDA_HOST_DEVICE__ __CPP_VIRTUAL_CONSTEXPR__ bool is_conjugatable() const{ return true; }
-  __CUDA_HOST_DEVICE__ void conjugate(){ im = -im; }
+  friend struct IvyNodeSelfRelations<IvyComplexVariable<T>>;
 };
+
+template<typename T> struct IvyNodeSelfRelations<IvyComplexVariable<T>>{
+  static __CUDA_HOST_DEVICE__ constexpr bool is_differentiable(T const& x){ return false; }
+  static __CUDA_HOST_DEVICE__ void conjugate(T& x){ x.im = -x.im; }
+  static constexpr bool is_conjugatable = true;
+};
+
 
 template<typename T> using IvyComplexVariablePtr_t = IvyThreadSafePtr_t< IvyComplexVariable<T> >;
 

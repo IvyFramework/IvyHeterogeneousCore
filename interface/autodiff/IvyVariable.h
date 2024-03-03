@@ -7,7 +7,10 @@
 #include "stream/IvyStream.h"
 
 
-template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyVariable final : public IvyBaseVariable{
+template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyVariable;
+template<typename T> struct IvyNodeSelfRelations<IvyVariable<T>>;
+
+template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> class IvyVariable final : public IvyBaseVariable{
 public:
   using dtype_t = T;
   using value_t = T;
@@ -18,11 +21,11 @@ protected:
 
 public:
   // Empty default constructor
-  __CUDA_HOST_DEVICE__ IvyVariable() : IvyBaseVariable(), value_(0), infinitesimal_(0){}
-  __CUDA_HOST_DEVICE__ IvyVariable(T const& value) : IvyBaseVariable(), value_(value), infinitesimal_(0){}
-  __CUDA_HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : IvyBaseVariable(), value_(value), infinitesimal_(infinitesimal){}
-  __CUDA_HOST_DEVICE__ IvyVariable(IvyVariable const& other) : IvyBaseVariable(other), value_(other.value_), infinitesimal_(other.infinitesimal_){}
-  __CUDA_HOST_DEVICE__ IvyVariable(IvyVariable const&& other) : IvyBaseVariable(std_util::move(other)), value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
+  __CUDA_HOST_DEVICE__ IvyVariable() : value_(0), infinitesimal_(0){}
+  __CUDA_HOST_DEVICE__ IvyVariable(T const& value) : value_(value), infinitesimal_(0){}
+  __CUDA_HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : value_(value), infinitesimal_(infinitesimal){}
+  __CUDA_HOST_DEVICE__ IvyVariable(IvyVariable const& other) : value_(other.value_), infinitesimal_(other.infinitesimal_){}
+  __CUDA_HOST_DEVICE__ IvyVariable(IvyVariable const&& other) : value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
   __CUDA_HOST_DEVICE__ ~IvyVariable(){}
 
   // Assignment operators
@@ -38,7 +41,15 @@ public:
   __CUDA_HOST_DEVICE__ value_t const& infinitesimal() const{ return this->infinitesimal_; }
 
   // IvyVariables are differentiable objects.
-  __CUDA_HOST_DEVICE__ bool is_differentiable() const final{ return true; }
+  __CUDA_HOST_DEVICE__ bool is_differentiable() const{ return true; }
+
+  friend struct IvyNodeSelfRelations<IvyVariable<T>>;
+};
+
+template<typename T> struct IvyNodeSelfRelations<IvyVariable<T>>{
+  static __CUDA_HOST_DEVICE__ constexpr bool is_differentiable(T const& x){ return true; }
+  static __CUDA_HOST_DEVICE__ void conjugate(T& x){}
+  static constexpr bool is_conjugatable = false;
 };
 
 template<typename T> using IvyVariablePtr_t = IvyThreadSafePtr_t< IvyVariable<T> >;
