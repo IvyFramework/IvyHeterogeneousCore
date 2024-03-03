@@ -739,8 +739,10 @@ namespace std_ivy{
       auto& data_bucket = current_bucket_element.second;
       if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
         size_t n_size_data_bucket = data_bucket.size();
+        auto data_bucket_ptr = data_bucket.get();
         for (size_t jd=0; jd<n_size_data_bucket; ++jd){
-          if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)) return data_bucket[jd].second;
+          if (key_equal::eval(current_size, current_capacity, key, data_bucket_ptr->first)) return data_bucket_ptr->second;
+          ++data_bucket_ptr;
         }
         ++data_ptr;
       }
@@ -749,6 +751,50 @@ namespace std_ivy{
     __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot find the key.\n");
     assert(false);
     return this->begin()->second;
+  }
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key){
+    if (!_data){
+      __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called on an empty map.");
+      assert(false);
+    }
+    if (_data.get_memory_type()!=IvyMemoryHelpers::get_execution_default_memory()){
+      __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called for data that resides in another device.");
+      assert(false);
+    }
+
+    size_type const current_size = this->size();
+    size_type const current_capacity = this->capacity();
+    size_type const current_bucket_size = this->bucket_count();
+
+    auto const hash = hasher()(key);
+    auto data_ptr = _data.get();
+    for (size_type ib=0; ib<current_bucket_size; ++ib){
+      auto& current_bucket_element = *data_ptr;
+      auto const& bucket_hash = current_bucket_element.first;
+      auto& data_bucket = current_bucket_element.second;
+      if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+        size_t n_size_data_bucket = data_bucket.size();
+        auto data_bucket_ptr = data_bucket.get();
+        for (size_t jd=0; jd<n_size_data_bucket; ++jd){
+          if (key_equal::eval(current_size, current_capacity, key, data_bucket_ptr->first)) return data_bucket_ptr->second;
+          ++data_bucket_ptr;
+        }
+        ++data_ptr;
+      }
+    }
+
+    __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot find the key.\n");
+    assert(false);
+    return this->begin()->second;
+  }
+  template __UMAPTPLARGSINIT__ template<typename... Args> __CUDA_HOST_DEVICE__
+  IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args){
+    this->emplace(mem_type, stream, key, args...);
+    return this->operator[](key);
+  }
+  template __UMAPTPLARGSINIT__ template<typename... Args> __CUDA_HOST_DEVICE__
+  IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(Key const& key, Args&&... args){
+    return this->operator()(_data.get_memory_type(), _data.gpu_stream(), key, args...);
   }
 
 }

@@ -714,13 +714,15 @@ void utest_IvyUnorderedMap_basic(IvyGPUStream& stream){
     h_map.emplace(IvyMemoryType::Host, &stream, raw_data[i].a, raw_data[i]);
   }
 
+  __PRINT_INFO__("h_map[3].a = %f\n", h_map[3].a);
+  __PRINT_INFO__("h_map[-1].a = %f\n", h_map(-1, dummy_D(-1)).a);
+
   __PRINT_INFO__("Extracting h_map iterators...\n");
   auto it_begin = h_map.begin();
   auto it_end = h_map.end();
   __PRINT_INFO__("Iterating over h_map...\n");
   for (auto it=it_begin; it!=it_end; ++it){ __PRINT_INFO__("(iterator loop) h_map[%f].a = %f\n", it->first, it->second.a); }
   for (auto const& kv:h_map) __PRINT_INFO__("(range-based loop) h_map[%f].a = %f\n", kv.first, kv.second.a);
-  __PRINT_INFO__("h_map[3].a = %f\n", h_map[3].a);
 
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");

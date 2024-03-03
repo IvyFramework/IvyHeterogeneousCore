@@ -138,6 +138,9 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ void rehash(size_type new_n_buckets);
 
     __CUDA_HOST_DEVICE__ mapped_type const& operator[](Key const& key) const;
+    __CUDA_HOST_DEVICE__ mapped_type& operator[](Key const& key);
+    template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(Key const& key, Args&&... args);
 
   };
   template<
