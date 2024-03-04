@@ -693,7 +693,7 @@ namespace IvyMemoryHelpers{
     IvyGPUStream& stream
   ){
     if (!tgt || !src) return false;
-    if (n==0) return true;
+    if (n==0 || tgt==src) return true;
 #if DEVICE_CODE == DEVICE_CODE_HOST && defined(__USE_CUDA__)
     //__PRINT_DEBUG__("transfer_memory_fcnal::transfer_memory: Running on host code for type %s, %p -> %p\n", typeid(T).name(), src, tgt);
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);

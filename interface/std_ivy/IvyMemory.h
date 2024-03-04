@@ -8,6 +8,7 @@
 #include "std_ivy/memory/IvyAddressof.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
+#include "std_ivy/memory/IvyMemoryView.h"
 #include "std_ivy/memory/IvyUnifiedPtr.h"
 
 #ifndef std_mem

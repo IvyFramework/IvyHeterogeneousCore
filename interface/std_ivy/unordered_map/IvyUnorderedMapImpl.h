@@ -199,34 +199,13 @@ namespace std_ivy{
     IvyGPUStream* stream = _data.gpu_stream();
     size_type const current_n_size_buckets = this->bucket_count();
 
-    if (mem_type==def_mem_type){
-      auto data_ptr = _data.get();
-      for (size_type ib=0; ib<current_n_size_buckets; ++ib){
-        auto& data_bucket = data_ptr->second;
-        n_size += data_bucket.size();
-        n_capacity += data_bucket.capacity();
-        ++data_ptr;
-      }
-    }
-    else{
-      build_GPU_stream_reference_from_pointer(stream, ref_stream);
-
-      auto data_ptr = _data.get();
-      bucket_element* tmp_data_ptr = nullptr;
-      IvyMemoryHelpers::allocate_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
-      IvyMemoryHelpers::transfer_memory(tmp_data_ptr, data_ptr, current_n_size_buckets, def_mem_type, mem_type, ref_stream);
-      {
-        bucket_element* tr_tmp_data_ptr = tmp_data_ptr;
-        for (size_type ib=0; ib<current_n_size_buckets; ++ib){
-          auto& data_bucket = tr_tmp_data_ptr->second;
-          n_size += data_bucket.size();
-          n_capacity += data_bucket.capacity();
-          ++tr_tmp_data_ptr;
-        }
-      }
-      IvyMemoryHelpers::free_memory(tmp_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
-
-      destroy_GPU_stream_reference_from_pointer(stream);
+    memview<bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, stream, false);
+    bucket_element* tr_data_ptr = data_view;
+    for (size_type ib=0; ib<current_n_size_buckets; ++ib){
+      auto& data_bucket = tr_data_ptr->second;
+      n_size += data_bucket.size();
+      n_capacity += data_bucket.capacity();
+      ++tr_data_ptr;
     }
   }
 
@@ -250,66 +229,19 @@ namespace std_ivy{
       mem_type, stream
     );
 
-    if (mem_type==def_mem_type){
-      auto data_ptr = _data.get();
-      for (size_type ib=0; ib<current_n_size_buckets; ++ib){
-        auto& data_bucket = data_ptr->second;
-        size_type const n_size_data_bucket = data_bucket.size();
-        auto data_bucket_ptr = data_bucket.get();
-        for (size_type jd=0; jd<n_size_data_bucket; ++jd){
-          auto const& data_value = *data_bucket_ptr;
-          auto const& key = data_value.first;
-          auto const& value = data_value.second;
-          auto const& hash = hasher()(key);
-
-          bool is_inserted = false;
-          auto new_data_ptr = new_data.get();
-          for (size_type jb=0; jb<new_data.size(); ++jb){
-            auto& new_bucket_element = *new_data_ptr;
-            auto const& new_bucket_hash = new_bucket_element.first;
-            if (hash_equal::eval(n_size, n_capacity, hash, new_bucket_hash)){
-              auto& new_data_bucket = new_bucket_element.second;
-              if (new_data_bucket.capacity()==0) new_data_bucket.reserve(max_n_bucket_elements, mem_type, stream);
-              new_data_bucket.emplace_back(key, value);
-              is_inserted = true;
-              break;
-            }
-            ++new_data_ptr;
-          }
-          if (!is_inserted){
-            // If we stil have not found the bucket, we need to create a new one.
-            new_data.emplace_back(
-              hash,
-              std_mem::build_unique<value_type>(
-                a, 1, max_n_bucket_elements,
-                mem_type, stream, data_value
-              )
-            );
-          }
-
-          ++data_bucket_ptr;
-        }
-        ++data_ptr;
-      }
-    }
-    else{
+    {
+      bool const is_same_mem_type = (mem_type==def_mem_type);
       build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-      auto d_data_ptr = _data.get();
-      bucket_element* h_data_ptr = nullptr;
-      IvyMemoryHelpers::allocate_memory(h_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
-      IvyMemoryHelpers::transfer_memory(h_data_ptr, d_data_ptr, current_n_size_buckets, def_mem_type, mem_type, ref_stream);
+      memview<bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, &ref_stream, false);
       {
-        auto data_ptr = h_data_ptr;
+        bucket_element* data_ptr = data_view;
         for (size_type ib=0; ib<current_n_size_buckets; ++ib){
           auto& data_bucket = data_ptr->second;
           size_type const n_size_data_bucket = data_bucket.size();
-          auto d_data_bucket_ptr = data_bucket.get();
-          value_type* h_data_bucket_ptr = nullptr;
-          IvyMemoryHelpers::allocate_memory(h_data_bucket_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-          IvyMemoryHelpers::transfer_memory(h_data_bucket_ptr, d_data_bucket_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+          memview<value_type> data_bucket_view(data_bucket.get(), n_size_data_bucket, mem_type, &ref_stream, false);
           {
-            auto data_bucket_ptr = h_data_bucket_ptr;
+            value_type* data_bucket_ptr = data_bucket_view;
             for (size_type jd=0; jd<n_size_data_bucket; ++jd){
               auto const& data_value = *data_bucket_ptr;
               auto const& key = data_value.first;
@@ -319,11 +251,9 @@ namespace std_ivy{
               bool is_inserted = false;
               size_type const new_current_n_size_buckets = new_data.size();
               auto& d_new_data_ptr = new_data.get();
-              bucket_element* h_new_data_ptr = nullptr;
-              IvyMemoryHelpers::allocate_memory(h_new_data_ptr, new_current_n_size_buckets, def_mem_type, ref_stream);
-              IvyMemoryHelpers::transfer_memory(h_new_data_ptr, d_new_data_ptr, new_current_n_size_buckets, def_mem_type, mem_type, ref_stream);
+              memview<bucket_element> new_data_view(d_new_data_ptr, new_current_n_size_buckets, mem_type, &ref_stream, false);
               {
-                auto new_data_ptr = h_new_data_ptr;
+                bucket_element* new_data_ptr = new_data_view;
                 for (size_type jb=0; jb<new_current_n_size_buckets; ++jb){
                   auto& new_bucket_element = *new_data_ptr;
                   auto const& new_bucket_hash = new_bucket_element.first;
@@ -331,8 +261,10 @@ namespace std_ivy{
                     auto& new_data_bucket = new_bucket_element.second;
                     if (new_data_bucket.capacity()==0) new_data_bucket.reserve(max_n_bucket_elements, mem_type, stream);
                     new_data_bucket.emplace_back(key, value);
-                    auto tmp_tgt = d_new_data_ptr + jb;
-                    IvyMemoryHelpers::transfer_memory(tmp_tgt, new_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+                    if (!is_same_mem_type){
+                      auto tmp_tgt = d_new_data_ptr + jb;
+                      IvyMemoryHelpers::transfer_memory(tmp_tgt, new_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+                    }
                     is_inserted = true;
                     break;
                   }
@@ -349,15 +281,12 @@ namespace std_ivy{
                   );
                 }
               }
-              IvyMemoryHelpers::free_memory(h_new_data_ptr, new_current_n_size_buckets, def_mem_type, ref_stream);
               ++data_bucket_ptr;
             }
           }
-          IvyMemoryHelpers::free_memory(h_data_bucket_ptr, n_size_data_bucket, def_mem_type, ref_stream);
           ++data_ptr;
         }
       }
-      IvyMemoryHelpers::free_memory(h_data_ptr, current_n_size_buckets, def_mem_type, ref_stream);
 
       destroy_GPU_stream_reference_from_pointer(stream);
     }
@@ -418,71 +347,31 @@ namespace std_ivy{
     else{
       bool is_found = false;
       value_type* mem_loc_pos = nullptr;
-      if (mem_type==def_mem_type){
-        auto data_ptr = _data.get();
-        for (size_type ib=0; ib<current_bucket_size; ++ib){
-          auto& current_bucket_element = *data_ptr;
-          auto const& bucket_hash = current_bucket_element.first;
-          if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-            auto& data_bucket = current_bucket_element.second;
-            for (size_t jd=0; jd<data_bucket.size(); ++jd){
-              if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)){
-                data_bucket[jd].second = mapped_type(std_util::forward<Args>(args)...);
-                is_found = true;
-                break;
-              }
-            }
-            if (!is_found){
-              trigger_it_reset = (data_bucket.size()==data_bucket.capacity());
-              data_bucket.emplace_back(key, mapped_type(std_util::forward<Args>(args)...));
-              mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
-              is_found = true;
-              break;
-            }
-          }
-          if (is_found) break;
-          ++data_ptr;
-        }
-        if (!is_found){
-          // If we stil have not found the bucket, we need to create a new one.
-          _data.emplace_back(
-            hash,
-            std_mem::build_unique<value_type>(
-              a, 1, current_max_n_bucket_elements,
-              mem_type, stream,
-              value_type(key, mapped_type(std_util::forward<Args>(args)...))
-            )
-          );
-          mem_loc_pos = _data[_data.size()-1].second.get();
-        }
-      }
-      else{
+      {
+        bool const is_same_mem_type = (mem_type==def_mem_type);
         build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-        bucket_element*& data_ptr = _data.get();
-        bucket_element* h_data_ptr = nullptr;
-        IvyMemoryHelpers::allocate_memory(h_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
-        IvyMemoryHelpers::transfer_memory(h_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
-        bucket_element* tr_h_data_ptr = h_data_ptr;
+        auto& data_ptr = _data.get();
+        memview<bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
+        bucket_element* tr_h_data_ptr = data_view;
         for (size_type ib=0; ib<current_bucket_size; ++ib){
           auto& current_bucket_element = *tr_h_data_ptr;
           auto const& bucket_hash = current_bucket_element.first;
           auto& data_bucket = current_bucket_element.second;
           if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
+            auto& bucket_data_ptr = data_bucket.get();
             size_type const n_size_data_bucket = data_bucket.size();
-            value_type*& bucket_data_ptr = data_bucket.get();
-
-            value_type* h_bucket_data_ptr = nullptr;
-            IvyMemoryHelpers::allocate_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-            IvyMemoryHelpers::transfer_memory(h_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+            memview<value_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
             {
-              value_type* tr_h_bucket_data_ptr = h_bucket_data_ptr;
+              value_type* tr_h_bucket_data_ptr = bucket_data_view;
               for (size_t jd=0; jd<n_size_data_bucket; ++jd){
                 value_type& data_value = *tr_h_bucket_data_ptr;
                 if (key_equal::eval(current_size, current_capacity, key, data_value.first)){
                   data_value.second = mapped_type(std_util::forward<Args>(args)...);
-                  auto tmp_tgt = bucket_data_ptr + jd;
-                  IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_bucket_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+                  if (!is_same_mem_type){
+                    auto tmp_tgt = bucket_data_ptr + jd;
+                    IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_bucket_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+                  }
                   is_found = true;
                   break;
                 }
@@ -495,11 +384,12 @@ namespace std_ivy{
               mem_loc_pos = data_bucket.get() + data_bucket.size() - 1;
               is_found = true;
             }
-            IvyMemoryHelpers::free_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
           }
           if (is_found){
-            auto tmp_tgt = data_ptr + ib;
-            IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+            if (mem_type!=def_mem_type){
+              auto tmp_tgt = data_ptr + ib;
+              IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_data_ptr, 1, mem_type, def_mem_type, ref_stream);
+            }
             break;
           }
           ++tr_h_data_ptr;
@@ -513,13 +403,10 @@ namespace std_ivy{
               mem_type, stream, value_type(key, mapped_type(std_util::forward<Args>(args)...))
             )
           );
-          auto tmp_tgt = h_data_ptr + current_bucket_size;
-          IvyMemoryHelpers::transfer_memory(tmp_tgt, _data.get()+current_bucket_size, 1, def_mem_type, mem_type, ref_stream);
-          bucket_element* tr_h_data_ptr = h_data_ptr+current_bucket_size;
-          auto& data_bucket = (*tr_h_data_ptr).second;
+          memview<bucket_element> data_view_last(_data.get() + current_bucket_size, mem_type, &ref_stream, false);
+          auto& data_bucket = (*data_view_last).second;
           mem_loc_pos = data_bucket.get();
         }
-        IvyMemoryHelpers::free_memory(h_data_ptr, current_bucket_size+1, def_mem_type, ref_stream);
 
         destroy_GPU_stream_reference_from_pointer(stream);
       }
@@ -597,37 +484,14 @@ namespace std_ivy{
 
     hash_result_type const hash = hasher()(key);
     allocator_type a;
-
-    if (mem_type==def_mem_type){
-      auto data_ptr = _data.get() + current_bucket_size - 1;
-      for (size_type rib=0; rib<current_bucket_size; ++rib){
-        size_type const ib = current_bucket_size-1-rib;
-        auto& current_bucket_element = *data_ptr;
-        auto const& bucket_hash = current_bucket_element.first;
-        auto& data_bucket = current_bucket_element.second;
-        if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
-          size_t n_size_data_bucket = data_bucket.size();
-          for (size_t rjd=0; rjd<n_size_data_bucket; ++rjd){
-            size_t const jd = n_size_data_bucket-1-rjd;
-            if (key_equal::eval(current_size, current_capacity, key, data_bucket[jd].first)){
-              data_bucket.erase(jd);
-              ++n_erased;
-            }
-          }
-        }
-        if (data_bucket.size()==0) _data.erase(ib);
-        --data_ptr;
-      }
-    }
-    else{
+    {
+      bool const is_same_mem_type = (mem_type==def_mem_type);
       build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
       bucket_element*& data_ptr = _data.get();
-      bucket_element* h_data_ptr = nullptr;
-      IvyMemoryHelpers::allocate_memory(h_data_ptr, current_bucket_size, def_mem_type, ref_stream);
-      IvyMemoryHelpers::transfer_memory(h_data_ptr, data_ptr, current_bucket_size, def_mem_type, mem_type, ref_stream);
+      memview<bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
       {
-        bucket_element* tr_h_data_ptr = h_data_ptr + current_bucket_size - 1;
+        bucket_element* tr_h_data_ptr = data_view.get() + current_bucket_size - 1;
         for (size_type rib=0; rib<current_bucket_size; ++rib){
           size_type const ib = current_bucket_size-1-rib;
           auto& current_bucket_element = *tr_h_data_ptr;
@@ -638,11 +502,9 @@ namespace std_ivy{
             bool data_bucket_modified = false;
 
             value_type*& bucket_data_ptr = data_bucket.get();
-            value_type* h_bucket_data_ptr = nullptr;
-            IvyMemoryHelpers::allocate_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-            IvyMemoryHelpers::transfer_memory(h_bucket_data_ptr, bucket_data_ptr, n_size_data_bucket, def_mem_type, mem_type, ref_stream);
+            memview<value_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
             {
-              value_type* tr_h_bucket_data_ptr = h_bucket_data_ptr + n_size_data_bucket - 1;
+              value_type* tr_h_bucket_data_ptr = bucket_data_view.get() + n_size_data_bucket - 1;
               for (size_t rjd=0; rjd<n_size_data_bucket; ++rjd){
                 size_t const jd = n_size_data_bucket-1-rjd;
                 if (key_equal::eval(current_size, current_capacity, key, tr_h_bucket_data_ptr->first)){
@@ -653,9 +515,7 @@ namespace std_ivy{
                 --tr_h_bucket_data_ptr;
               }
             }
-            IvyMemoryHelpers::free_memory(h_bucket_data_ptr, n_size_data_bucket, def_mem_type, ref_stream);
-
-            if (data_bucket_modified){
+            if (data_bucket_modified && !is_same_mem_type){
               auto tmp_tgt = data_ptr + ib;
               IvyMemoryHelpers::transfer_memory(tmp_tgt, tr_h_data_ptr, 1, mem_type, def_mem_type, ref_stream);
             }
@@ -664,7 +524,6 @@ namespace std_ivy{
           --tr_h_data_ptr;
         }
       }
-      IvyMemoryHelpers::free_memory(h_data_ptr, current_bucket_size, def_mem_type, ref_stream);
 
       destroy_GPU_stream_reference_from_pointer(stream);
     }
