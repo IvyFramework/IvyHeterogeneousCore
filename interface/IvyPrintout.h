@@ -29,6 +29,8 @@ namespace std_ivy{
 #endif
   template<> struct value_printout<char*>{ static __CUDA_HOST_DEVICE__ void print(char* const& x){ __PRINT_INFO__("%s", x); } };
   template<> struct value_printout<char const*>{ static __CUDA_HOST_DEVICE__ void print(char const* const& x){ __PRINT_INFO__("%s", x); } };
+  template<typename T> struct value_printout<T const>{ static __CUDA_HOST_DEVICE__ void print(T const& x){ value_printout<T>::print(x); } };
+
   template<typename T, typename U> struct value_printout<std_util::pair<T, U>>{
     static __CUDA_HOST_DEVICE__ void print(std_util::pair<T, U> const& x){
       __PRINT_INFO__("(");

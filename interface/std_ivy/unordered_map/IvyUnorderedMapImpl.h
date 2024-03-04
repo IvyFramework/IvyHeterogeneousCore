@@ -199,7 +199,7 @@ namespace std_ivy{
     IvyGPUStream* stream = _data.gpu_stream();
     size_type const current_n_size_buckets = this->bucket_count();
 
-    memview<bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, stream, false);
+    memview<bucket_element, allocator_bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, stream, false);
     bucket_element* tr_data_ptr = data_view;
     for (size_type ib=0; ib<current_n_size_buckets; ++ib){
       auto& data_bucket = tr_data_ptr->second;
@@ -233,13 +233,13 @@ namespace std_ivy{
       bool const is_same_mem_type = (mem_type==def_mem_type);
       build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-      memview<bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, &ref_stream, false);
+      memview<bucket_element, allocator_bucket_element> data_view(_data.get(), current_n_size_buckets, mem_type, &ref_stream, false);
       {
         bucket_element* data_ptr = data_view;
         for (size_type ib=0; ib<current_n_size_buckets; ++ib){
           auto& data_bucket = data_ptr->second;
           size_type const n_size_data_bucket = data_bucket.size();
-          memview<value_type> data_bucket_view(data_bucket.get(), n_size_data_bucket, mem_type, &ref_stream, false);
+          memview<value_type, allocator_type> data_bucket_view(data_bucket.get(), n_size_data_bucket, mem_type, &ref_stream, false);
           {
             value_type* data_bucket_ptr = data_bucket_view;
             for (size_type jd=0; jd<n_size_data_bucket; ++jd){
@@ -251,7 +251,7 @@ namespace std_ivy{
               bool is_inserted = false;
               size_type const new_current_n_size_buckets = new_data.size();
               auto& d_new_data_ptr = new_data.get();
-              memview<bucket_element> new_data_view(d_new_data_ptr, new_current_n_size_buckets, mem_type, &ref_stream, false);
+              memview<bucket_element, allocator_bucket_element> new_data_view(d_new_data_ptr, new_current_n_size_buckets, mem_type, &ref_stream, false);
               {
                 bucket_element* new_data_ptr = new_data_view;
                 for (size_type jb=0; jb<new_current_n_size_buckets; ++jb){
@@ -352,7 +352,7 @@ namespace std_ivy{
         build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
         auto& data_ptr = _data.get();
-        memview<bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
+        memview<bucket_element, allocator_bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
         bucket_element* tr_h_data_ptr = data_view;
         for (size_type ib=0; ib<current_bucket_size; ++ib){
           auto& current_bucket_element = *tr_h_data_ptr;
@@ -361,7 +361,7 @@ namespace std_ivy{
           if (hash_equal::eval(current_size, current_capacity, hash, bucket_hash)){
             auto& bucket_data_ptr = data_bucket.get();
             size_type const n_size_data_bucket = data_bucket.size();
-            memview<value_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
+            memview<value_type, allocator_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
             {
               value_type* tr_h_bucket_data_ptr = bucket_data_view;
               for (size_t jd=0; jd<n_size_data_bucket; ++jd){
@@ -403,7 +403,7 @@ namespace std_ivy{
               mem_type, stream, value_type(key, mapped_type(std_util::forward<Args>(args)...))
             )
           );
-          memview<bucket_element> data_view_last(_data.get() + current_bucket_size, mem_type, &ref_stream, false);
+          memview<bucket_element, allocator_bucket_element> data_view_last(_data.get() + current_bucket_size, mem_type, &ref_stream, false);
           auto& data_bucket = (*data_view_last).second;
           mem_loc_pos = data_bucket.get();
         }
@@ -489,7 +489,7 @@ namespace std_ivy{
       build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
       bucket_element*& data_ptr = _data.get();
-      memview<bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
+      memview<bucket_element, allocator_bucket_element> data_view(data_ptr, current_bucket_size, mem_type, &ref_stream, false);
       {
         bucket_element* tr_h_data_ptr = data_view.get() + current_bucket_size - 1;
         for (size_type rib=0; rib<current_bucket_size; ++rib){
@@ -502,7 +502,7 @@ namespace std_ivy{
             bool data_bucket_modified = false;
 
             value_type*& bucket_data_ptr = data_bucket.get();
-            memview<value_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
+            memview<value_type, allocator_type> bucket_data_view(bucket_data_ptr, n_size_data_bucket, mem_type, &ref_stream, false);
             {
               value_type* tr_h_bucket_data_ptr = bucket_data_view.get() + n_size_data_bucket - 1;
               for (size_t rjd=0; rjd<n_size_data_bucket; ++rjd){
@@ -655,7 +655,7 @@ namespace std_ivy{
   }
 
   template __UMAPTPLARGSINIT__  struct value_printout<IvyUnorderedMap __UMAPTPLARGS__>{
-    static __CUDA_HOST_DEVICE__ void print(IvyUnorderedMap __UMAPTPLARGS__ const& x){ print_value(x.get_data_container()); }
+    static __CUDA_HOST_DEVICE__ void print(IvyUnorderedMap __UMAPTPLARGS__ const& x){ print_value(x.get_data_container(), false); }
   };
 
 }

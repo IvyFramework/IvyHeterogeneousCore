@@ -33,6 +33,7 @@ public:
   dummy_N() = delete;
   __CUDA_HOST_DEVICE__ dummy_N(int k) : n(k){}
 };
+template<> struct std_ivy::value_printout<dummy_D>{ static __CUDA_HOST_DEVICE__ void print(dummy_D const& x){ std_ivy::print_value(x.a, false); } };
 
 
 typedef std_mem::allocator<std_mem::unique_ptr<dummy_D>> uniqueptr_allocator;
@@ -755,6 +756,8 @@ void utest_IvyUnorderedMap_basic(IvyGPUStream& stream){
   __PRINT_INFO__("Iterating over h_umap...\n");
   for (auto it=it_begin; it!=it_end; ++it){ __PRINT_INFO__("(iterator loop) h_umap[%f].a = %f\n", it->first, it->second.a); }
   for (auto const& kv:h_umap) __PRINT_INFO__("(range-based loop) h_umap[%f].a = %f\n", kv.first, kv.second.a);
+  __PRINT_INFO__("Printing h_umap via print_value...\n");
+  print_value(h_umap);
 
   __PRINT_INFO__("Testing unordered_map functionality on GPU...\n");
   __PRINT_INFO__("Allocating d_umap...\n");

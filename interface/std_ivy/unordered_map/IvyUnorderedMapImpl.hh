@@ -33,14 +33,20 @@ namespace std_ivy{
     typedef typename hasher::result_type hash_result_type;
     typedef KeyEqual key_equal;
     typedef HashEqual hash_equal;
+
     typedef std_util::pair<key_type, mapped_type> value_type;
     typedef Allocator allocator_type;
+    typedef std_mem::allocator_traits<Allocator> allocator_traits;
+
     typedef std_mem::unique_ptr<value_type> bucket_data_type;
     typedef std_util::pair<hash_result_type, bucket_data_type> bucket_element;
     typedef std_mem::unique_ptr<bucket_element> data_container;
-    typedef std_mem::allocator_traits<Allocator> allocator_type_traits;
+    typedef typename data_container::element_allocator_type allocator_bucket_element;
+    typedef typename data_container::element_allocator_traits allocator_bucket_element_traits;
+
     typedef std_mem::allocator<data_container> allocator_data_container;
     typedef std_mem::allocator_traits<allocator_data_container> allocator_data_container_traits;
+
     typedef value_type& reference;
     typedef value_type const& const_reference;
     typedef IvyBucketedIteratorBuilder<key_type, mapped_type, hasher> iterator_builder_t;
