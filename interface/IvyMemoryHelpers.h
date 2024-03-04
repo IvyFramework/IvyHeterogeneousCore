@@ -597,47 +597,6 @@ namespace IvyMemoryHelpers{
     }
     return res;
   }
-  /*
-  template<typename T> __CUDA_HOST_DEVICE__ bool destruct_fcnal<T*>::destruct(
-    T**& data,
-    size_t n
-    , IvyMemoryType type
-    , IvyGPUStream& stream
-  ){
-    if (!data) return false;
-    if (n==0) return true;
-    bool res = true;
-#if (DEVICE_CODE == DEVICE_CODE_HOST) && defined(__USE_CUDA__)
-    static_assert(__STATIC_CAST__(unsigned char, IvyMemoryType::nMemoryTypes)==5);
-    bool const is_pl = is_pagelocked(type);
-    bool const is_acc = use_device_acc(type);
-    if (is_acc || is_pl){
-      T** temp = nullptr;
-      res &= allocate_memory(temp, n, IvyMemoryType::Host, stream);
-      res &= transfer_memory(temp, data, n, IvyMemoryType::Host, type, stream);
-      stream.synchronize();
-      {
-        T** ptr = temp;
-        for (size_t i=0; i<n; ++i){
-          *ptr = nullptr;
-          ++ptr;
-        }
-      }
-      res &= transfer_memory(data, temp, n, type, IvyMemoryType::Host, stream);
-      res &= free_memory(temp, n, IvyMemoryType::Host, stream);
-    }
-    else
-#endif
-    {
-      T** ptr = data;
-      for (size_t i=0; i<n; ++i){
-        *ptr = nullptr;
-        ++ptr;
-      }
-    }
-    return res;
-  }
-  */
 
   template<typename T, typename... Args> __CUDA_HOST_DEVICE__ void construct_data_kernel<T, Args...>::kernel(size_t const& i, size_t const& n, T* data, Args&&... args){
     if (kernel_check_dims<construct_data_kernel<T, Args...>>::check_dims(i, n)){

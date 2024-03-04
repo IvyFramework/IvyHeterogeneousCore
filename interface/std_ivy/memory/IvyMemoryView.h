@@ -8,7 +8,6 @@
 #ifdef __USE_CUDA__
 
 namespace std_ivy{
-
   template<typename T, typename Allocator = allocator<T>> class memview{
   public:
     typedef Allocator allocator_type;
