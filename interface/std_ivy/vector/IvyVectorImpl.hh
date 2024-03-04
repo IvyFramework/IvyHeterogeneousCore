@@ -3,6 +3,7 @@
 
 
 #include "std_ivy/iterator/IvyContiguousIteratorBuilder.h"
+#include "IvyPrintout.h"
 
 
 #ifdef __USE_CUDA__
@@ -127,6 +128,12 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ const_iterator_builder_t const& get_const_iterator_builder() const;
   };
   template<typename T, typename Allocator=std_mem::allocator<T>> using vector = IvyVector<T, Allocator>;
+
+  /*
+  Specialization of the value printout routine
+  */
+  template<typename T, typename Allocator> struct value_printout<IvyVector<T, Allocator>>;
+
 }
 namespace std_util{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b);

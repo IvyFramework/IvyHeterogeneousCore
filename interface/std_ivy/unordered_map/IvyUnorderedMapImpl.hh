@@ -7,6 +7,7 @@
 #include "std_ivy/IvyFunctional.h"
 #include "std_ivy/IvyMemory.h"
 #include "std_ivy/IvyUtility.h"
+#include "IvyPrintout.h"
 
 
 #ifdef __USE_CUDA__
@@ -114,6 +115,7 @@ namespace std_ivy{
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr size_type max_size() const;
     __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
 
+    __CUDA_HOST_DEVICE__ data_container const& get_data_container() const;
     __CUDA_HOST_DEVICE__ IvyMemoryType get_memory_type() const;
     __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const;
 
@@ -151,6 +153,12 @@ namespace std_ivy{
     typename HashEqual = std_ivy::IvyHashEqualEvalDefault<typename Hash::result_type>,
     typename Allocator = std_mem::allocator<std_util::pair<Key const, T>>
   > using unordered_map = IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>;
+
+  /*
+  Specialization of the value printout routine
+  */
+  template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
+  struct value_printout<IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>>;
 }
 namespace std_util{
   template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>

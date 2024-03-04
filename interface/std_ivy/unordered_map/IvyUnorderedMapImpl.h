@@ -55,6 +55,7 @@ namespace std_ivy{
     return *this;
   }
 
+  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::data_container const& IvyUnorderedMap __UMAPTPLARGS__::get_data_container() const{ return _data; }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyMemoryType IvyUnorderedMap __UMAPTPLARGS__::get_memory_type() const{ return _data.get_memory_type(); }
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyGPUStream* IvyUnorderedMap __UMAPTPLARGS__::gpu_stream() const{ return _data.gpu_stream(); }
 
@@ -793,6 +794,11 @@ namespace std_ivy{
   IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(Key const& key, Args&&... args){
     return this->operator()(_data.get_memory_type(), _data.gpu_stream(), key, args...);
   }
+
+  template __UMAPTPLARGSINIT__  struct value_printout<IvyUnorderedMap __UMAPTPLARGS__>{
+    static __CUDA_HOST_DEVICE__ void print(IvyUnorderedMap __UMAPTPLARGS__ const& x){ print_value(x.get_data_container()); }
+  };
+
 }
 namespace std_util{
   template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap __UMAPTPLARGS__& a, std_ivy::IvyUnorderedMap __UMAPTPLARGS__& b){

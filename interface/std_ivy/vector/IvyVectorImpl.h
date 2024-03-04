@@ -484,6 +484,10 @@ namespace std_ivy{
     std_util::swap(_iterator_builder, v._iterator_builder);
     std_util::swap(_const_iterator_builder, v._const_iterator_builder);
   }
+
+  template<typename T, typename Allocator> struct value_printout<IvyVector<T, Allocator>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyVector<T, Allocator> const& x){ print_value(x.get_data_container()); }
+  };
 }
 namespace std_util{
   template<typename T, typename Allocator> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b){ a.swap(b); }

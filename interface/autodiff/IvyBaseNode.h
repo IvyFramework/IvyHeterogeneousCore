@@ -37,7 +37,7 @@ template<typename T> __CUDA_HOST_DEVICE__ void conjugate(T const& x){ IvyNodeSel
 /*
 is_conjugatable: Convenience function to check if a node is conjugatable.
 */
-template<typename T> using is_conjugatable = typename IvyNodeSelfRelations<T>::is_conjugatable;
+template<typename T> inline constexpr bool is_conjugatable = IvyNodeSelfRelations<T>::is_conjugatable;
 
 /*
 IvyNodeBinaryRelations:
@@ -48,7 +48,16 @@ The idea is to provide partial specializations when needed in order to implement
 IvyNodeBinaryRelations::depends_on: Check if a function depends on a variable. By default, no function depends on any variable.
 */
 template<typename T, typename U> struct IvyNodeBinaryRelations{
-  static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, T const& var){ return (std_mem::addressof(fcn)==std_mem::addressof(var)); }
+  static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, T const& var){ return (std_mem::addressof(fcn) == std_mem::addressof(var)); }
+};
+template<typename T, typename U> struct IvyNodeBinaryRelations<T, U*>{
+  static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U* const& var){ return (std_mem::addressof(fcn) == var); }
+};
+template<typename T, typename U> struct IvyNodeBinaryRelations<T*, U>{
+  static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U const& var){ return (fcn == std_mem::addressof(var)); }
+};
+template<typename T, typename U> struct IvyNodeBinaryRelations<T*, U*>{
+  static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U* const& var){ return (fcn == var); }
 };
 /*
 depends_on: Convenience function to check if a function depends on a variable.

@@ -20,13 +20,16 @@ ROOTLIBS      =
 CXX           = g++
 CXXINC        = -I$(INCLUDEDIR)
 CXXDEFINES    =
-CXXFLAGS      = -fPIC -g -O2 -std=c++20 $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXVEROPT     = -std=c++20
+CXXOPTIM      = -O2
+CXXFLAGS      = -fPIC -g $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(CXXFLAGS)
 
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
 CXXDEFINES    += -D__USE_CUDA__
-CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared -Xnvlink --suppress-stack-size-warning -Xcompiler -fPIC -g -O2 -std=c++20 $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
+CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 endif
 

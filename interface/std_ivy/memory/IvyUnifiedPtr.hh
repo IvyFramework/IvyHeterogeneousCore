@@ -10,6 +10,7 @@
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 //#include "std_ivy/IvyFunctional.h"
+#include "IvyPrintout.h"
 
 
 namespace std_ivy{
@@ -240,6 +241,11 @@ namespace std_ivy{
     typedef typename pointer::difference_type difference_type;
     template <typename U> using rebind = pointer_traits_rebind_t<pointer, U>;
   };
+
+  /*
+  Specialization of the value printout routine
+  */
+  template<typename T, IvyPointerType IPT> struct value_printout<IvyUnifiedPtr<T, IPT>>;
 
 }
 

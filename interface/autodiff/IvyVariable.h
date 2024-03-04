@@ -54,7 +54,17 @@ template<typename T> struct IvyNodeSelfRelations<IvyVariable<T>>{
 
 template<typename T> using IvyVariablePtr_t = IvyThreadSafePtr_t< IvyVariable<T> >;
 
-template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyVariablePtr_t<T> Variable(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyVariable<T> >(mem_type, stream, args...); }
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyVariablePtr_t<T> Variable(Args&&... args){ return make_IvyThreadSafePtr< IvyVariable<T> >(args...); }
+
+namespace std_ivy{
+  template<typename T> struct value_printout<IvyVariable<T>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyVariable<T> const& var){
+      __PRINT_INFO__("Variable(");
+      print_value(var.value(), false);
+      __PRINT_INFO__(")");
+    }
+  };
+}
 
 
 #endif

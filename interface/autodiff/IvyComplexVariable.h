@@ -65,7 +65,17 @@ template<typename T> struct IvyNodeSelfRelations<IvyComplexVariable<T>>{
 
 template<typename T> using IvyComplexVariablePtr_t = IvyThreadSafePtr_t< IvyComplexVariable<T> >;
 
-template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(mem_type, stream, args...); }
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyComplexVariablePtr_t<T> Complex(Args&&... args){ return make_IvyThreadSafePtr< IvyComplexVariable<T> >(args...); }
+
+namespace std_ivy{
+  template<typename T> struct value_printout<IvyComplexVariable<T>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyComplexVariable<T> const& var){
+      __PRINT_INFO__("Complex(");
+      print_value(var.Re(), false); __PRINT_INFO__(", "); print_value(var.Im(), false);
+      __PRINT_INFO__(")");
+    }
+  };
+}
 
 
 #endif

@@ -126,6 +126,37 @@ __CUDA_HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vecto
 
   return res;
 }
+__CUDA_HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{
+  if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
+
+  constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+  auto const mem_type = this->get_memory_type();
+  auto stream = dims.gpu_stream();
+
+  build_GPU_stream_reference_from_pointer(stream, ref_stream);
+
+  data_container ref_dims = dims;
+  if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&ref_dims, 1, def_mem_type, def_mem_type, ref_stream, true);
+
+  IvyTensorDim_t res = 0;
+  IvyTensorRank_t iaxis = 0;
+  auto nel_tmp = nel;
+  auto it_index = std_iter::begin(indices);
+  auto it_end_index = std_iter::end(indices);
+  auto it_dim = std_iter::begin(ref_dims);
+  while (it_index != it_end_index){
+    if (*it_index >= *it_dim) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Index = %llu for axis %hu exceeds number of dimensions = %llu.\n", *it_index, iaxis, *it_dim);
+    nel_tmp /= *it_dim;
+    res += nel_tmp*(*it_index);
+    ++iaxis;
+    ++it_index;
+    ++it_dim;
+  }
+
+  destroy_GPU_stream_reference_from_pointer(stream);
+
+  return res;
+}
 
 __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> IvyTensorShape::get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const{
   constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();

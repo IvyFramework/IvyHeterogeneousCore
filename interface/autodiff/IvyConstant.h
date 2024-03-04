@@ -31,7 +31,17 @@ public:
 
 template<typename T> using IvyConstantPtr_t = IvyThreadSafePtr_t< IvyConstant<T> >;
 
-template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyConstantPtr_t<T> Constant(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyConstant<T> >(mem_type, stream, args...); }
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyConstantPtr_t<T> Constant(Args&&... args){ return make_IvyThreadSafePtr< IvyConstant<T> >(args...); }
+
+namespace std_ivy{
+  template<typename T> struct value_printout<IvyConstant<T>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyConstant<T> const& var){
+      __PRINT_INFO__("Constant(");
+      print_value(var.value(), false);
+      __PRINT_INFO__(")");
+    }
+  };
+}
 
 
 #endif

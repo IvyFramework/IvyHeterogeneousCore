@@ -48,7 +48,7 @@ public:
   __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) : rank_(dims_.size()), dims(dims_, mem_type, stream), nel(this->calc_num_elements()){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr), nel(this->calc_num_elements()){}
   __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
-  __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
+  __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
   __CUDA_HOST_DEVICE__ ~IvyTensorShape(){}
 
   // Assignment operator
@@ -72,6 +72,7 @@ public:
 
   // Get absolute index given an ordered set of indices for each axis
   __CUDA_HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const;
+  __CUDA_HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const;
 
   // Get map of indices after reordering axes
   __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const;

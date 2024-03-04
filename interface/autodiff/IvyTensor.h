@@ -8,6 +8,7 @@
 #include "std_ivy/IvyMemory.h"
 #include "autodiff/IvyBaseTensor.h"
 #include "autodiff/IvyTensorShape.h"
+#include "IvyPrintout.h"
 
 
 template<typename T> class IvyTensor;
@@ -18,85 +19,117 @@ template<typename T> class IvyTensor : public IvyBaseTensor{
 public:
   using dtype_t = T;
   using value_t = IvyTensor<T>;
+  using data_container = std_mem::unique_ptr<dtype_t>;
+  using allocator_data_container = std_mem::allocator<data_container>;
+  using allocator_data_container_traits = std_mem::allocator_traits<allocator_data_container>;
 
 protected:
-  IvyTensorShape def_dims;
-  IvyThreadSafePtr_t<dtype_t> vals;
+  IvyTensorShape shape_;
+  data_container data_;
 
   __CUDA_HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
 
 public:
   // Convenience accessors from IvyTensorShape
-  __CUDA_HOST_DEVICE__ IvyTensorShape const& shape() const{ return def_dims; }
-  __CUDA_HOST_DEVICE__ IvyTensorRank_t const& rank() const{ return def_dims.rank(); }
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t const& num_elements() const{ return def_dims.num_elements(); }
-  __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> const& get_dimensions() const{ return def_dims.get_dimensions(); }
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t const& get_dimension(IvyTensorRank_t const& iaxis) const{ return def_dims.get_dimension(iaxis); }
+  __CUDA_HOST_DEVICE__ IvyTensorShape const& shape() const{ return shape_; }
+  __CUDA_HOST_DEVICE__ IvyTensorRank_t const& rank() const{ return shape_.rank(); }
+  __CUDA_HOST_DEVICE__ IvyTensorDim_t const& num_elements() const{ return shape_.num_elements(); }
+  __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> const& get_dimensions() const{ return shape_.get_dimensions(); }
+  __CUDA_HOST_DEVICE__ IvyTensorDim_t const& get_dimension(IvyTensorRank_t const& iaxis) const{ return shape_.get_dimension(iaxis); }
 
   // Get (number of bytes) = (number of elements)*(size of the data type in bytes).
   __CUDA_HOST_DEVICE__ IvyTensorDim_t num_bytes() const{ return num_elements()*sizeof(T); }
 
+  // Get the memory type and stream
+  __CUDA_HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return shape_.get_memory_type(); }
+  __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return shape_.gpu_stream(); }
+
+  // Get container to data
+  __CUDA_HOST_DEVICE__ data_container const& get_data_container() const{ return data_; }
+  __CUDA_HOST_DEVICE__ data_container& get_data_container(){ return data_; }
+
 protected:
-  __CUDA_HOST_DEVICE__ void initialize_data(T const& defval){ if (vals){ for (IvyTensorDim_t i=0; i<this->num_elements(); ++i) vals[i] = defval; } }
-  __CUDA_HOST_DEVICE__ void allocate_data(){ IvyMemoryHelpers::allocate_memory(vals, num_elements()); }
-  __CUDA_HOST_DEVICE__ void copy_data(IvyTensor const& other){ IvyMemoryHelpers::copy_data(vals, other.vals, this->num_elements(), other.num_elements()); }
+  template<typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void build_data(Args&&... args){
+    data_ = std_mem::make_unique<dtype_t>(this->num_elements(), this->get_memory_type(), this->gpu_stream(), args...);
+  }
+  __CUDA_HOST_DEVICE__ void copy_data(IvyTensor const& other){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    auto stream = other.gpu_stream();
+    data_container* ptr_data = std_mem::addressof(data_);
+    data_container* ptr_v_data = __CONST_CAST__(data_container*, std_mem::addressof(other.data_));
+    operate_with_GPU_stream_from_pointer(
+      stream, ref_stream,
+      __ENCAPSULATE__(
+        allocator_data_container_traits::transfer(ptr_data, ptr_v_data, 1, def_mem_type, def_mem_type, ref_stream);
+      )
+    );
+  }
 
 public:
   __CUDA_HOST_DEVICE__ IvyTensor(){}
-  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensorShape const& shape) : def_dims(shape){ allocate_data(); }
-  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensorShape const& shape, T const& defval) : def_dims(shape){ allocate_data(); initialize_data(defval); }
-  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensor const& other) : def_dims(other.def_dims){ copy_data(other); }
-  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensor&& other) : def_dims(std_util::move(other.def_dims)), vals(std_util::move(other.vals)){}
+  template<typename... Args> __CUDA_HOST_DEVICE__ IvyTensor(IvyTensorShape const& shape, Args&&... args) : shape_(shape){ build_data(args...); }
+  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensor const& other) : shape_(other.shape_){ copy_data(other); }
+  __CUDA_HOST_DEVICE__ IvyTensor(IvyTensor&& other) : shape_(std_util::move(other.shape_)), data_(std_util::move(other.data_)){}
   __CUDA_HOST_DEVICE__ ~IvyTensor(){}
 
   // Assignment operator
   __CUDA_HOST_DEVICE__ IvyTensor& operator=(IvyTensor const& other){
+    this->shape_ = other.shape_;
     copy_data(other);
-    this->def_dims = other.def_dims;
+    return *this;
+  }
+  __CUDA_HOST_DEVICE__ IvyTensor& operator=(IvyTensor&& other){
+    this->shape_ = std_util::move(other.shape_);
+    this->data_ = std_util::move(other.data_);
     return *this;
   }
 
-  // Get memory type and stream
-  __CUDA_HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return def_dims.get_memory_type(); }
-  __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return def_dims.gpu_stream(); }
-
   // Get a pointer to the data
-  __CUDA_HOST_DEVICE__ T* const& data() const{ return vals.get(); }
+  __CUDA_HOST_DEVICE__ T* data() const{ return data_.get(); }
+  __CUDA_HOST_DEVICE__ T* const& data(){ return data_.get(); }
 
   // Access operator (for nonconst tensor)
-  __CUDA_HOST_DEVICE__ T& operator[](std_vec::vector<IvyTensorDim_t> const& indices){ return vals[def_dims.get_abs_index(indices)]; }
-  __CUDA_HOST_DEVICE__ T& operator[](IvyTensorDim_t const& idx){ return (*this)[{idx}]; }
+  __CUDA_HOST_DEVICE__ T& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
+  __CUDA_HOST_DEVICE__ T& operator[](std_vec::vector<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ T& operator[](IvyTensorDim_t const& idx){ return data_[idx]; }
+  __CUDA_HOST_DEVICE__ T& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
+  __CUDA_HOST_DEVICE__ T& at(std_vec::vector<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ T& at(IvyTensorDim_t const& idx){ return data_[idx]; }
 
   // Access operator (for const tensor)
-  __CUDA_HOST_DEVICE__ T const& operator[](std_vec::vector<IvyTensorDim_t> const& indices) const{ return vals[def_dims.get_abs_index(indices)]; }
-  __CUDA_HOST_DEVICE__ T const& operator[](IvyTensorDim_t const& idx) const{ return (*this)[{idx}]; }
+  __CUDA_HOST_DEVICE__ T const& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+  __CUDA_HOST_DEVICE__ T const& operator[](std_vec::vector<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ T const& operator[](IvyTensorDim_t const& idx) const{ return data_[idx]; }
+  __CUDA_HOST_DEVICE__ T const& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+  __CUDA_HOST_DEVICE__ T const& at(std_vec::vector<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ T const& at(IvyTensorDim_t const& idx) const{ return data_[idx]; }
 
   // Ensure that a tensor can operate in just the same way as a variable or a constant.
-  __CUDA_HOST_DEVICE__ value_t const& value() const{ return *this; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t const& value() const{ return *this; }
+  __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t& value(){ return *this; }
 
+  // friend classes
   friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>>;
-
   friend struct IvyNodeSelfRelations<IvyTensor<T>>;
-  template<typename U> friend struct IvyNodeBinaryRelations<IvyTensor<T>, U>;
 };
 
 template<typename T> struct IvyNodeSelfRelations<IvyTensor<T>>{
+  static constexpr bool is_conjugatable = is_conjugatable<T>;
   static __CUDA_HOST_DEVICE__ bool is_differentiable(IvyTensor<T> const& x){
     bool res = false;
-    for (IvyTensorDim_t i=0; i<x.num_elements(); ++i){ res |= is_differentiable(x.vals[i]); if (res) break; }
+    for (IvyTensorDim_t i=0; i<x.num_elements(); ++i){ res |= is_differentiable(x.data_[i]); if (res) break; }
     return res;
   }
   static __CUDA_HOST_DEVICE__ void conjugate(IvyTensor<T>& x){
-    if (!is_conjugatable<T>) return;
-    for (IvyTensorDim_t i=0; i<x.num_elements(); ++i){ conjugate(x.vals[i]); }
+    if (!is_conjugatable) return;
+    for (IvyTensorDim_t i=0; i<x.num_elements(); ++i){ conjugate(x.data_[i]); }
   }
-  static constexpr bool is_conjugatable = is_conjugatable<T>;
 };
 template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>{
   static __CUDA_HOST_DEVICE__ bool depends_on(IvyTensor<T> const& fcn, U const& var){
     bool res = std_mem::addressof(fcn) == std_mem::addressof(var);
     if (!res){
-      for (IvyTensorDim_t i=0; i<fcn.num_elements(); ++i){ res |= depends_on(fcn.vals[i], var); if (res) break; }
+      for (IvyTensorDim_t i=0; i<fcn.num_elements(); ++i){ res |= depends_on(fcn.at(i), var); if (res) break; }
     }
     return res;
   }
@@ -104,7 +137,18 @@ template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>{
 
 template<typename T> using IvyTensorPtr_t = IvyThreadSafePtr_t< IvyTensor<T> >;
 
-template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyTensorPtr_t<T> Tensor(std_ivy::IvyMemoryType const& mem_type, IvyGPUStream* stream, Args&&... args){ return make_IvyThreadSafePtr< IvyTensor<T> >(mem_type, stream, args...); }
+template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyTensorPtr_t<T> Tensor(Args&&... args){ return make_IvyThreadSafePtr< IvyTensor<T> >(args...); }
+
+namespace std_ivy{
+  template<typename T> struct value_printout<IvyTensor<T>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyTensor<T> const& var){
+      auto const& data = var.get_data_container();
+      auto const n = var.num_elements();
+      __PRINT_INFO__("Tensor[%llu]", n);
+      print_value(data, false);
+    }
+  };
+}
 
 
 #endif

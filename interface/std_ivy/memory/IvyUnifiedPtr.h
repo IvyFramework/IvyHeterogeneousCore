@@ -970,6 +970,48 @@ namespace std_ivy{
   __CUDA_HOST_DEVICE__ unique_ptr<T> make_unique(IvyMemoryType mem_type, IvyGPUStream* stream, Args&&... args){
     return make_unified<T, IvyPointerType::unique>(mem_type, stream, args...);
   }
+
+  template<typename T, IvyPointerType IPT> struct value_printout<IvyUnifiedPtr<T, IPT>>{
+    static __CUDA_HOST_DEVICE__ void print(IvyUnifiedPtr<T, IPT> const& x){
+      using element_allocator_traits = typename IvyUnifiedPtr<T, IPT>::element_allocator_traits;
+      using size_type = typename IvyUnifiedPtr<T, IPT>::size_type;
+      using pointer = typename IvyUnifiedPtr<T, IPT>::pointer;
+
+      if (!x){
+        __PRINT_INFO__("(null)");
+        return;
+      }
+
+      auto const s = x.size();
+      if (s>1) __PRINT_INFO__("{ ");
+      auto ptr = x.get();
+      constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      auto const mem_type = x.get_memory_type();
+      auto stream = x.gpu_stream();
+      if (mem_type==def_mem_type){
+        for (size_type i=0; i<s; ++i){
+          print_value(x[i], false);
+          if (i<s-1) __PRINT_INFO__(", ");
+        }
+      }
+      else{
+        pointer tmp_ptr = nullptr;
+        operate_with_GPU_stream_from_pointer(
+          stream, ref_stream,
+          __ENCAPSULATE__(
+            element_allocator_traits::allocate(tmp_ptr, s, def_mem_type, ref_stream);
+            element_allocator_traits::transfer(tmp_ptr, ptr, s, def_mem_type, mem_type, ref_stream);
+            for (size_type i=0; i<s; ++i){
+              print_value(tmp_ptr[i], false);
+              if (i<s-1) __PRINT_INFO__(", ");
+            }
+            element_allocator_traits::destroy(tmp_ptr, s, def_mem_type, ref_stream);
+          )
+        );
+      }
+      if (s>1) __PRINT_INFO__(" }");
+    }
+  };
 }
 namespace std_util{
   template<typename T, typename U, std_ivy::IvyPointerType IPT> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnifiedPtr<T, IPT>& a, std_ivy::IvyUnifiedPtr<U, IPT>& b) __NOEXCEPT__{ a.swap(b); }
