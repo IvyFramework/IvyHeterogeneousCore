@@ -248,6 +248,11 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> struct value_printout<IvyUnifiedPtr<T, IPT>>;
 
 }
+namespace IvyTypes{
+  template<typename T, std_ivy::IvyPointerType IPT> struct convert_to_floating_point<std_ivy::IvyUnifiedPtr<T, IPT>>{
+    using type = std_ivy::IvyUnifiedPtr<convert_to_floating_point_t<T>, IPT>;
+  };
+}
 
 // Extension of std_fcnal::hash
 // Current CUDA C++ library omits hashes, so we defer it as well.

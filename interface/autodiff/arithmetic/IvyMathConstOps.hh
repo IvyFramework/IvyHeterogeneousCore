@@ -14,6 +14,7 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T MinusOne();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T Two();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T LogTwo();
+  template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T LogTen();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T PiOverTwo();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T Pi();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T TwoPi();
@@ -22,8 +23,8 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T SqrtTwoOverPi();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T TwoSqrtPi();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ constexpr T TwoOverSqrtPi();
-  template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ __INLINE_FCN_FORCE__ constexpr T NtimesPi(T const& n);
-  template<typename T, ENABLE_IF_ARITHMETIC(T)> __CUDA_HOST_DEVICE__ __INLINE_FCN_FORCE__ IvyComplexVariable<T> UnitIm();
+  template<typename T, ENABLE_IF_ARITHMETIC(T)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ constexpr T NtimesPi(T const& n);
+  template<typename T, ENABLE_IF_ARITHMETIC(T)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ IvyComplexVariable<T> UnitIm();
 }
 
 

@@ -984,6 +984,11 @@ namespace std_ivy{
       }
 
       auto const s = x.size();
+      if (s==0){
+        __PRINT_INFO__("(empty)");
+        return;
+      }
+
       if (s>1) __PRINT_INFO__("{ ");
       auto ptr = x.get();
       auto const mem_type = x.get_memory_type();

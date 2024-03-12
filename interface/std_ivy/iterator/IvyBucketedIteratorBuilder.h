@@ -18,8 +18,8 @@ namespace std_ivy{
     using hasher = Hash;
     using value_type = std_util::pair<Key, T>;
     using const_value_type = std_util::pair<Key, T> const;
-    using iterator_type = IvyContiguousIterator<value_type>;
-    using const_iterator_type = IvyContiguousIterator<const_value_type>;
+    using iterator_type = IvyContiguousIterator<value_type, partially_contiguous_iterator_tag>;
+    using const_iterator_type = IvyContiguousIterator<const_value_type, partially_contiguous_iterator_tag>;
     using reverse_iterator_type = std_ivy::reverse_iterator<iterator_type>;
     using const_reverse_iterator_type = std_ivy::reverse_iterator<const_iterator_type>;
 

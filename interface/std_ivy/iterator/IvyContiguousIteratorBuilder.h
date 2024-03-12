@@ -14,7 +14,7 @@ namespace std_ivy{
 
   template<typename T> class IvyContiguousIteratorBuilder{
   public:
-    using iterator_type = IvyContiguousIterator<T>;
+    using iterator_type = IvyContiguousIterator<T, contiguous_iterator_tag>;
     using reverse_iterator_type = std_ivy::reverse_iterator<iterator_type>;
     using value_type = std_ttraits::remove_cv_t<T>;
     using data_type = std_mem::unique_ptr<value_type>;

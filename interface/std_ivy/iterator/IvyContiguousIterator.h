@@ -13,12 +13,12 @@
 #ifdef __USE_CUDA__
 
 namespace std_ivy{
-  template<typename T> class IvyContiguousIterator;
-  template<typename T> class transfer_memory_primitive<IvyContiguousIterator<T>> : public transfer_memory_primitive_with_internal_memory<IvyContiguousIterator<T>>{};
+  template<typename T, typename ContiguousTag = contiguous_iterator_tag> class IvyContiguousIterator;
+  template<typename T, typename ContiguousTag> class transfer_memory_primitive<IvyContiguousIterator<T, ContiguousTag>> : public transfer_memory_primitive_with_internal_memory<IvyContiguousIterator<T, ContiguousTag>>{};
 
-  template<typename T> class IvyContiguousIterator : public iterator<std_ivy::contiguous_iterator_tag, T>{
+  template<typename T, typename ContiguousTag> class IvyContiguousIterator : public iterator<ContiguousTag, T>{
   public:
-    using Base_t = iterator<std_ivy::contiguous_iterator_tag, T>;
+    using Base_t = iterator<ContiguousTag, T>;
     using value_type = typename Base_t::value_type;
     using pointer = typename Base_t::pointer;
     using reference = typename Base_t::reference;
@@ -26,10 +26,10 @@ namespace std_ivy{
     using iterator_category = typename Base_t::iterator_category;
     using mem_loc_t = pointer;
     using mem_loc_container_t = std_mem::shared_ptr<mem_loc_t>;
-    using pointable_t = IvyContiguousIterator<T>*;
-    using const_pointable_t = IvyContiguousIterator<T> const*;
+    using pointable_t = IvyContiguousIterator<T, ContiguousTag>*;
+    using const_pointable_t = IvyContiguousIterator<T, ContiguousTag> const*;
 
-    friend class kernel_generic_transfer_internal_memory<IvyContiguousIterator<T>>;
+    friend class kernel_generic_transfer_internal_memory<IvyContiguousIterator<T, ContiguousTag>>;
 
   protected:
     mem_loc_container_t ptr_mem_loc_;
@@ -145,44 +145,47 @@ namespace std_ivy{
     __CUDA_HOST_DEVICE__ pointer const& operator->() const{ return this->get_mem_loc_fast(); }
     __CUDA_HOST_DEVICE__ bool is_valid() const{ return (ptr_mem_loc_ && this->get_mem_loc()); }
 
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T>& operator++(){
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator& operator++(){
       *this = *(this->next());
       return *this;
     }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T> operator++(int){ IvyContiguousIterator<T> tmp(*this); operator++(); return tmp; }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T>& operator--(){
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator operator++(int){ IvyContiguousIterator tmp(*this); operator++(); return tmp; }
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator& operator--(){
       *this = *(this->prev());
       return *this;
     }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T> operator--(int){ IvyContiguousIterator<T> tmp(*this); operator--(); return tmp; }
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator operator--(int){ IvyContiguousIterator tmp(*this); operator--(); return tmp; }
 
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T> operator+(difference_type n) const{
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator operator+(difference_type n) const{
       if (n==0) return *this;
-      IvyContiguousIterator<T> tmp(*this);
+      IvyContiguousIterator tmp(*this);
       for (difference_type i=0; i<n; ++i) ++tmp;
       return tmp;
     }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T> operator-(difference_type n) const{
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator operator-(difference_type n) const{
       if (n==0) return *this;
-      IvyContiguousIterator<T> tmp(*this);
+      IvyContiguousIterator tmp(*this);
       for (difference_type i=0; i<n; ++i) --tmp;
       return tmp;
     }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T>& operator+=(difference_type n){ *this = *this + n; return *this; }
-    __CUDA_HOST_DEVICE__ IvyContiguousIterator<T>& operator-=(difference_type n){ *this = *this - n; return *this; }
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator& operator+=(difference_type n){ *this = *this + n; return *this; }
+    __CUDA_HOST_DEVICE__ IvyContiguousIterator& operator-=(difference_type n){ *this = *this - n; return *this; }
 
-    __CUDA_HOST_DEVICE__ bool operator==(IvyContiguousIterator<T> const& other) const{
+    __CUDA_HOST_DEVICE__ bool operator==(IvyContiguousIterator const& other) const{
       return
         (ptr_mem_loc_ == other.ptr_mem_loc_)
         &&
         (!ptr_mem_loc_ || this->get_mem_loc()==other.get_mem_loc());
     }
-    __CUDA_HOST_DEVICE__ bool operator!=(IvyContiguousIterator<T> const& other) const{ return !(*this==other); }
+    __CUDA_HOST_DEVICE__ bool operator!=(IvyContiguousIterator const& other) const{ return !(*this==other); }
 
-    __CUDA_HOST_DEVICE__ difference_type operator-(IvyContiguousIterator<T> const& other) const{
+    __CUDA_HOST_DEVICE__ difference_type operator-(IvyContiguousIterator const& other) const{
       if (other == *this || (!other.is_valid() && !this->is_valid())) return 0;
       difference_type n = 0;
-      IvyContiguousIterator<T> current = other;
+      if constexpr (std_util::is_base_of_v<contiguous_iterator_tag, ContiguousTag>){
+        if (this->is_valid() && other.is_valid()) return (this->get_mem_loc() - other.get_mem_loc());
+      }
+      IvyContiguousIterator current = other;
       while (current.is_valid()){
         if (current == *this) return n;
         ++n;
@@ -200,10 +203,10 @@ namespace std_ivy{
       return 0;
     }
   };
-  template<typename T> using IvyVectorConstIterator = IvyContiguousIterator<T const>;
+  template<typename T, typename ContiguousTag = contiguous_iterator_tag> using IvyVectorConstIterator = IvyContiguousIterator<T const, ContiguousTag>;
 }
 namespace std_util{
-  template<typename T> void swap(std_ivy::IvyContiguousIterator<T>& a, std_ivy::IvyContiguousIterator<T>& b){ a.swap(b); }
+  template<typename T, typename ContiguousTag> void swap(std_ivy::IvyContiguousIterator<T, ContiguousTag>& a, std_ivy::IvyContiguousIterator<T, ContiguousTag>& b){ a.swap(b); }
 }
 
 #endif

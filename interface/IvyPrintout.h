@@ -5,6 +5,7 @@
 #include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyCstdio.h"
 #include "std_ivy/IvyUtility.h"
+#include "std_ivy/IvyInitializerList.h"
 
 
 namespace std_ivy{
@@ -38,6 +39,20 @@ namespace std_ivy{
       __PRINT_INFO__(")");
     }
   };
+  template<typename T> struct value_printout<std_ilist::initializer_list<T>>{
+    static __CUDA_HOST_DEVICE__ void print(std_ilist::initializer_list<T> const& x){
+      if (x.size() == 0) __PRINT_INFO__("(empty)");
+      else{
+        __PRINT_INFO__("{ ");
+        for (auto it = x.begin(); it != x.end(); ++it){
+          value_printout<T>::print(*it);
+          if ((it + 1) != x.end()) __PRINT_INFO__(", ");
+        }
+        __PRINT_INFO__(" }");
+      }
+    }
+  };
+
 
   template<typename T> __CUDA_HOST_DEVICE__ void print_value(T const& var, bool put_endl = true){
     value_printout<T>::print(var);

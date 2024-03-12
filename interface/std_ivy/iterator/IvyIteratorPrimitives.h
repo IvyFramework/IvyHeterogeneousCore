@@ -15,7 +15,8 @@ namespace std_ivy{
   struct forward_iterator_tag : public input_iterator_tag{};
   struct bidirectional_iterator_tag : public forward_iterator_tag{};
   struct random_access_iterator_tag : public bidirectional_iterator_tag{};
-  struct contiguous_iterator_tag : public random_access_iterator_tag{};
+  struct partially_contiguous_iterator_tag : public random_access_iterator_tag{};
+  struct contiguous_iterator_tag : public partially_contiguous_iterator_tag{};
   using stashing_iterator_tag = void; // Dummy tag to recognize iterators that cannot be reversed (CUDA-style solution)
 
   // Base class for iterators

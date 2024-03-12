@@ -1,15 +1,25 @@
-#include "autodiff/IvyConstant.h"
-#include "autodiff/IvyVariable.h"
-#include "autodiff/IvyComplexVariable.h"
-#include "autodiff/IvyTensor.h"
+#include "autodiff/basic_nodes/IvyConstant.h"
+#include "autodiff/basic_nodes/IvyVariable.h"
+#include "autodiff/basic_nodes/IvyComplexVariable.h"
+#include "autodiff/basic_nodes/IvyTensor.h"
+#include "autodiff/arithmetic/IvyMathBaseArithmetic.h"
 
 
 int main(){
   using namespace std_ivy;
+  using namespace IvyMath;
 
   auto cplx = Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 1, 2);
   auto rvar = Variable<double>(std_ivy::IvyMemoryType::Host, nullptr, 3);
   auto rconst = Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 5);
+
+  __PRINT_INFO__("cplx = "); print_value(cplx);
+  __PRINT_INFO__("-cplx = "); print_value(-(*cplx));
+  __PRINT_INFO__("exp(cplx) = "); print_value(Exp(*cplx));
+  __PRINT_INFO__("ln(cplx) = "); print_value(Log(*cplx));
+  __PRINT_INFO__("cplx* = "); print_value(Conjugate(*cplx));
+  __PRINT_INFO__("Re(cplx) = "); print_value(Real(*cplx));
+  __PRINT_INFO__("Im(cplx) = "); print_value(Imag(*cplx));
 
   IvyTensorShape tshape({2, 3, 4});
   tshape.print();
