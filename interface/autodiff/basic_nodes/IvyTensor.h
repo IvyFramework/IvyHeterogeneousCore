@@ -142,10 +142,11 @@ namespace IvyMath{
     }
   };
   template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(IvyTensor<T> const& fcn, U const& var){
-      bool res = std_mem::addressof(fcn) == std_mem::addressof(var);
+    static __CUDA_HOST_DEVICE__ bool depends_on(IvyTensor<T> const& fcn, U* var){
+      if (!var) return false;
+      bool res = std_mem::addressof(fcn) == var;
       if (!res){
-        for (IvyTensorDim_t i=0; i<fcn.num_elements(); ++i){ res |= depends_on(fcn.at(i), var); if (res) break; }
+        for (IvyTensorDim_t i=0; i<fcn.num_elements(); ++i){ res |= IvyMath::depends_on(fcn.at(i), var); if (res) break; }
       }
       return res;
     }

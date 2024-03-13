@@ -5,6 +5,7 @@
 #include "autodiff/basic_nodes/IvyConstant.h"
 #include "autodiff/basic_nodes/IvyVariable.h"
 #include "autodiff/basic_nodes/IvyComplexVariable.h"
+#include "autodiff/basic_nodes/IvyFunction.h"
 #include "autodiff/arithmetic/IvyMathConstOps.h"
 #include "autodiff/IvyMathTypes.h"
 
@@ -19,10 +20,6 @@ namespace IvyMath{
     using value_t = convert_to_real_t<T>;
     static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(T const& x);
   };
-  template<typename T> struct RealFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = convert_to_real_t<T>;
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
-  };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename RealFcnal<T>::value_t Real(T const& x);
 
   // Get imaginary part of a variable
@@ -33,10 +30,6 @@ namespace IvyMath{
   template<typename T> struct ImagFcnal<T, complex_domain_tag>{
     using value_t = convert_to_real_t<T>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
-  };
-  template<typename T> struct ImagFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = convert_to_real_t<T>;
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
   };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename ImagFcnal<T>::value_t Imag(T const& x);
 
@@ -49,10 +42,6 @@ namespace IvyMath{
     using value_t = bool;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
   };
-  template<typename T> struct IsIntegerFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = bool;
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
-  };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename IsIntegerFcnal<T>::value_t IsInteger(T const& x);
 
   // Test to check whether value is real
@@ -63,10 +52,6 @@ namespace IvyMath{
   template<typename T> struct IsRealFcnal<T, complex_domain_tag>{
     using value_t = bool;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
-  };
-  template<typename T> struct IsRealFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = bool;
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
   };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename IsRealFcnal<T>::value_t IsReal(T const& x);
 
@@ -79,40 +64,29 @@ namespace IvyMath{
     using value_t = bool;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
   };
-  template<typename T> struct IsImaginaryFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = bool;
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
-  };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename IsImaginaryFcnal<T>::value_t IsImaginary(T const& x);
 
   // NEGATION
   template<typename T, typename domain_tag = get_domain_t<T>> struct NegateFcnal{
     using value_t = reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_t = value_t;
     static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ constexpr value_t eval(T const& x);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ constexpr grad_t gradient(T const& x);
   };
   template<typename T> struct NegateFcnal<T, real_domain_tag>{
     using value_t = reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_t = value_t;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ constexpr grad_t gradient(T const& x);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<T> const& x);
   };
   template<typename T> struct NegateFcnal<T, complex_domain_tag>{
     using value_t = reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_t = value_t;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ constexpr grad_t gradient(T const& x);
-  };
-  template<typename T> struct NegateFcnal<IvyThreadSafePtr_t<T>>{
-    using value_t = reduced_value_t<T>;
-    using dtype_t = reduced_data_t<value_t>;
-    using grad_t = value_t;
-    static __CUDA_HOST_DEVICE__ value_t eval(IvyThreadSafePtr_t<T>& x);
-    template<typename Fcn, typename Var> __CUDA_HOST_DEVICE__ grad_t gradient(Fcn* fcn, IvyThreadSafePtr_t<Var>& x);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<T> const& x);
   };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x);
   template<typename T, ENABLE_IF_BOOL(!std_ttraits::is_arithmetic_v<T> && !is_pointer_v<T>)>

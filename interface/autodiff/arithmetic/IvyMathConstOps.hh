@@ -3,7 +3,7 @@
 
 
 #include "config/IvyCompilerConfig.h"
-#include "autodiff/IvyComplexVariable.h"
+#include "autodiff/basic_nodes/IvyComplexVariable.h"
 #include "std_ivy/IvyTypeTraits.h"
 
 

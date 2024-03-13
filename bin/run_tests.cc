@@ -631,6 +631,14 @@ void utest_IvyVector_basic(IvyGPUStream& stream){
   __PRINT_INFO__("h_vec after pop_back...\n");
   for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
 
+  __PRINT_INFO__("Testing vector iterator difference between begin+1 and begin+4...\n");
+  {
+    auto it_begin1 = h_vec.begin()+1;
+    auto it_begin4 = h_vec.begin()+4;
+    __PRINT_INFO__("it_begin1->a = %f, it_begin4->a = %f\n", it_begin1->a, it_begin4->a);
+    __PRINT_INFO__("it_begin4-it_begin1 = %lld\n", it_begin4-it_begin1);
+  }
+
   __PRINT_INFO__("Testing vector functionality on GPU...\n");
   __PRINT_INFO__("Allocating d_vec...\n");
   std_vec::vector<dummy_D>* d_vec = vector_allocator_traits::allocate(1, IvyMemoryType::GPU, stream);

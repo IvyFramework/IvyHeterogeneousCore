@@ -40,10 +40,10 @@ namespace IvyMath{
     static __CUDA_HOST_DEVICE__ void conjugate(T*& x){ conjugate(*x); }
     static __CUDA_HOST_DEVICE__ bool is_differentiable(T* const& x){ return is_differentiable(*x); }
   };
-  template<typename T> struct IvyNodeSelfRelations<IvyThreadSafePtr_t<T>>{
+  template<typename T, std_mem::IvyPointerType IPT> struct IvyNodeSelfRelations<std_mem::IvyUnifiedPtr<T, IPT>>{
     static constexpr bool is_conjugatable = is_conjugatable<T>;
-    static __CUDA_HOST_DEVICE__ void conjugate(IvyThreadSafePtr_t<T>& x){ conjugate(*x); }
-    static __CUDA_HOST_DEVICE__ bool is_differentiable(IvyThreadSafePtr_t<T> const& x){ return is_differentiable(*x); }
+    static __CUDA_HOST_DEVICE__ void conjugate(std_mem::IvyUnifiedPtr<T, IPT>& x){ conjugate(*x); }
+    static __CUDA_HOST_DEVICE__ bool is_differentiable(std_mem::IvyUnifiedPtr<T, IPT> const& x){ return is_differentiable(*x); }
   };
 
   /*
@@ -55,33 +55,37 @@ namespace IvyMath{
   IvyNodeBinaryRelations::depends_on: Check if a function depends on a variable. By default, no function depends on any variable.
   */
   template<typename T, typename U> struct IvyNodeBinaryRelations{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, T const& var){ return (std_mem::addressof(fcn) == std_mem::addressof(var)); }
+    static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U* var){ return (std_mem::addressof(fcn) == var); }
   };
+  // Partial specializations for IvyNodeBinaryRelations
+  template<typename T, typename U> struct IvyNodeBinaryRelations<T*, U>{
+    static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U* var){
+      return fcn && IvyNodeBinaryRelations<T, U>::depends_on(*fcn, var);
+    }
+  };
+  template<typename T, typename U, std_mem::IvyPointerType IPU> struct IvyNodeBinaryRelations<T, std_mem::IvyUnifiedPtr<U, IPU>>{
+    static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, std_mem::IvyUnifiedPtr<U, IPU> const& var){
+      return var && IvyNodeBinaryRelations<T, U>::depends_on(fcn, var.get());
+    }
+  };
+  template<typename T, typename U, std_mem::IvyPointerType IPT> struct IvyNodeBinaryRelations<std_mem::IvyUnifiedPtr<T, IPT>, U>{
+    static __CUDA_HOST_DEVICE__ bool depends_on(std_mem::IvyUnifiedPtr<T, IPT> const& fcn, U* var){
+      return fcn && IvyNodeBinaryRelations<T, U>::depends_on(*fcn, var);
+    }
+  };
+  template<typename T, typename U, std_mem::IvyPointerType IPT, std_mem::IvyPointerType IPU>
+  struct IvyNodeBinaryRelations<std_mem::IvyUnifiedPtr<T, IPT>, std_mem::IvyUnifiedPtr<U, IPU>>{
+    static __CUDA_HOST_DEVICE__ bool depends_on(std_mem::IvyUnifiedPtr<T, IPT> const& fcn, std_mem::IvyUnifiedPtr<U, IPU> const& var){
+      return fcn && var && IvyNodeBinaryRelations<T, U>::depends_on(*fcn, var.get());
+    }
+  };
+
   /*
   depends_on: Convenience function to check if a function depends on a variable.
   */
   template<typename T, typename U> __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U const& var){
     return IvyNodeBinaryRelations<T, U>::depends_on(fcn, var);
   }
-  // Partial specializations
-  template<typename T, typename U> struct IvyNodeBinaryRelations<T, U*>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U* const& var){ return depends_on(fcn, *var); }
-  };
-  template<typename T, typename U> struct IvyNodeBinaryRelations<T*, U>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U const& var){ return depends_on(*fcn, var); }
-  };
-  template<typename T, typename U> struct IvyNodeBinaryRelations<T*, U*>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U* const& var){ return depends_on(*fcn, *var); }
-  };
-  template<typename T, typename U> struct IvyNodeBinaryRelations<T, IvyThreadSafePtr_t<U>>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U* const& var){ return depends_on(fcn, *var); }
-  };
-  template<typename T, typename U> struct IvyNodeBinaryRelations<IvyThreadSafePtr_t<T>, U>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U const& var){ return depends_on(*fcn, var); }
-  };
-  template<typename T, typename U> struct IvyNodeBinaryRelations<IvyThreadSafePtr_t<T>, IvyThreadSafePtr_t<U>>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(T* const& fcn, U* const& var){ return depends_on(*fcn, *var); }
-  };
 }
 
 

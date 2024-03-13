@@ -31,4 +31,13 @@ int main(){
   auto t3d = Tensor<double>(tshape.get_memory_type(), tshape.gpu_stream(), tshape, 5.);
   t3d->at({ 0,1,2 }) = 3.14;
   print_value(t3d);
+
+  using NegateEvaluator = NegateFcnal<std_ttraits::remove_reference_t<decltype(*cplx)>>;
+  auto grad_neg = NegateEvaluator::gradient(cplx);
+  __PRINT_INFO__("grad_neg(%s) = ", typeid(grad_neg).name());
+  print_value(grad_neg);
+
+  auto grad_cplx = function_gradient<decltype(cplx)>::get(cplx, rvar);
+  __PRINT_INFO__("grad_cplx(%s) = ", typeid(grad_cplx).name());
+  print_value(grad_cplx);
 }

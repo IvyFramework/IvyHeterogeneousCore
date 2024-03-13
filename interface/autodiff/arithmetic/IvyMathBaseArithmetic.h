@@ -12,10 +12,6 @@ namespace IvyMath{
   __CUDA_HOST_DEVICE__ RealFcnal<T, domain_tag>::value_t RealFcnal<T, domain_tag>::eval(T const& x){ return x; }
   template<typename T>
   __CUDA_HOST_DEVICE__ RealFcnal<T, complex_domain_tag>::value_t RealFcnal<T, complex_domain_tag>::eval(T const& x){ return x.Re(); }
-  template<typename T>
-  __CUDA_HOST_DEVICE__ RealFcnal<IvyThreadSafePtr_t<T>>::value_t RealFcnal<IvyThreadSafePtr_t<T>>::eval(
-    IvyThreadSafePtr_t<T>& x
-  ){ return Real(*x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename RealFcnal<T>::value_t Real(T const& x){ return RealFcnal<T>::eval(x); }
 
   // Get imaginary part of a variable
@@ -23,10 +19,6 @@ namespace IvyMath{
   __CUDA_HOST_DEVICE__ constexpr ImagFcnal<T, domain_tag>::value_t ImagFcnal<T, domain_tag>::eval(T const& x){ return Zero<value_t>(); }
   template<typename T>
   __CUDA_HOST_DEVICE__ ImagFcnal<T, complex_domain_tag>::value_t ImagFcnal<T, complex_domain_tag>::eval(T const& x){ return x.Im(); }
-  template<typename T>
-  __CUDA_HOST_DEVICE__ ImagFcnal<IvyThreadSafePtr_t<T>>::value_t ImagFcnal<IvyThreadSafePtr_t<T>>::eval(
-    IvyThreadSafePtr_t<T>& x
-  ){ return Imag(*x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename ImagFcnal<T>::value_t Imag(T const& x){ return ImagFcnal<T>::eval(x); }
 
   // Test to check whether value is an integer
@@ -38,10 +30,6 @@ namespace IvyMath{
   }
   template<typename T>
   __CUDA_HOST_DEVICE__ IsIntegerFcnal<T, complex_domain_tag>::value_t IsIntegerFcnal<T, complex_domain_tag>::eval(T const& x){ return IsIntegerFcnal::eval(x.Re()) && x.Im()==Zero<T>(); }
-  template<typename T>
-  __CUDA_HOST_DEVICE__ IsIntegerFcnal<IvyThreadSafePtr_t<T>>::value_t IsIntegerFcnal<IvyThreadSafePtr_t<T>>::eval(
-    IvyThreadSafePtr_t<T>& x
-  ){ return IsInteger(*x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename IsIntegerFcnal<T>::value_t IsInteger(T const& x){ return IsIntegerFcnal<T>::eval(x); }
 
   // Test to check whether value is real
@@ -49,10 +37,6 @@ namespace IvyMath{
   __CUDA_HOST_DEVICE__ constexpr IsRealFcnal<T, domain_tag>::value_t IsRealFcnal<T, domain_tag>::eval(T const& x){ return true; }
   template<typename T>
   __CUDA_HOST_DEVICE__ IsRealFcnal<T, complex_domain_tag>::value_t IsRealFcnal<T, complex_domain_tag>::eval(T const& x){ return x.Im()==Zero<T>(); }
-  template<typename T>
-  __CUDA_HOST_DEVICE__ IsRealFcnal<IvyThreadSafePtr_t<T>>::value_t IsRealFcnal<IvyThreadSafePtr_t<T>>::eval(
-    IvyThreadSafePtr_t<T>& x
-  ){ return IsReal(*x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename IsRealFcnal<T>::value_t IsReal(T const& x){ return IsRealFcnal<T>::eval(x); }
 
   // Test to check whether value is imaginary
@@ -60,31 +44,60 @@ namespace IvyMath{
   __CUDA_HOST_DEVICE__ constexpr IsImaginaryFcnal<T, domain_tag>::value_t IsImaginaryFcnal<T, domain_tag>::eval(T const& x){ return false; }
   template<typename T>
   __CUDA_HOST_DEVICE__ IsImaginaryFcnal<T, complex_domain_tag>::value_t IsImaginaryFcnal<T, complex_domain_tag>::eval(T const& x){ return x.Re()==Zero<T>() && x.Im()!=Zero<T>(); }
-  template<typename T>
-  __CUDA_HOST_DEVICE__ IsImaginaryFcnal<IvyThreadSafePtr_t<T>>::value_t IsImaginaryFcnal<IvyThreadSafePtr_t<T>>::eval(
-    IvyThreadSafePtr_t<T>& x
-  ){ return IsImaginary(*x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename IsImaginaryFcnal<T>::value_t IsImaginary(T const& x){ return IsImaginaryFcnal<T>::eval(x); }
 
   // NEGATION
   template<typename T, typename domain_tag>
   __CUDA_HOST_DEVICE__ constexpr NegateFcnal<T, domain_tag>::value_t NegateFcnal<T, domain_tag>::eval(T const& x){ return -x; }
-  template<typename T, typename domain_tag>
-  __CUDA_HOST_DEVICE__ constexpr NegateFcnal<T, domain_tag>::grad_t NegateFcnal<T, domain_tag>::gradient(T const& x){ return MinusOne<dtype_t>; }
   template<typename T>
   __CUDA_HOST_DEVICE__ NegateFcnal<T, real_domain_tag>::value_t NegateFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(-x.value()); }
   template<typename T>
-  __CUDA_HOST_DEVICE__ constexpr NegateFcnal<T, real_domain_tag>::grad_t NegateFcnal<T, real_domain_tag>::gradient(T const& x){
-    return value_t(MinusOne<dtype_t>);
+  __CUDA_HOST_DEVICE__ NegateFcnal<T, real_domain_tag>::grad_t NegateFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& x){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T>
   __CUDA_HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::value_t NegateFcnal<T, complex_domain_tag>::eval(T const& x){ return value_t(-x.Re(), -x.Im()); }
   template<typename T>
-  __CUDA_HOST_DEVICE__ constexpr NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(T const& x){
-    return value_t(MinusOne<dtype_t>);
+  __CUDA_HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& x){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!std_ttraits::is_arithmetic_v<T> && !is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
+
+  template<typename T> class IvyNegate : public IvyFunction<reduced_value_t<T>, get_domain_t<T>>{
+  public:
+    using base_t = IvyFunction<reduced_value_t<T>, get_domain_t<T>>;
+    using value_t = typename base_t::value_t;
+    using dtype_t = typename base_t::dtype_t;
+    using grad_t = typename base_t::grad_t;
+    using Evaluator = NegateFcnal<unpack_if_function_t<T>>;
+
+  protected:
+    IvyThreadSafePtr_t<T> dep;
+
+  public:
+    __CUDA_HOST__ IvyNegate(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
+    __CUDA_HOST__ IvyNegate(IvyNegate const& other) : base_t(other), dep(other.dep){}
+    __CUDA_HOST__ IvyNegate(IvyNegate&& other) : base_t(std::move(other)), dep(std::move(other.dep)){}
+
+    __CUDA_HOST__ void eval() const override{
+      //eval_fcn(dep); // The dependent could be a function itself, so we need to evaluate it first.
+      *(this->output) = Evaluator::eval(unpack_function_input<T>::get(*dep));
+    }
+    __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const override{
+      return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
+    }
+    __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override{
+      auto grad_dep = function_gradient<T>::get(*dep, var);
+      return Evaluator::gradient(dep)*grad_dep;
+    }
+  };
+  template<typename T, ENABLE_IF_BOOL_IMPL(!std_ttraits::is_arithmetic_v<T> && is_pointer_v<T>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> operator-(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr(def_mem_type, nullptr, IvyNegate(x));
+  }
+
 
   // MULTIPLICATIVE INVERSE
   template<typename T, typename domain_tag>

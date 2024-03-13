@@ -106,6 +106,14 @@ namespace IvyMath{
     using type = std_ttraits::conditional_t<is_function_v<T>, reduced_value_t<T>, T>;
   };
   template<typename T> using unpack_if_function_t = typename unpack_if_function_type<T>::type;
+  template<typename T, typename Operability = get_operability_t<T>> struct unpack_function_input{
+    using value_t = T;
+    static __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t; }
+  };
+  template<typename T> struct unpack_function_input<T, function_value_tag>{
+    using value_t = typename T::value_t;
+    static __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t.value(); }
+  };
 
   /*
   more_precise_fundamental_t:
