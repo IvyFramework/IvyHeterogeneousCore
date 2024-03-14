@@ -62,40 +62,31 @@ namespace IvyMath{
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!std_ttraits::is_arithmetic_v<T> && !is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_arithmetic_v<T> && !is_pointer_v<T>)> __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
 
-  template<typename T> class IvyNegate : public IvyFunction<reduced_value_t<T>, get_domain_t<T>>{
-  public:
-    using base_t = IvyFunction<reduced_value_t<T>, get_domain_t<T>>;
-    using value_t = typename base_t::value_t;
-    using dtype_t = typename base_t::dtype_t;
-    using grad_t = typename base_t::grad_t;
-    using Evaluator = NegateFcnal<unpack_if_function_t<T>>;
-
-  protected:
-    IvyThreadSafePtr_t<T> dep;
-
-  public:
-    __CUDA_HOST__ IvyNegate(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
-    __CUDA_HOST__ IvyNegate(IvyNegate const& other) : base_t(other), dep(other.dep){}
-    __CUDA_HOST__ IvyNegate(IvyNegate&& other) : base_t(std::move(other)), dep(std::move(other.dep)){}
-
-    __CUDA_HOST__ void eval() const override{
-      //eval_fcn(dep); // The dependent could be a function itself, so we need to evaluate it first.
-      *(this->output) = Evaluator::eval(unpack_function_input<T>::get(*dep));
-    }
-    __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const override{
-      return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
-    }
-    __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override{
-      auto grad_dep = function_gradient<T>::get(*dep, var);
-      return Evaluator::gradient(dep)*grad_dep;
-    }
-  };
-  template<typename T, ENABLE_IF_BOOL_IMPL(!std_ttraits::is_arithmetic_v<T> && is_pointer_v<T>)>
-  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> operator-(T const& x){
+  template<typename T> __CUDA_HOST__ IvyNegate<T>::IvyNegate(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
+  template<typename T> __CUDA_HOST__ IvyNegate<T>::IvyNegate(IvyNegate<T> const& other) : base_t(other), dep(other.dep){}
+  template<typename T> __CUDA_HOST__ IvyNegate<T>::IvyNegate(IvyNegate<T>&& other) : base_t(std_util::move(other)), dep(std_util::move(other.dep)){}
+  template<typename T> __CUDA_HOST__ void IvyNegate<T>::eval() const{
+    *(this->output) = Evaluator::eval(unpack_function_input<T>::get(*dep));
+  }
+  template<typename T> __CUDA_HOST__ bool IvyNegate<T>::depends_on(IvyBaseNode const* node) const{
+    return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
+  }
+  template<typename T> __CUDA_HOST__ IvyThreadSafePtr_t<typename IvyNegate<T>::grad_t> IvyNegate<T>::gradient(
+    IvyThreadSafePtr_t<IvyBaseNode> const& var
+  ) const{
+    auto grad_dep = function_gradient<T>::get(*dep, var);
+    return Evaluator::gradient(dep)*grad_dep;
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> Negate(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr(def_mem_type, nullptr, IvyNegate(x));
+    return make_IvyThreadSafePtr<IvyNegate<T>>(def_mem_type, nullptr, IvyNegate(x));
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> operator-(T const& x){
+    return Negate(x);
   }
 
 
@@ -385,24 +376,16 @@ namespace IvyMath{
     return value_t(x.value()+y.value());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, real_domain_tag>::grad_x_t AddFcnal<T, U, real_domain_tag, real_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(One<reduced_data_t<T>>());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, real_domain_tag>::grad_y_t AddFcnal<T, U, real_domain_tag, real_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(One<reduced_data_t<U>>());
+  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>());
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
     return value_t(x.Re()+y.Re(), x.Im()+y.Im());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_x_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(One<reduced_data_t<T>>());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_y_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(One<reduced_data_t<U>>());
+  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>());
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ AddFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t AddFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
@@ -425,29 +408,48 @@ namespace IvyMath{
     return value_t(x.value()+y.Re(), y.Im());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_x_t AddFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(One<reduced_data_t<T>>());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_y_t AddFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(One<reduced_data_t<U>>());
+  __CUDA_HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>());
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
     return value_t(x.Re()+y.value(), x.Im());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_x_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(One<reduced_data_t<T>>());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_y_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(One<reduced_data_t<U>>());
+  __CUDA_HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>());
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename AddFcnal<T, U>::value_t Add(T const& x, U const& y){ return AddFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename AddFcnal<T, U>::value_t operator+(T const& x, U const& y){ return Add(x, y); }
+
+  template<typename T, typename U> __CUDA_HOST__ IvyAdd<T, U>::IvyAdd(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
+  template<typename T, typename U> __CUDA_HOST__ IvyAdd<T, U>::IvyAdd(IvyAdd<T, U> const& other) : base_t(other), x(other.x), y(other.y){}
+  template<typename T, typename U> __CUDA_HOST__ IvyAdd<T, U>::IvyAdd(IvyAdd<T, U>&& other) :
+    base_t(std_util::move(other)), x(std_util::move(other.x)), y(std_util::move(other.y)){}
+  template<typename T, typename U> __CUDA_HOST__ void IvyAdd<T, U>::eval() const{
+    *(this->output) = Evaluator::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
+  }
+  template<typename T, typename U> __CUDA_HOST__ bool IvyAdd<T, U>::depends_on(IvyBaseNode const* node) const{
+    return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
+  }
+  template<typename T, typename U> __CUDA_HOST__ IvyThreadSafePtr_t<typename IvyAdd<T, U>::grad_t> IvyAdd<T, U>::gradient(
+    IvyThreadSafePtr_t<IvyBaseNode> const& var
+  ) const{
+    auto grad_x = function_gradient<T>::get(*x, var);
+    auto grad_y = function_gradient<U>::get(*y, var);
+    return Evaluator::gradient(0, x, y)*grad_x + Evaluator::gradient(1, x, y)*grad_y;
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<T, U>::base_t> Add(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyAdd<T, U>>(def_mem_type, nullptr, IvyAdd(x, y));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<T, U>::base_t> operator+(T const& x, U const& y){
+    return Add(x, y);
+  }
 
   // SUBTRACTION
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -518,7 +520,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t Subtract(T const& x, U const& y){ return SubtractFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t operator-(T const& x, U const& y){ return Subtract(x, y); }
 
   // MULTIPLICATION
@@ -529,24 +531,26 @@ namespace IvyMath{
     return value_t(x.value()*y.value());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::grad_x_t MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(y.value());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::grad_y_t MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(x.value());
+  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    switch (ivar){
+    case 0:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * y;
+    default:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * x;
+    }
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
     return value_t(x.Re()*y.Re() - x.Im()+y.Im(), x.Re()*y.Im() + x.Im()*y.Re());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_x_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(y.value());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_y_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(x.value());
+  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    switch (ivar){
+    case 0:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * y;
+    default:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * x;
+    }
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t MultiplyFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
@@ -569,29 +573,58 @@ namespace IvyMath{
     return value_t(x.value()*y.Re(), x.value()*y.Im());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_x_t MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(y.value());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_y_t MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(x.value());
+  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    switch (ivar){
+    case 0:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * y;
+    default:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * x;
+    }
   }
   template<typename T, typename U>
   __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
     return value_t(x.Re()*y.value(), x.Im()*y.value());
   }
   template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_x_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient_x(T const& x, U const& y){
-    return grad_x_t(y.value());
-  }
-  template<typename T, typename U>
-  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_y_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient_y(T const& x, U const& y){
-    return grad_y_t(x.value());
+  __CUDA_HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
+    switch (ivar){
+    case 0:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * y;
+    default:
+      return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * x;
+    }
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t Multiply(T const& x, U const& y){ return MultiplyFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t operator*(T const& x, U const& y){ return Multiply(x, y); }
+
+  template<typename T, typename U> __CUDA_HOST__ IvyMultiply<T, U>::IvyMultiply(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
+  template<typename T, typename U> __CUDA_HOST__ IvyMultiply<T, U>::IvyMultiply(IvyMultiply<T, U> const& other) : base_t(other), x(other.x), y(other.y){}
+  template<typename T, typename U> __CUDA_HOST__ IvyMultiply<T, U>::IvyMultiply(IvyMultiply<T, U>&& other) :
+    base_t(std_util::move(other)), x(std_util::move(other.x)), y(std_util::move(other.y)){}
+  template<typename T, typename U> __CUDA_HOST__ void IvyMultiply<T, U>::eval() const{
+    *(this->output) = Evaluator::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
+  }
+  template<typename T, typename U> __CUDA_HOST__ bool IvyMultiply<T, U>::depends_on(IvyBaseNode const* node) const{
+    return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
+  }
+  template<typename T, typename U> __CUDA_HOST__ IvyThreadSafePtr_t<typename IvyMultiply<T, U>::grad_t> IvyMultiply<T, U>::gradient(
+    IvyThreadSafePtr_t<IvyBaseNode> const& var
+  ) const{
+    auto grad_x = function_gradient<T>::get(*x, var);
+    auto grad_y = function_gradient<U>::get(*y, var);
+    return Evaluator::gradient(0, x, y)*grad_x + Evaluator::gradient(1, x, y)*grad_y;
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<T, U>::base_t> Multiply(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyMultiply<T, U>>(def_mem_type, nullptr, IvyMultiply(x, y));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<T, U>::base_t> operator+(T const& x, U const& y){
+    return Multiply(x, y);
+  }
 
   // DIVISION
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -670,7 +703,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename DivideFcnal<T, U>::value_t Divide(T const& x, U const& y){ return DivideFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __CUDA_HOST_DEVICE__ typename DivideFcnal<T, U>::value_t operator/(T const& x, U const& y){ return Divide(x, y); }
 
 }

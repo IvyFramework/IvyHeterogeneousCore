@@ -89,8 +89,33 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<T> const& x);
   };
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x);
-  template<typename T, ENABLE_IF_BOOL(!std_ttraits::is_arithmetic_v<T> && !is_pointer_v<T>)>
+  template<typename T, ENABLE_IF_BOOL(!is_arithmetic_v<T> && !is_pointer_v<T>)>
   __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x);
+
+  template<typename T> class IvyNegate : public IvyFunction<reduced_value_t<T>, get_domain_t<T>>{
+  public:
+    using base_t = IvyFunction<reduced_value_t<T>, get_domain_t<T>>;
+    using value_t = typename base_t::value_t;
+    using dtype_t = typename base_t::dtype_t;
+    using grad_t = typename base_t::grad_t;
+    using Evaluator = NegateFcnal<unpack_if_function_t<T>>;
+
+  protected:
+    IvyThreadSafePtr_t<T> dep;
+
+  public:
+    __CUDA_HOST__ IvyNegate(IvyThreadSafePtr_t<T> const& dep);
+    __CUDA_HOST__ IvyNegate(IvyNegate const& other);
+    __CUDA_HOST__ IvyNegate(IvyNegate&& other);
+
+    __CUDA_HOST__ void eval() const override;
+    __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const override;
+    __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
+  };
+  template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> Negate(T const& x);
+  template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<T>::base_t> operator-(T const& x);
 
   // MULTIPLICATIVE INVERSE
   template<typename T, typename domain_tag = get_domain_t<T>> struct MultInverseFcnal{
@@ -402,20 +427,18 @@ namespace IvyMath{
   template<typename T, typename U> struct AddFcnal<T, U, real_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = IvyConstant<reduced_data_t<T>>;
-    using grad_y_t = IvyConstant<reduced_data_t<U>>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, complex_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = IvyConstant<reduced_data_t<T>>;
-    using grad_y_t = IvyConstant<reduced_data_t<U>>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
@@ -440,25 +463,49 @@ namespace IvyMath{
   template<typename T, typename U> struct AddFcnal<T, U, real_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = IvyConstant<reduced_data_t<T>>;
-    using grad_y_t = IvyConstant<reduced_data_t<U>>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, complex_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = IvyConstant<reduced_data_t<T>>;
-    using grad_y_t = IvyConstant<reduced_data_t<U>>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename AddFcnal<T, U>::value_t Add(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename AddFcnal<T, U>::value_t operator+(T const& x, U const& y);
+
+  template<typename T, typename U> class IvyAdd : public IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>{
+  public:
+    using base_t = IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>;
+    using value_t = typename base_t::value_t;
+    using dtype_t = typename base_t::dtype_t;
+    using grad_t = typename base_t::grad_t;
+    using Evaluator = AddFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>;
+
+  protected:
+    IvyThreadSafePtr_t<T> x;
+    IvyThreadSafePtr_t<U> y;
+
+  public:
+    __CUDA_HOST__ IvyAdd(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
+    __CUDA_HOST__ IvyAdd(IvyAdd const& other);
+    __CUDA_HOST__ IvyAdd(IvyAdd&& other);
+
+    __CUDA_HOST__ void eval() const override;
+    __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const override;
+    __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
+  };
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<T, U>::base_t> Add(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<T, U>::base_t> operator+(T const& x, U const& y);
 
   // SUBTRACTION
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct SubtractFcnal{
@@ -524,7 +571,7 @@ namespace IvyMath{
   };
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t Subtract(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t operator-(T const& x, U const& y);
 
   // MULTIPLICATION
@@ -536,20 +583,18 @@ namespace IvyMath{
   template<typename T, typename U> struct MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = reduced_value_t<U>;
-    using grad_y_t = reduced_value_t<T>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = reduced_value_t<U>;
-    using grad_y_t = reduced_value_t<T>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
@@ -574,25 +619,49 @@ namespace IvyMath{
   template<typename T, typename U> struct MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = reduced_value_t<U>;
-    using grad_y_t = reduced_value_t<T>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
-    using grad_x_t = reduced_value_t<U>;
-    using grad_y_t = reduced_value_t<T>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
     static __CUDA_HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_x_t gradient_x(T const& x, U const& y);
-    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_y_t gradient_y(T const& x, U const& y);
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t Multiply(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t operator*(T const& x, U const& y);
+
+  template<typename T, typename U> class IvyMultiply : public IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>{
+  public:
+    using base_t = IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>;
+    using value_t = typename base_t::value_t;
+    using dtype_t = typename base_t::dtype_t;
+    using grad_t = typename base_t::grad_t;
+    using Evaluator = MultiplyFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>;
+
+  protected:
+    IvyThreadSafePtr_t<T> x;
+    IvyThreadSafePtr_t<U> y;
+
+  public:
+    __CUDA_HOST__ IvyMultiply(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
+    __CUDA_HOST__ IvyMultiply(IvyMultiply const& other);
+    __CUDA_HOST__ IvyMultiply(IvyMultiply&& other);
+
+    __CUDA_HOST__ void eval() const override;
+    __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const override;
+    __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
+  };
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<T, U>::base_t> Multiply(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<T, U>::base_t> operator*(T const& x, U const& y);
 
   // DIVISION
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct DivideFcnal{
@@ -658,7 +727,7 @@ namespace IvyMath{
   };
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename DivideFcnal<T, U>::value_t Divide(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL((!std_ttraits::is_arithmetic_v<T> || !std_ttraits::is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ typename DivideFcnal<T, U>::value_t operator*(T const& x, U const& y);
 
 }
