@@ -9,6 +9,7 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T Zero(){ return 0; }
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T OneHalf(){ return 0.5; }
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T One(){ return 1; }
+  template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T MinusOneHalf(){ return -0.5; }
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T MinusOne(){ return -1; }
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T Two(){ return 2; }
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> __CUDA_HOST_DEVICE__ constexpr T LogTwo(){ return 0.693147180559945309417232121458; }

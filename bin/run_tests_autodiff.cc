@@ -40,4 +40,12 @@ int main(){
   auto grad_cplx = function_gradient<decltype(cplx)>::get(cplx, rvar);
   __PRINT_INFO__("grad_cplx(%s) = ", typeid(grad_cplx).name());
   print_value(grad_cplx);
+
+  auto fcn_negate_cplx = -cplx;
+  __PRINT_INFO__("fcn_negate_cplx = ");
+  print_value(fcn_negate_cplx);
+
+  auto grad_fcn_negate_cplx = fcn_negate_cplx->gradient(rvar);
+  __PRINT_INFO__("grad_fcn_negate_cplx(%s) = ", typeid(grad_fcn_negate_cplx).name());
+  print_value(grad_fcn_negate_cplx);
 }
