@@ -83,7 +83,12 @@ namespace IvyMath{
   /*
   depends_on: Convenience function to check if a function depends on a variable.
   */
-  template<typename T, typename U> __HOST_DEVICE__ bool depends_on(T const& fcn, U const& var){
+  template<typename T, typename U, ENABLE_IF_BOOL(std_ttraits::is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U const& var){
+    return IvyNodeBinaryRelations<T, std_ttraits::remove_reference_t<decltype(*var)>>::depends_on(fcn, var);
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL(!std_ttraits::is_pointer_v<U>)>
+  __CUDA_HOST_DEVICE__ bool depends_on(T const& fcn, U const& var){
     return IvyNodeBinaryRelations<T, U>::depends_on(fcn, var);
   }
 }

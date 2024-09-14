@@ -61,7 +61,7 @@ namespace IvyMath{
     // Domain tag of the function
     using domain_tag = Domain;
     // Type of the output
-    using value_t = minimal_fcn_output_t<precision_type, domain_tag, get_operability_t<precision_type>>;
+    using value_t = minimal_fcn_output_t<reduced_data_t<precision_type>, domain_tag, get_operability_t<precision_type>>;
     // Data type of the output
     using dtype_t = reduced_data_t<value_t>;
     // Gradient type

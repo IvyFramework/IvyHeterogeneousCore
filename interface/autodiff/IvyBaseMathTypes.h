@@ -106,13 +106,34 @@ namespace IvyMath{
     using type = std_ttraits::conditional_t<is_function_v<T>, reduced_value_t<T>, T>;
   };
   template<typename T> using unpack_if_function_t = typename unpack_if_function_type<T>::type;
+
+  /*
+  unpack_function_input:
+  If T is a function type, unpack_function_input<T>::get(t) returns t.value().
+  Otherwise, it returns t.
+  */
   template<typename T, typename Operability = get_operability_t<T>> struct unpack_function_input{
     using value_t = T;
-    static __HOST_DEVICE__ value_t const& get(T const& t){ return t; }
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t; }
   };
   template<typename T> struct unpack_function_input<T, function_value_tag>{
     using value_t = typename T::value_t;
-    static __HOST_DEVICE__ value_t const& get(T const& t){ return t.value(); }
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t.value(); }
+  };
+
+  /*
+  unpack_function_input_reduced:
+  If T is a function type, unpack_function_input_reduced<T>::get(t) returns t.value().value().
+  Otherwise, if it is not an arithmetic type, it returns t.value().
+  If it is an arithmetic type, it returns t.
+  */
+  template<typename T, typename Domain = get_domain_t<T>> struct unpack_function_input_reduced{
+    using value_t = reduced_value_t<typename unpack_function_input<T>::value_t>;
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return unpack_function_input<T>::get(t).value(); }
+  };
+  template<typename T> struct unpack_function_input_reduced<T, arithmetic_domain_tag>{
+    using value_t = T;
+    static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t; }
   };
 
   /*
