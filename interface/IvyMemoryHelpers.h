@@ -46,14 +46,14 @@ namespace IvyMemoryHelpers{
     In device code, any allocation and object construction operations are always synchronous with the running thread.
   */
   template<typename T, typename... Args> struct allocate_memory_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool allocate_memory(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool allocate_memory(
       T*& data,
       size_t n
       , IvyMemoryType type
       , IvyGPUStream& stream
     );
   };
-  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool allocate_memory(
+  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool allocate_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -77,7 +77,7 @@ namespace IvyMemoryHelpers{
     In device code, any allocation and object construction operations are always synchronous with the running thread.
   */
   template<typename T, typename... Args> struct construct_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool construct(
       T*& data,
       size_t n
       , IvyMemoryType type
@@ -85,7 +85,7 @@ namespace IvyMemoryHelpers{
       , Args&&... args
     );
   };
-  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool construct(
+  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool construct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -111,7 +111,7 @@ namespace IvyMemoryHelpers{
   - stream: In host code, this is the CUDA stream to use for the allocation.
     In device code, any allocation and object buildion operations are always synchronous with the running thread.
   */
-  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool build(
+  template<typename T, typename... Args> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool build(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -142,14 +142,14 @@ namespace IvyMemoryHelpers{
     In device code, any deallocation operations are always synchronous with the running thread.
   */
   template<typename T> struct free_memory_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool free_memory(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool free_memory(
       T*& data,
       size_t n
       , IvyMemoryType type
       , IvyGPUStream& stream
     );
   };
-  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool free_memory(
+  template<typename T> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool free_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -172,7 +172,7 @@ namespace IvyMemoryHelpers{
     In device code, any deallocation operations are always synchronous with the running thread.
   */
   template<typename T> struct destruct_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destruct(
       T*& data,
       size_t n
       , IvyMemoryType type
@@ -181,7 +181,7 @@ namespace IvyMemoryHelpers{
   };
   /*
   template<typename T> struct destruct_fcnal<T*>{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destruct(
       T**& data,
       size_t n
       , IvyMemoryType type
@@ -189,7 +189,7 @@ namespace IvyMemoryHelpers{
     );
   };
   */
-  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destruct(
+  template<typename T> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool destruct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -211,7 +211,7 @@ namespace IvyMemoryHelpers{
   - stream: In host code, this is the CUDA stream to use for the deallocation.
     In device code, any deallocation operations are always synchronous with the running thread.
   */
-  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool destroy(
+  template<typename T> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool destroy(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -236,7 +236,7 @@ namespace IvyMemoryHelpers{
   - args: Arguments for the constructors of the elements.
   */
   template<typename T, typename... Args> struct construct_data_kernel : public kernel_base_noprep_nofin{
-    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data, Args&&... args);
+    static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data, Args&&... args);
   };
 
   /*
@@ -245,7 +245,7 @@ namespace IvyMemoryHelpers{
   - data: Pointer to the data array.
   */
   template<typename T> struct destruct_data_kernel : public kernel_base_noprep_nofin{
-    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data);
+    static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data);
   };
 
   /*
@@ -256,14 +256,14 @@ namespace IvyMemoryHelpers{
   - source: Pointer to the source data.
   */
   template<typename T, typename U> struct copy_data_kernel : public kernel_base_noprep_nofin{
-    static __CUDA_HOST_DEVICE__ void kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source);
+    static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source);
   };
 
 #ifdef __USE_CUDA__
   /*
   get_cuda_transfer_direction: Translates the target and source memory locations to the corresponding cudaMemcpyKind transfer type.
   */
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
+  __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
 #endif
 
   /*
@@ -277,13 +277,13 @@ namespace IvyMemoryHelpers{
     In device code, since cudaMemcpy is not available, we always use cudaMemcpyAsync instead.
   */
   template<typename T> struct transfer_memory_fcnal{
-    static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_memory(
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_memory(
       T*& tgt, T* const& src, size_t n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
       IvyGPUStream& stream
     );
   };
-  template<typename T> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ bool transfer_memory(
+  template<typename T> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool transfer_memory(
     T*& tgt, T* const& src, size_t n,
     IvyMemoryType type_tgt, IvyMemoryType type_src,
     IvyGPUStream& stream
@@ -299,7 +299,7 @@ namespace IvyMemoryHelpers{
   Overloads to allow passing raw cudaStream_t objects.
   */
 #ifdef __USE_CUDA__
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool allocate_memory(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool allocate_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -312,7 +312,7 @@ namespace IvyMemoryHelpers{
       , sr
     );
   }
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool construct(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool construct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -327,7 +327,7 @@ namespace IvyMemoryHelpers{
       , args...
     );
   }
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool build(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool build(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -342,7 +342,7 @@ namespace IvyMemoryHelpers{
       , args...
     );
   }
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool free_memory(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool free_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -355,7 +355,7 @@ namespace IvyMemoryHelpers{
       , sr
     );
   }
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destruct(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destruct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -368,7 +368,7 @@ namespace IvyMemoryHelpers{
       , sr
     );
   }
-  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool destroy(
+  template<typename T, typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destroy(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -381,7 +381,7 @@ namespace IvyMemoryHelpers{
       , sr
     );
   }
-  template<typename T> __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_memory(
+  template<typename T> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_memory(
     T*& tgt, T* const& src, size_t n,
     IvyMemoryType type_tgt, IvyMemoryType type_src,
     cudaStream_t stream
@@ -399,7 +399,7 @@ namespace IvyMemoryHelpers{
 
 // Definitions
 namespace IvyMemoryHelpers{
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool allocate_memory_fcnal<T, Args...>::allocate_memory(
+  template<typename T, typename... Args> __HOST_DEVICE__ bool allocate_memory_fcnal<T, Args...>::allocate_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -417,19 +417,19 @@ namespace IvyMemoryHelpers{
     bool const is_uni = is_unified_memory(type);
     if (is_gpu || is_uni || is_pl){
       if (is_gpu){
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocAsync((void**) &data, n*sizeof(T), stream));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaMallocAsync((void**) &data, n*sizeof(T), stream));
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("allocate_memory_fcnal::allocate_memory: Method = cudaMallocAsync, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
       }
       else if (is_pl){
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaHostAlloc((void**) &data, n*sizeof(T), cudaHostAllocDefault));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaHostAlloc((void**) &data, n*sizeof(T), cudaHostAllocDefault));
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("allocate_memory_fcnal::allocate_memory: Method = cudaHostAlloc, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
       }
       else if (is_uni){
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &data, n*sizeof(T), cudaMemAttachGlobal));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaMallocManaged((void**) &data, n*sizeof(T), cudaMemAttachGlobal));
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("allocate_memory_fcnal::allocate_memory: Method = cudaMallocManaged, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
@@ -437,14 +437,14 @@ namespace IvyMemoryHelpers{
           IvyCudaConfig::IvyDeviceNum_t dev_gpu = 0;
           int supports_prefetch = 0;
           if (
-            __CUDA_CHECK_SUCCESS__(cudaGetDevice(&dev_gpu))
+            __CHECK_SUCCESS__(cudaGetDevice(&dev_gpu))
             &&
-            __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&supports_prefetch, cudaDevAttrConcurrentManagedAccess, dev_gpu))
+            __CHECK_SUCCESS__(cudaDeviceGetAttribute(&supports_prefetch, cudaDevAttrConcurrentManagedAccess, dev_gpu))
             &&
             supports_prefetch==1
             ){
-            __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemPrefetchAsync(data, n*sizeof(T), cudaCpuDeviceId, stream));
-            __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemPrefetchAsync(data, n*sizeof(T), dev_gpu, stream));
+            __CHECK_OR_EXIT_WITH_ERROR__(cudaMemPrefetchAsync(data, n*sizeof(T), cudaCpuDeviceId, stream));
+            __CHECK_OR_EXIT_WITH_ERROR__(cudaMemPrefetchAsync(data, n*sizeof(T), dev_gpu, stream));
           }
         }
       }
@@ -461,7 +461,7 @@ namespace IvyMemoryHelpers{
   }
 
 
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ bool construct_fcnal<T, Args...>::construct(
+  template<typename T, typename... Args> __HOST_DEVICE__ bool construct_fcnal<T, Args...>::construct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -500,7 +500,7 @@ namespace IvyMemoryHelpers{
     return res;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ bool free_memory_fcnal<T>::free_memory(
+  template<typename T> __HOST_DEVICE__ bool free_memory_fcnal<T>::free_memory(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -521,19 +521,19 @@ namespace IvyMemoryHelpers{
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("free_memory_fcnal::free_memory: Method = cudaFreeAsync, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeAsync(data, stream));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaFreeAsync(data, stream));
       }
       else if (is_uni){
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("free_memory_fcnal::free_memory: Method = cudaFree, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFree(data));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaFree(data));
       }
       else{
 #ifdef __DEBUG_MEMORY__
         __PRINT_DEBUG__("free_memory_fcnal::free_memory: Method = cudaFreeHost, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
-        __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaFreeHost(data));
+        __CHECK_OR_EXIT_WITH_ERROR__(cudaFreeHost(data));
       }
     }
     else
@@ -548,7 +548,7 @@ namespace IvyMemoryHelpers{
     return true;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ bool destruct_fcnal<T>::destruct(
+  template<typename T> __HOST_DEVICE__ bool destruct_fcnal<T>::destruct(
     T*& data,
     size_t n
     , IvyMemoryType type
@@ -598,18 +598,18 @@ namespace IvyMemoryHelpers{
     return res;
   }
 
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ void construct_data_kernel<T, Args...>::kernel(size_t const& i, size_t const& n, T* data, Args&&... args){
+  template<typename T, typename... Args> __HOST_DEVICE__ void construct_data_kernel<T, Args...>::kernel(size_t const& i, size_t const& n, T* data, Args&&... args){
     if (kernel_check_dims<construct_data_kernel<T, Args...>>::check_dims(i, n)){
       //__PRINT_DEBUG__("Called construct_data_kernel::kernel for i=%llu, n=%llu, data=%p\n", i, n, data);
       new (data+i) T(std_util::forward<Args>(args)...);
     }
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ void destruct_data_kernel<T>::kernel(size_t const& i, size_t const& n, T* data){
+  template<typename T> __HOST_DEVICE__ void destruct_data_kernel<T>::kernel(size_t const& i, size_t const& n, T* data){
     if (kernel_check_dims<destruct_data_kernel<T>>::check_dims(i, n)) (data+i)->~T();
   }
 
-  template<typename T, typename U> __CUDA_HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
+  template<typename T, typename U> __HOST_DEVICE__ void copy_data_kernel<T, U>::kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source){
     if (!(n_src==n_tgt || n_src==1)){
 #if COMPILER == COMPILER_MSVC
       __PRINT_ERROR__("IvyMemoryHelpers::copy_data_kernel::kernel: Invalid values for n_tgt=%Iu, n_src=%Iu\n", n_tgt, n_src);
@@ -622,7 +622,7 @@ namespace IvyMemoryHelpers{
   }
 
 #ifdef __USE_CUDA__
-  __CUDA_HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src){
+  __HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src){
 #if (DEVICE_CODE == DEVICE_CODE_HOST)
     bool const tgt_on_device = is_gpu_memory(tgt);
     bool const tgt_on_host = is_host_memory(tgt);
@@ -646,7 +646,7 @@ namespace IvyMemoryHelpers{
   }
 #endif
 
-  template<typename T> __CUDA_HOST_DEVICE__ bool transfer_memory_fcnal<T>::transfer_memory(
+  template<typename T> __HOST_DEVICE__ bool transfer_memory_fcnal<T>::transfer_memory(
     T*& tgt, T* const& src, size_t n,
     IvyMemoryType type_tgt, IvyMemoryType type_src,
     IvyGPUStream& stream
@@ -657,7 +657,7 @@ namespace IvyMemoryHelpers{
     //__PRINT_DEBUG__("transfer_memory_fcnal::transfer_memory: Running on host code for type %s, %p -> %p\n", typeid(T).name(), src, tgt);
     auto dir = get_cuda_transfer_direction(type_tgt, type_src);
     //__PRINT_DEBUG__("Running transfer_memory_fcnal::transfer_memory: mem_type = %s, type = %s | size = %llu | %p (mem_type = %d) -> %p (mem_type = %d) | stream = %p\n", typeid(T).name(), n, src, int(type_src), tgt, int(type_tgt), stream.stream());
-    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
+    __CHECK_OR_EXIT_WITH_ERROR__(cudaMemcpyAsync(tgt, src, n*sizeof(T), dir, stream));
 #else
     //__PRINT_DEBUG__("transfer_memory_fcnal::transfer_memory: Running on device code, %p -> %p\n", src, tgt);
     memcpy(tgt, src, n*sizeof(T));

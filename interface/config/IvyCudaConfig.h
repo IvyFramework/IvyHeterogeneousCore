@@ -18,13 +18,13 @@ namespace IvyCudaConfig{
   using IvyBlockThread_signed_t = int;
   using IvyBlockThreadDim_t = dim3;
 
-  __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool check_GPU_usable(IvyBlockThreadDim_t& nreq_blocks, IvyBlockThreadDim_t& nreq_threads_per_block, unsigned long long int n){
+  __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool check_GPU_usable(IvyBlockThreadDim_t& nreq_blocks, IvyBlockThreadDim_t& nreq_threads_per_block, unsigned long long int n){
     nreq_blocks.x = nreq_blocks.y = nreq_blocks.z = 0;
     nreq_threads_per_block.x = nreq_threads_per_block.y = nreq_threads_per_block.z = 0;
     if (n==0) return false;
 
     IvyDeviceNum_t device_num = 0;
-    if (!__CUDA_CHECK_SUCCESS__(cudaGetDevice(&device_num))) return false;
+    if (!__CHECK_SUCCESS__(cudaGetDevice(&device_num))) return false;
 
     bool res = true;
     IvyBlockThread_signed_t max_threads_per_block_x_=0, max_threads_per_block_y_=0, max_threads_per_block_z_=0;
@@ -32,14 +32,14 @@ namespace IvyCudaConfig{
     IvyBlockThread_signed_t max_threads_per_block_sc_=0;
     IvyBlockThread_signed_t warp_size_ = 0;
     if (
-      __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_sc_, cudaDevAttrMaxThreadsPerBlock, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_x_, cudaDevAttrMaxBlockDimX, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_y_, cudaDevAttrMaxBlockDimY, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_z_, cudaDevAttrMaxBlockDimZ, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_x_, cudaDevAttrMaxGridDimX, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_y_, cudaDevAttrMaxGridDimY, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_z_, cudaDevAttrMaxGridDimZ, device_num))
-      && __CUDA_CHECK_SUCCESS__(cudaDeviceGetAttribute(&warp_size_, cudaDevAttrWarpSize, device_num))
+      __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_sc_, cudaDevAttrMaxThreadsPerBlock, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_x_, cudaDevAttrMaxBlockDimX, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_y_, cudaDevAttrMaxBlockDimY, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_threads_per_block_z_, cudaDevAttrMaxBlockDimZ, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_x_, cudaDevAttrMaxGridDimX, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_y_, cudaDevAttrMaxGridDimY, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&max_blocks_z_, cudaDevAttrMaxGridDimZ, device_num))
+      && __CHECK_SUCCESS__(cudaDeviceGetAttribute(&warp_size_, cudaDevAttrWarpSize, device_num))
       && max_threads_per_block_sc_>0
       && max_threads_per_block_x_>0 && max_threads_per_block_y_>0 && max_threads_per_block_z_>0
       && max_blocks_x_>0 && max_blocks_y_>0 && max_blocks_z_>0
@@ -90,7 +90,7 @@ namespace IvyCudaConfig{
     return res;
   }
 
-  __CUDA_HOST_DEVICE__ cudaStream_t get_GPU_stream_from_pointer(cudaStream_t* ptr){
+  __HOST_DEVICE__ cudaStream_t get_GPU_stream_from_pointer(cudaStream_t* ptr){
     return (ptr ? *ptr : GlobalGPUStreamRaw);
   }
 

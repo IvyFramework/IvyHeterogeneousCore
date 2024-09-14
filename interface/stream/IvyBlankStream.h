@@ -8,8 +8,8 @@
 
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void buildRawStream(BlankStream& st, unsigned int flags, unsigned int priority){}
-  template<> __CUDA_HOST_DEVICE__ void destroyRawStream(BlankStream& st){}
+  template<> __HOST_DEVICE__ void buildRawStream(BlankStream& st, unsigned int flags, unsigned int priority){}
+  template<> __HOST_DEVICE__ void destroyRawStream(BlankStream& st){}
 }
 
 class IvyBlankStream final : public IvyBaseStream<IvyStreamUtils::BlankStream>{
@@ -21,20 +21,20 @@ public:
     Default
   };
 
-  __CUDA_HOST__ IvyBlankStream(StreamFlags flags = StreamFlags::Default, int priority = 0) : Base_t(){}
-  __CUDA_HOST_DEVICE__ IvyBlankStream(IvyStreamUtils::BlankStream st, bool do_own) : Base_t(){}
-  __CUDA_HOST_DEVICE__ IvyBlankStream(IvyBlankStream const&) = delete;
-  __CUDA_HOST_DEVICE__ IvyBlankStream(IvyBlankStream const&&) = delete;
-  virtual __CUDA_HOST_DEVICE__ ~IvyBlankStream(){}
+  __HOST__ IvyBlankStream(StreamFlags flags = StreamFlags::Default, int priority = 0) : Base_t(){}
+  __HOST_DEVICE__ IvyBlankStream(IvyStreamUtils::BlankStream st, bool do_own) : Base_t(){}
+  __HOST_DEVICE__ IvyBlankStream(IvyBlankStream const&) = delete;
+  __HOST_DEVICE__ IvyBlankStream(IvyBlankStream const&&) = delete;
+  virtual __HOST_DEVICE__ ~IvyBlankStream(){}
 
-  __CUDA_HOST__ void synchronize(){}
+  __HOST__ void synchronize(){}
 
-  __CUDA_HOST__ void wait(Base_t::RawEvent_t& event, unsigned int wait_flags){}
-  __CUDA_HOST__ void wait(IvyBlankStreamEvent& event, IvyBlankStreamEvent::WaitFlags wait_flags = IvyBlankStreamEvent::WaitFlags::Default){}
+  __HOST__ void wait(Base_t::RawEvent_t& event, unsigned int wait_flags){}
+  __HOST__ void wait(IvyBlankStreamEvent& event, IvyBlankStreamEvent::WaitFlags wait_flags = IvyBlankStreamEvent::WaitFlags::Default){}
 
-  __CUDA_HOST_DEVICE__ void swap(IvyBlankStream& other){ Base_t::swap(other); }
+  __HOST_DEVICE__ void swap(IvyBlankStream& other){ Base_t::swap(other); }
 
-  static __CUDA_HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags){
+  static __HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags){
     switch (flags){
     case StreamFlags::Default:
       return 0;
@@ -44,7 +44,7 @@ public:
     }
     return 0;
   }
-  static __CUDA_HOST_DEVICE__ StreamFlags get_stream_flags_reverse(unsigned int const& flags){
+  static __HOST_DEVICE__ StreamFlags get_stream_flags_reverse(unsigned int const& flags){
     switch (flags){
     case 0:
       return StreamFlags::Default;
@@ -57,22 +57,22 @@ public:
 };
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void destroy_stream(IvyBlankStream*& stream){
+  template<> __HOST_DEVICE__ void destroy_stream(IvyBlankStream*& stream){
     delete stream;
     stream = nullptr;
   }
-  template<> __CUDA_HOST__ void make_stream(IvyBlankStream*& stream, IvyBlankStream::StreamFlags flags, unsigned int priority){
+  template<> __HOST__ void make_stream(IvyBlankStream*& stream, IvyBlankStream::StreamFlags flags, unsigned int priority){
     destroy_stream(stream);
     stream = new IvyBlankStream(flags, priority);
   }
-  template<> __CUDA_HOST__ void make_stream(IvyBlankStream*& stream, unsigned int flags, unsigned int priority){ make_stream(stream, IvyBlankStream::get_stream_flags_reverse(flags), priority); }
-  template<> __CUDA_HOST_DEVICE__ void make_stream(IvyBlankStream*& stream, IvyBlankStream::RawStream_t st, bool is_owned){
+  template<> __HOST__ void make_stream(IvyBlankStream*& stream, unsigned int flags, unsigned int priority){ make_stream(stream, IvyBlankStream::get_stream_flags_reverse(flags), priority); }
+  template<> __HOST_DEVICE__ void make_stream(IvyBlankStream*& stream, IvyBlankStream::RawStream_t st, bool is_owned){
     destroy_stream(stream);
     stream = new IvyBlankStream(st, is_owned);
   }
 }
 namespace std_util{
-  __CUDA_HOST_DEVICE__ void swap(IvyBlankStream& a, IvyBlankStream& b){ a.swap(b); }
+  __HOST_DEVICE__ void swap(IvyBlankStream& a, IvyBlankStream& b){ a.swap(b); }
 }
 
 

@@ -31,8 +31,8 @@ namespace IvyMath{
   - T = IvyFunction<U>, reduced_value_t = IvyFunction<U>::value_t, which is an IvyVariable/ComplexVariable/Tensor<R>.
   */
   template<typename T> struct reduced_value_type{
-    template<typename U> static __CUDA_HOST_DEVICE__ auto test_vtype(int) -> typename U::value_t;
-    template<typename U> static __CUDA_HOST_DEVICE__ auto test_vtype(...) -> T;
+    template<typename U> static __HOST_DEVICE__ auto test_vtype(int) -> typename U::value_t;
+    template<typename U> static __HOST_DEVICE__ auto test_vtype(...) -> T;
     using type = decltype(test_vtype<T>(0));
   };
   template<typename T> using reduced_value_t = typename reduced_value_type<T>::type;
@@ -48,8 +48,8 @@ namespace IvyMath{
   - T = IvyFunction<U>, reduced_data_t = IvyFunction<U>::dtype_t.
   */
   template<typename T> struct reduced_data_type{
-    template<typename U> static __CUDA_HOST_DEVICE__ auto test_dtype(int) -> typename U::dtype_t;
-    template<typename U> static __CUDA_HOST_DEVICE__ auto test_dtype(...) -> T;
+    template<typename U> static __HOST_DEVICE__ auto test_dtype(int) -> typename U::dtype_t;
+    template<typename U> static __HOST_DEVICE__ auto test_dtype(...) -> T;
     using type = decltype(test_dtype<T>(0));
   };
   template<typename T> using reduced_data_t = typename reduced_data_type<T>::type;
@@ -108,11 +108,11 @@ namespace IvyMath{
   template<typename T> using unpack_if_function_t = typename unpack_if_function_type<T>::type;
   template<typename T, typename Operability = get_operability_t<T>> struct unpack_function_input{
     using value_t = T;
-    static __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t; }
+    static __HOST_DEVICE__ value_t const& get(T const& t){ return t; }
   };
   template<typename T> struct unpack_function_input<T, function_value_tag>{
     using value_t = typename T::value_t;
-    static __CUDA_HOST_DEVICE__ value_t const& get(T const& t){ return t.value(); }
+    static __HOST_DEVICE__ value_t const& get(T const& t){ return t.value(); }
   };
 
   /*

@@ -12,7 +12,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = std_ttraits::remove_cv_t<T>;
 
-    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
+    __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type nb_T = sizeof(argument_type);
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
@@ -41,7 +41,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = char const*;
 
-    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
+    __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nbits_arg_el = sizeof(char)*8;
@@ -57,7 +57,7 @@ namespace ivy_hash_impl{
     using result_type = IvyTypes::size_t;
     using argument_type = char*;
 
-    __CUDA_HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
+    __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
       constexpr result_type nbits_arg_el = sizeof(char)*8;

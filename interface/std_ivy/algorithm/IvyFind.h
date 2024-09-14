@@ -8,7 +8,7 @@
 
 
 namespace std_ivy{
-  template<typename Iterator, typename T> __CUDA_HOST_DEVICE__ constexpr Iterator find(Iterator first, Iterator last, T const& v){
+  template<typename Iterator, typename T> __HOST_DEVICE__ constexpr Iterator find(Iterator first, Iterator last, T const& v){
     typename std_iter::iterator_traits<Iterator>::difference_type count = std_iter::distance(first, last) >> 2;
     for (; count > 0; --count){
       if (*first == v) return first;
@@ -36,7 +36,7 @@ namespace std_ivy{
     }
   }
 
-  template<typename Iterator, class UnaryPredicate> __CUDA_HOST_DEVICE__ constexpr Iterator find_if(Iterator first, Iterator last, UnaryPredicate p){
+  template<typename Iterator, class UnaryPredicate> __HOST_DEVICE__ constexpr Iterator find_if(Iterator first, Iterator last, UnaryPredicate p){
     typename std_iter::iterator_traits<Iterator>::difference_type count = std_iter::distance(first, last) >> 2;
     for (; count > 0; --count){
       if (p(*first)) return first;
@@ -64,7 +64,7 @@ namespace std_ivy{
     }
   }
 
-  template<typename Iterator, class UnaryPredicate> __CUDA_HOST_DEVICE__ constexpr Iterator find_if_not(Iterator first, Iterator last, UnaryPredicate p){
+  template<typename Iterator, class UnaryPredicate> __HOST_DEVICE__ constexpr Iterator find_if_not(Iterator first, Iterator last, UnaryPredicate p){
     typename std_iter::iterator_traits<Iterator>::difference_type count = std_iter::distance(first, last) >> 2;
     for (; count > 0; --count){
       if (!p(*first)) return first;

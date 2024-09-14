@@ -39,64 +39,64 @@ namespace IvyMath{
     IvyTensorDim_t nel; // Cached number of elements
 
     // Calculate the number of elements
-    __CUDA_HOST_DEVICE__ IvyTensorDim_t calc_num_elements() const;
+    __HOST_DEVICE__ IvyTensorDim_t calc_num_elements() const;
 
-    __CUDA_HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
+    __HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
 
   public:
-    __CUDA_HOST_DEVICE__ IvyTensorShape() : rank_(0), nel(0){}
-    __CUDA_HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
-    __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) : rank_(dims_.size()), dims(dims_, mem_type, stream), nel(this->calc_num_elements()){}
-    __CUDA_HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr), nel(this->calc_num_elements()){}
-    __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
-    __CUDA_HOST_DEVICE__ IvyTensorShape(IvyTensorShape&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
-    __CUDA_HOST_DEVICE__ ~IvyTensorShape(){}
+    __HOST_DEVICE__ IvyTensorShape() : rank_(0), nel(0){}
+    __HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
+    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) : rank_(dims_.size()), dims(dims_, mem_type, stream), nel(this->calc_num_elements()){}
+    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr), nel(this->calc_num_elements()){}
+    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
+    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
+    __HOST_DEVICE__ ~IvyTensorShape(){}
 
     // Assignment operator
-    __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape const& other);
-    __CUDA_HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape&& other);
+    __HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape const& other);
+    __HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape&& other);
 
     // Swap operation
-    __CUDA_HOST_DEVICE__ void swap(IvyTensorShape& other);
+    __HOST_DEVICE__ void swap(IvyTensorShape& other);
 
     // Get memory type and stream
-    __CUDA_HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return dims.get_memory_type(); }
-    __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return dims.gpu_stream(); }
+    __HOST_DEVICE__ std_ivy::IvyMemoryType get_memory_type() const{ return dims.get_memory_type(); }
+    __HOST_DEVICE__ IvyGPUStream* gpu_stream() const{ return dims.gpu_stream(); }
 
     // Get the total number of elements, i.e., product of the elements of the 'dims' vector
-    __CUDA_HOST_DEVICE__ IvyTensorDim_t const& num_elements() const{ return nel; }
+    __HOST_DEVICE__ IvyTensorDim_t const& num_elements() const{ return nel; }
 
     // Various get functions
-    __CUDA_HOST_DEVICE__ IvyTensorRank_t const& rank() const{ return rank_; }
-    __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> const& get_dimensions() const{ return dims; }
-    __CUDA_HOST_DEVICE__ IvyTensorDim_t const& get_dimension(IvyTensorRank_t const& iaxis) const;
+    __HOST_DEVICE__ IvyTensorRank_t const& rank() const{ return rank_; }
+    __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> const& get_dimensions() const{ return dims; }
+    __HOST_DEVICE__ IvyTensorDim_t const& get_dimension(IvyTensorRank_t const& iaxis) const;
 
     // Get absolute index given an ordered set of indices for each axis
-    __CUDA_HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const;
-    __CUDA_HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const;
+    __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const;
+    __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const;
 
     // Get map of indices after reordering axes
-    __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const;
+    __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const;
 
     // Get sliced shape along the specified axes at particular index positions.
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(IvyTensorRank_t const& axis) const;
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<IvyTensorRank_t> const& axes) const;
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<IvyTensorRank_t> const& axes) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(IvyTensorRank_t const& axis) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<IvyTensorRank_t> const& axes) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<IvyTensorRank_t> const& axes) const;
 
     // Convenience functions calling the versions above
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_util::pair<IvyTensorRank_t, IvyTensorDim_t> const& sp) const;
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
-    __CUDA_HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(std_util::pair<IvyTensorRank_t, IvyTensorDim_t> const& sp) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(std_ilist::initializer_list<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
+    __HOST_DEVICE__ IvyTensorShape get_slice_shape(std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const;
 
     // Get the shape of a tensor resulting from the contraction of two tensors
     // Notice that the order of uncontracted axes are preserved, and the new axes are ordered as those from s1 first, and then those from s2.
-    static __CUDA_HOST_DEVICE__ IvyTensorShape get_contraction_shape(
+    static __HOST_DEVICE__ IvyTensorShape get_contraction_shape(
       IvyTensorShape const& s1, IvyTensorShape const& s2,
       std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorRank_t>> const& contraction_axis_pairs,
       IvyTensorDim_t* uncontracted_nel_s1 = nullptr, IvyTensorDim_t* uncontracted_nel_s2 = nullptr,
       std_vec::vector<IvyTensorDim_t>* idx_reord_s1 = nullptr, std_vec::vector<IvyTensorDim_t>* idx_reord_s2 = nullptr
     );
-    static __CUDA_HOST_DEVICE__ IvyTensorShape get_contraction_shape(
+    static __HOST_DEVICE__ IvyTensorShape get_contraction_shape(
       IvyTensorShape const& s1, IvyTensorShape const& s2,
       std_util::pair<IvyTensorRank_t, IvyTensorRank_t> const& contraction_axes,
       IvyTensorDim_t* uncontracted_nel_s1 = nullptr, IvyTensorDim_t* uncontracted_nel_s2 = nullptr,
@@ -106,7 +106,7 @@ namespace IvyMath{
     }
 
     // Print the shape
-    void __CUDA_HOST_DEVICE__ print() const;
+    void __HOST_DEVICE__ print() const;
 
     friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensorShape>;
   };

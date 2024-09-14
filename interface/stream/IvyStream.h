@@ -41,7 +41,7 @@ using IvyStreamUtils::IvyGPUStream;
 
 #define GlobalGPUStream IvyGPUStream(GlobalGPUStreamRaw, false)
 namespace IvyStreamUtils{
-  __CUDA_HOST_DEVICE__ IvyGPUStream* make_global_gpu_stream(){ return make_stream<IvyGPUStream>(GlobalGPUStreamRaw, false); }
+  __HOST_DEVICE__ IvyGPUStream* make_global_gpu_stream(){ return make_stream<IvyGPUStream>(GlobalGPUStreamRaw, false); }
 }
 
 #define build_GPU_stream_reference_from_pointer(ptr, ref) \

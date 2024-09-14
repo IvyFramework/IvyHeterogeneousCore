@@ -6,7 +6,7 @@
 
 
 namespace faddeeva_impl{
-  template<typename T> __CUDA_HOST_DEVICE__ void cexp(T& re, T& im){
+  template<typename T> __HOST_DEVICE__ void cexp(T& re, T& im){
     IvyComplexVariable<T> val(re, im);
     val = IvyMath::Exp(val);
     re = val.Re();
@@ -14,7 +14,7 @@ namespace faddeeva_impl{
   }
 
   using faddeeva_impl_size_t = unsigned short;
-  template <typename T, faddeeva_impl_size_t N, faddeeva_impl_size_t NTAYLOR> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva_smabmq_impl(
+  template <typename T, faddeeva_impl_size_t N, faddeeva_impl_size_t NTAYLOR> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva_smabmq_impl(
     T zre, T zim, T const& tm,
     const T(&a)[N], const T* npi,
     const T(&taylorarr)[N * NTAYLOR * 2]
@@ -169,12 +169,12 @@ namespace faddeeva_impl{
       using namespace IvyMath;
       for (faddeeva_impl_size_t i=0; i<N; ++i) arr[i] = Pi<T>()*T(i);
     }
-    __CUDA_HOST_DEVICE__ const T* get() const{ return arr; }
+    __HOST_DEVICE__ const T* get() const{ return arr; }
   };
 }
 
 namespace IvyCerf{
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     constexpr faddeeva_impl::npicomp<T, 24> npicomp24;
@@ -366,7 +366,7 @@ namespace IvyCerf{
       );
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva_fast(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva_fast(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     constexpr faddeeva_impl::npicomp<T, 11> npicomp11;
@@ -430,7 +430,7 @@ namespace IvyCerf{
       );
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erfc(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     auto const zRe = z.Re();
@@ -445,7 +445,7 @@ namespace IvyCerf{
     return res;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erfc_fast(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc_fast(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     auto const zRe = z.Re();
@@ -460,7 +460,7 @@ namespace IvyCerf{
     return res;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erf(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     auto const zRe = z.Re();
@@ -474,7 +474,7 @@ namespace IvyCerf{
     return res;
   }
 
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erf_fast(IvyComplexVariable<T> const& z){
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf_fast(IvyComplexVariable<T> const& z){
     using namespace IvyMath;
 
     auto const zRe = z.Re();

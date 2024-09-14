@@ -35,8 +35,8 @@
 class IvyCudaStream;
 
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createStreamEvent(cudaEvent_t& ev);
-  template<> __CUDA_HOST_DEVICE__ void destroyStreamEvent(cudaEvent_t& ev);
+  template<> __HOST_DEVICE__ void createStreamEvent(cudaEvent_t& ev);
+  template<> __HOST_DEVICE__ void destroyStreamEvent(cudaEvent_t& ev);
 
   template<> struct StreamEvent<cudaStream_t>{ typedef cudaEvent_t type; };
 }
@@ -60,29 +60,29 @@ public:
     External
   };
 
-  __CUDA_HOST__ IvyCudaEvent(EventFlags flags = EventFlags::DisableTiming);
-  __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&) = delete;
-  __CUDA_HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&&) = delete;
-  virtual __CUDA_HOST_DEVICE__ ~IvyCudaEvent(){}
+  __HOST__ IvyCudaEvent(EventFlags flags = EventFlags::DisableTiming);
+  __HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&) = delete;
+  __HOST_DEVICE__ IvyCudaEvent(IvyCudaEvent const&&) = delete;
+  virtual __HOST_DEVICE__ ~IvyCudaEvent(){}
 
   // rcd_flags could be cudaEventRecordDefault or cudaEventRecordExternal.
-  __CUDA_HOST__ void record(cudaStream_t& stream, unsigned int rcd_flags);
-  __CUDA_HOST__ void record(IvyCudaStream& stream, RecordFlags rcd_flags = RecordFlags::Default);
-  __CUDA_HOST__ void record(cudaStream_t& stream, RecordFlags rcd_flags = RecordFlags::Default);
+  __HOST__ void record(cudaStream_t& stream, unsigned int rcd_flags);
+  __HOST__ void record(IvyCudaStream& stream, RecordFlags rcd_flags = RecordFlags::Default);
+  __HOST__ void record(cudaStream_t& stream, RecordFlags rcd_flags = RecordFlags::Default);
 
-  __CUDA_HOST__ void synchronize();
+  __HOST__ void synchronize();
 
-  __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start) const;
-  static __CUDA_HOST__ float elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end);
+  __HOST__ float elapsed_time(IvyCudaEvent const& start) const;
+  static __HOST__ float elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end);
 
-  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& other){ Base_t::swap(other); }
+  __HOST_DEVICE__ void swap(IvyCudaEvent& other){ Base_t::swap(other); }
 
-  static __CUDA_HOST_DEVICE__ unsigned int get_event_flags(EventFlags const& flags);
-  static __CUDA_HOST_DEVICE__ unsigned int get_record_flags(RecordFlags const& flags);
-  static __CUDA_HOST_DEVICE__ unsigned int get_wait_flags(WaitFlags const& flags);
+  static __HOST_DEVICE__ unsigned int get_event_flags(EventFlags const& flags);
+  static __HOST_DEVICE__ unsigned int get_record_flags(RecordFlags const& flags);
+  static __HOST_DEVICE__ unsigned int get_wait_flags(WaitFlags const& flags);
 };
 namespace std_util{
-  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b);
+  __HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b);
 }
 
 #endif

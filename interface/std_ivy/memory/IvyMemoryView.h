@@ -26,7 +26,7 @@ namespace std_ivy{
     bool do_own;
 
   public:
-    __CUDA_HOST_DEVICE__ memview(pointer const& ptr, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
       data(nullptr), s(1), n(1), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -51,7 +51,7 @@ namespace std_ivy{
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
-    __CUDA_HOST_DEVICE__ memview(reference ref, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(reference ref, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
       data(nullptr), s(1), n(1), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -77,7 +77,7 @@ namespace std_ivy{
       destroy_GPU_stream_reference_from_pointer(stream);
     }
 
-    __CUDA_HOST_DEVICE__ memview(pointer const& ptr, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
       data(nullptr), s(n_), n(n_), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -102,7 +102,7 @@ namespace std_ivy{
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
-    __CUDA_HOST_DEVICE__ memview(pointer const& ptr, size_type const& s_, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& s_, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
       data(nullptr), s(s_), n(n_), stream(stream_), recursive(recursive_)
     {
       assert(s<=n);
@@ -134,7 +134,7 @@ namespace std_ivy{
     memview& operator=(memview const&) = delete;
     memview& operator=(memview&&) = delete;
 
-    __CUDA_HOST_DEVICE__ ~memview(){
+    __HOST_DEVICE__ ~memview(){
       if (do_own){
         constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
         build_GPU_stream_reference_from_pointer(stream, ref_stream);
@@ -150,12 +150,12 @@ namespace std_ivy{
       }
     }
 
-    __CUDA_HOST_DEVICE__ pointer const& get() const{ return data; }
-    __CUDA_HOST_DEVICE__ size_type const& size() const{ return n; }
-    __CUDA_HOST_DEVICE__ reference operator[](size_type const& i) const{ return data[i]; }
-    __CUDA_HOST_DEVICE__ operator pointer() const{ return data; }
-    __CUDA_HOST_DEVICE__ reference operator*() const{ return *data; }
-    __CUDA_HOST_DEVICE__ pointer operator->() const{ return data; }
+    __HOST_DEVICE__ pointer const& get() const{ return data; }
+    __HOST_DEVICE__ size_type const& size() const{ return n; }
+    __HOST_DEVICE__ reference operator[](size_type const& i) const{ return data[i]; }
+    __HOST_DEVICE__ operator pointer() const{ return data; }
+    __HOST_DEVICE__ reference operator*() const{ return *data; }
+    __HOST_DEVICE__ pointer operator->() const{ return data; }
   };
 }
 

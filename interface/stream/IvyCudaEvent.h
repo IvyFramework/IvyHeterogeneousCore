@@ -10,19 +10,19 @@
 
 #ifdef __USE_CUDA__
 namespace IvyStreamUtils{
-  template<> __CUDA_HOST_DEVICE__ void createStreamEvent(cudaEvent_t& ev){
+  template<> __HOST_DEVICE__ void createStreamEvent(cudaEvent_t& ev){
 #ifndef __CUDA_DEVICE_CODE__
-    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventCreate(&ev));
+    __CHECK_OR_EXIT_WITH_ERROR__(cudaEventCreate(&ev));
 #endif
   }
-  template<> __CUDA_HOST_DEVICE__ void destroyStreamEvent(cudaEvent_t& ev){
+  template<> __HOST_DEVICE__ void destroyStreamEvent(cudaEvent_t& ev){
 #ifndef __CUDA_DEVICE_CODE__
-    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventDestroy(ev));
+    __CHECK_OR_EXIT_WITH_ERROR__(cudaEventDestroy(ev));
 #endif
   }
 }
 
-__CUDA_HOST__ IvyCudaEvent::IvyCudaEvent(EventFlags flags) : IvyBaseStreamEvent<cudaStream_t>()
+__HOST__ IvyCudaEvent::IvyCudaEvent(EventFlags flags) : IvyBaseStreamEvent<cudaStream_t>()
 {
   is_owned_ = true;
   flags_ = get_event_flags(flags);
@@ -30,36 +30,36 @@ __CUDA_HOST__ IvyCudaEvent::IvyCudaEvent(EventFlags flags) : IvyBaseStreamEvent<
   IvyStreamUtils::createStreamEvent(event_);
 }
 
-__CUDA_HOST__ void IvyCudaEvent::record(cudaStream_t& stream, unsigned int rcd_flags){
-  __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventRecordWithFlags(event_, stream, rcd_flags));
+__HOST__ void IvyCudaEvent::record(cudaStream_t& stream, unsigned int rcd_flags){
+  __CHECK_OR_EXIT_WITH_ERROR__(cudaEventRecordWithFlags(event_, stream, rcd_flags));
 }
-__CUDA_HOST__ void IvyCudaEvent::synchronize(){
-  __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventSynchronize(event_));
+__HOST__ void IvyCudaEvent::synchronize(){
+  __CHECK_OR_EXIT_WITH_ERROR__(cudaEventSynchronize(event_));
 }
 
-__CUDA_HOST__ void IvyCudaEvent::record(IvyCudaStream& stream, RecordFlags rcd_flags){
+__HOST__ void IvyCudaEvent::record(IvyCudaStream& stream, RecordFlags rcd_flags){
   this->record(stream.stream(), get_record_flags(rcd_flags));
 }
-__CUDA_HOST__ void IvyCudaEvent::record(cudaStream_t& stream, RecordFlags rcd_flags){
+__HOST__ void IvyCudaEvent::record(cudaStream_t& stream, RecordFlags rcd_flags){
   this->record(stream, get_record_flags(rcd_flags));
 }
 
-__CUDA_HOST__ float IvyCudaEvent::elapsed_time(IvyCudaEvent const& start) const{
+__HOST__ float IvyCudaEvent::elapsed_time(IvyCudaEvent const& start) const{
   float res = -1;
   if (flags_ != cudaEventDisableTiming && start.flags() != cudaEventDisableTiming){
-    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventElapsedTime(&res, start.event(), event_));
+    __CHECK_OR_EXIT_WITH_ERROR__(cudaEventElapsedTime(&res, start.event(), event_));
   }
   return res;
 }
-__CUDA_HOST__ float IvyCudaEvent::elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end){
+__HOST__ float IvyCudaEvent::elapsed_time(IvyCudaEvent const& start, IvyCudaEvent const& end){
   float res = -1;
   if (start.flags() != cudaEventDisableTiming && end.flags() != cudaEventDisableTiming){
-    __CUDA_CHECK_OR_EXIT_WITH_ERROR__(cudaEventElapsedTime(&res, start.event(), end.event()));
+    __CHECK_OR_EXIT_WITH_ERROR__(cudaEventElapsedTime(&res, start.event(), end.event()));
   }
   return res;
 }
 
-__CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_event_flags(EventFlags const& flags){
+__HOST_DEVICE__ unsigned int IvyCudaEvent::get_event_flags(EventFlags const& flags){
   switch (flags){
   case EventFlags::Default:
     return cudaEventDefault;
@@ -75,7 +75,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_event_flags(EventFlags const
   }
   return cudaEventDisableTiming;
 }
-__CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_record_flags(RecordFlags const& flags){
+__HOST_DEVICE__ unsigned int IvyCudaEvent::get_record_flags(RecordFlags const& flags){
   switch (flags){
   case RecordFlags::Default:
     return cudaEventRecordDefault;
@@ -87,7 +87,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_record_flags(RecordFlags con
   }
   return cudaEventRecordDefault;
 }
-__CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& flags){
+__HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& flags){
   switch (flags){
   case WaitFlags::Default:
     return cudaEventWaitDefault;
@@ -101,7 +101,7 @@ __CUDA_HOST_DEVICE__ unsigned int IvyCudaEvent::get_wait_flags(WaitFlags const& 
 }
 
 namespace std_util{
-  __CUDA_HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b){ a.swap(b); }
+  __HOST_DEVICE__ void swap(IvyCudaEvent& a, IvyCudaEvent& b){ a.swap(b); }
 }
 
 #endif

@@ -14,11 +14,11 @@ namespace _fcn_eval{
   using namespace IvyMath;
 
   template<typename T, ENABLE_IF_BOOL(is_arithmetic_v<T> || is_constant_v<T> || is_variable_v<T>)>
-  __CUDA_HOST_DEVICE__ void eval(T const&) __NOEXCEPT__ {}
+  __HOST_DEVICE__ void eval(T const&) __NOEXCEPT__ {}
   template<typename T, ENABLE_IF_BOOL(!is_tensor_v<T> && is_function_v<T>)>
-  __CUDA_HOST__ void eval(T& fcn){ fcn.eval(); }
+  __HOST__ void eval(T& fcn){ fcn.eval(); }
   template<typename T, ENABLE_IF_BOOL(is_tensor_v<T>)> // The type T being a function or not does not matter here. A call to value will return the tensor either way.
-  __CUDA_HOST__ void eval(T& fcn){
+  __HOST__ void eval(T& fcn){
     auto& tensor = fcn.value();
     IvyTensorDim_t const n = tensor.num_elements();
     for (IvyTensorDim_t i=0; i<n; ++i) _fcn_eval::eval(tensor[i]);
@@ -75,38 +75,38 @@ namespace IvyMath{
     std_mem::unique_ptr<value_t> output;
 
   public:
-    template<typename... Args> __CUDA_HOST__ IvyFunction(Args&&... default_value_args){
+    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
-    __CUDA_HOST__ IvyFunction(){
+    __HOST__ IvyFunction(){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
     }
-    __CUDA_HOST__ IvyFunction(IvyFunction const& other){
+    __HOST__ IvyFunction(IvyFunction const& other){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
-    __CUDA_HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
+    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
     ~IvyFunction() = default;
 
     // Function evaluator implementation
-    virtual __CUDA_HOST__ void eval() const = 0;
+    virtual __HOST__ void eval() const = 0;
     // Function gradient implementation
-    virtual __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const = 0;
+    virtual __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const = 0;
     // Since functions can only exist on the host, there is no issue with having a virtual depends_on call
-    virtual __CUDA_HOST__ bool depends_on(IvyBaseNode const* node) const{ return (this==node); }
+    virtual __HOST__ bool depends_on(IvyBaseNode const* node) const{ return (this==node); }
 
     // Value of the function
-    __CUDA_HOST__ value_t const& value() const{ this->eval(); return *output; }
+    __HOST__ value_t const& value() const{ this->eval(); return *output; }
 
-    template<typename Var> __CUDA_HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<Var> const& var) const{
+    template<typename Var> __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<Var> const& var) const{
       IvyThreadSafePtr_t<IvyBaseNode> base_var(var);
       return this->gradient(base_var);
     }
   };
   template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>> struct function_gradient{
-    static __CUDA_HOST__ IvyThreadSafePtr_t<T> get(
+    static __HOST__ IvyThreadSafePtr_t<T> get(
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
       return make_IvyThreadSafePtr<T>(
@@ -118,7 +118,7 @@ namespace IvyMath{
   };
   // TODO: Even if we specialize for the tensor domain, we also need to subspecialize for functions, pointers, and other types in the operabiility argument.
   template<typename T> struct function_gradient<T, tensor_domain_tag, get_operability_t<T>>{
-    static __CUDA_HOST__ IvyThreadSafePtr_t<T> get(
+    static __HOST__ IvyThreadSafePtr_t<T> get(
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
       using dtype_t = typename T::dtype_t;
@@ -131,14 +131,14 @@ namespace IvyMath{
     }
   };
   template<typename T> struct function_gradient<T, get_domain_t<T>, function_value_tag>{
-    static __CUDA_HOST__ IvyThreadSafePtr_t<typename T::grad_t> get(
+    static __HOST__ IvyThreadSafePtr_t<typename T::grad_t> get(
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
       return fcn.gradient(var);
     }
   };
   template<typename T, std_mem::IvyPointerType IPT> struct function_gradient<std_mem::IvyUnifiedPtr<T, IPT>>{
-    static __CUDA_HOST__ auto get(
+    static __HOST__ auto get(
       std_mem::IvyUnifiedPtr<T, IPT> const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
       return function_gradient<T>::get(*fcn, var);
@@ -148,15 +148,15 @@ namespace IvyMath{
   // Specializations for utilities
   template<typename... Args>
   struct IvyNodeSelfRelations<IvyFunction<Args...>>{
-    static __CUDA_HOST_DEVICE__ constexpr bool is_differentiable(IvyFunction<Args...> const& x){
+    static __HOST_DEVICE__ constexpr bool is_differentiable(IvyFunction<Args...> const& x){
       return true;
     }
-    static __CUDA_HOST_DEVICE__ void conjugate(IvyFunction<Args...>& x){ conjugate(x.value()); }
+    static __HOST_DEVICE__ void conjugate(IvyFunction<Args...>& x){ conjugate(x.value()); }
     static constexpr bool is_conjugatable = is_conjugatable<typename IvyFunction<Args...>::value_t>;
   };
   template<typename precision_type, typename Domain, typename U>
   struct IvyNodeBinaryRelations<IvyFunction<precision_type, Domain>, U>{
-    static __CUDA_HOST_DEVICE__ bool depends_on(IvyFunction<precision_type, Domain> const& fcn, U* var){
+    static __HOST_DEVICE__ bool depends_on(IvyFunction<precision_type, Domain> const& fcn, U* var){
       return fcn.depends_on(var);
     }
   };

@@ -11,10 +11,10 @@
 
 namespace std_ivy{
   template<typename T = void> struct multiplies{
-    __CUDA_HOST_DEVICE__ constexpr T operator()(T const& x, T const& y) const{ return x * y; }
+    __HOST_DEVICE__ constexpr T operator()(T const& x, T const& y) const{ return x * y; }
   };
   template<> struct multiplies<void>{
-    template<typename T, typename U> __CUDA_HOST_DEVICE__ constexpr auto operator()(T&& lhs, U&& rhs) const -> decltype(std_util::forward<T>(lhs) * std_util::forward<U>(rhs)){
+    template<typename T, typename U> __HOST_DEVICE__ constexpr auto operator()(T&& lhs, U&& rhs) const -> decltype(std_util::forward<T>(lhs) * std_util::forward<U>(rhs)){
       return std_util::forward<T>(lhs) * std_util::forward<U>(rhs);
     }
   };

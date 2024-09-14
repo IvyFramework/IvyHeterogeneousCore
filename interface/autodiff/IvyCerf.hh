@@ -70,7 +70,7 @@ namespace IvyCerf{
   * 7e-16. On a modern x86_64 machine, the routine is roughly three times as
   * fast than the old CERNLIB implementation and offers better accuracy.
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z);
   /** @brief evaluate Faddeeva function for complex argument (fast version)
   *
   * @author Manuel Schiller <manuel.schiller@nikhef.nl>
@@ -94,7 +94,7 @@ namespace IvyCerf{
   * and offers better accuracy than the latter (the relative error is roughly
   * a factor 280 smaller than the old interpolation/table lookup routine).
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> faddeeva_fast(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva_fast(IvyComplexVariable<T> const& z);
 
   /** @brief complex erf function
   *
@@ -103,7 +103,7 @@ namespace IvyCerf{
   *
   * Calculate erf(z) for complex z.
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erf(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf(IvyComplexVariable<T> const& z);
 
   /** @brief complex erf function (fast version)
   *
@@ -112,7 +112,7 @@ namespace IvyCerf{
   *
   * Calculate erf(z) for complex z. Use the code in faddeeva_fast to save some time.
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erf_fast(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf_fast(IvyComplexVariable<T> const& z);
   /** @brief complex erfc function
   *
   * @author Manuel Schiller <manuel.schiller@nikhef.nl>
@@ -120,7 +120,7 @@ namespace IvyCerf{
   *
   * Calculate erfc(z) for complex z.
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erfc(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc(IvyComplexVariable<T> const& z);
   /** @brief complex erfc function (fast version)
   *
   * @author Manuel Schiller <manuel.schiller@nikhef.nl>
@@ -128,7 +128,7 @@ namespace IvyCerf{
   *
   * Calculate erfc(z) for complex z. Use the code in faddeeva_fast to save some time.
   */
-  template<typename T> __CUDA_HOST_DEVICE__ IvyComplexVariable<T> erfc_fast(IvyComplexVariable<T> const& z);
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc_fast(IvyComplexVariable<T> const& z);
 }
 
 #endif

@@ -13,25 +13,25 @@
 
 
 namespace IvyMath{
-  __CUDA_HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape const& other){
+  __HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape const& other){
     this->rank_ = other.rank_;
     this->dims = other.dims;
     this->nel = other.nel;
     return *this;
   }
-  __CUDA_HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape&& other){
+  __HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape&& other){
     this->rank_ = std_util::move(other.rank_);
     this->dims = std_util::move(other.dims);
     this->nel = std_util::move(other.nel);
     return *this;
   }
-  __CUDA_HOST_DEVICE__ void IvyTensorShape::swap(IvyTensorShape& other){
+  __HOST_DEVICE__ void IvyTensorShape::swap(IvyTensorShape& other){
     std_util::swap(this->rank_, other.rank_);
     std_util::swap(this->dims, other.dims);
     std_util::swap(this->nel, other.nel);
   }
 
-  __CUDA_HOST_DEVICE__ bool IvyTensorShape::transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
+  __HOST_DEVICE__ bool IvyTensorShape::transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
     bool res = true;
     constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = dims.gpu_stream();
@@ -45,12 +45,12 @@ namespace IvyMath{
   }
 
 
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t const& IvyTensorShape::get_dimension(IvyTensorRank_t const& iaxis) const{
+  __HOST_DEVICE__ IvyTensorDim_t const& IvyTensorShape::get_dimension(IvyTensorRank_t const& iaxis) const{
     if (iaxis>=rank_) __PRINT_ERROR__("IvyTensorShape::get_dimension: Axis index %hu exceeds rank = %hu.\n", iaxis, rank_);
     return dims.at(iaxis);
   }
 
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::calc_num_elements() const{
+  __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::calc_num_elements() const{
     if (dims.empty()) return 0;
     constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto const mem_type = this->get_memory_type();
@@ -83,7 +83,7 @@ namespace IvyMath{
     return res;
   }
 
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const{
+  __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const{
     if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
     constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto const mem_type = this->get_memory_type();
@@ -123,7 +123,7 @@ namespace IvyMath{
 
     return res;
   }
-  __CUDA_HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{
+  __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{
     if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
 
     constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -155,7 +155,7 @@ namespace IvyMath{
     return res;
   }
 
-  __CUDA_HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> IvyTensorShape::get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const{
+  __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> IvyTensorShape::get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto const mem_type = this->get_memory_type();
     auto stream = this->gpu_stream();
@@ -202,8 +202,8 @@ namespace IvyMath{
     return res;
   }
 
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(IvyTensorRank_t const& iaxis) const{ return get_slice_shape({ iaxis }); }
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_vec::vector<IvyTensorRank_t> const& axes) const{
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(IvyTensorRank_t const& iaxis) const{ return get_slice_shape({ iaxis }); }
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_vec::vector<IvyTensorRank_t> const& axes) const{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto const mem_type = this->get_memory_type();
     auto stream = this->gpu_stream();
@@ -239,7 +239,7 @@ namespace IvyMath{
 
     return IvyTensorShape(dims_new);
   }
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_ilist::initializer_list<IvyTensorRank_t> const& axes) const{
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_ilist::initializer_list<IvyTensorRank_t> const& axes) const{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto const mem_type = this->get_memory_type();
     auto stream = this->gpu_stream();
@@ -267,19 +267,19 @@ namespace IvyMath{
     return IvyTensorShape(dims_new);
   }
 
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_util::pair<IvyTensorRank_t, IvyTensorDim_t> const& sp) const{ return get_slice_shape({ sp.first }); }
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_ilist::initializer_list<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const{
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_util::pair<IvyTensorRank_t, IvyTensorDim_t> const& sp) const{ return get_slice_shape({ sp.first }); }
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_ilist::initializer_list<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const{
     std_vec::vector<IvyTensorRank_t> axes; axes.reserve(sps.size(), IvyMemoryHelpers::get_execution_default_memory(), this->gpu_stream());
     for (auto const& sp:sps) axes.emplace_back(sp.first);
     return get_slice_shape(axes);
   }
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const{
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_slice_shape(std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorDim_t>> const& sps) const{
     std_vec::vector<IvyTensorRank_t> axes; axes.reserve(sps.size(), IvyMemoryHelpers::get_execution_default_memory(), this->gpu_stream());
     for (auto const& sp:sps) axes.emplace_back(sp.first);
     return get_slice_shape(axes);
   }
 
-  __CUDA_HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_contraction_shape(
+  __HOST_DEVICE__ IvyTensorShape IvyTensorShape::get_contraction_shape(
     IvyTensorShape const& s1, IvyTensorShape const& s2,
     std_vec::vector<std_util::pair<IvyTensorRank_t, IvyTensorRank_t>> const& contraction_axis_pairs,
     IvyTensorDim_t* uncontracted_nel_s1, IvyTensorDim_t* uncontracted_nel_s2,
@@ -370,7 +370,7 @@ namespace IvyMath{
     return IvyTensorShape(dims);
   }
 
-  __CUDA_HOST_DEVICE__ void IvyTensorShape::print() const{
+  __HOST_DEVICE__ void IvyTensorShape::print() const{
 #ifndef __CUDA_DEVICE_CODE__
     __PRINT_INFO__("IvyTensorShape rank = %hu with dimensions {", rank_);
     bool first = true;

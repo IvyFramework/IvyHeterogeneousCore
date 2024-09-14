@@ -11,8 +11,8 @@
 #define __UMAPTPLARGS__ <Key, T, Hash, KeyEqual, HashEqual, Allocator>
 
 namespace std_ivy{
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(){}
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap const& v){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(){}
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap const& v){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
     data_container* ptr_data = std_mem::addressof(_data);
@@ -25,16 +25,16 @@ namespace std_ivy{
     );
     this->reset_iterator_builder();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap&& v) :
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(IvyUnorderedMap&& v) :
     _data(std_util::move(v._data)),
     _iterator_builder(std_util::move(v._iterator_builder))
   {}
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::~IvyUnorderedMap(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::~IvyUnorderedMap(){
     this->destroy_iterator_builder();
     _data.reset();
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__ const& v){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__ const& v){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.get_gpu_stream();
     _data.reset();
@@ -49,20 +49,20 @@ namespace std_ivy{
     this->reset_iterator_builder();
     return *this;
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__&& v){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__& IvyUnorderedMap __UMAPTPLARGS__::operator=(IvyUnorderedMap __UMAPTPLARGS__&& v){
     _data = std_util::move(v._data);
     _iterator_builder = std_util::move(v._iterator_builder);
     return *this;
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::data_container const& IvyUnorderedMap __UMAPTPLARGS__::get_data_container() const{ return _data; }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyMemoryType IvyUnorderedMap __UMAPTPLARGS__::get_memory_type() const{ return _data.get_memory_type(); }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyGPUStream* IvyUnorderedMap __UMAPTPLARGS__::gpu_stream() const{ return _data.gpu_stream(); }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::data_container const& IvyUnorderedMap __UMAPTPLARGS__::get_data_container() const{ return _data; }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyMemoryType IvyUnorderedMap __UMAPTPLARGS__::get_memory_type() const{ return _data.get_memory_type(); }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyGPUStream* IvyUnorderedMap __UMAPTPLARGS__::gpu_stream() const{ return _data.gpu_stream(); }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::destroy_iterator_builder(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::destroy_iterator_builder(){
     _iterator_builder.reset();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::reset_iterator_builder(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::reset_iterator_builder(){
     auto const mem_type = _data.get_memory_type();
     auto const& stream = _data.gpu_stream();
     auto const s = this->bucket_count();
@@ -70,7 +70,7 @@ namespace std_ivy{
     auto ptr = _data.get();
     _iterator_builder.reset(ptr, s, c, mem_type, stream);
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old){
     bool res = true;
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = _data.gpu_stream();
@@ -85,112 +85,112 @@ namespace std_ivy{
     return res;
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reference IvyUnorderedMap __UMAPTPLARGS__::front(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reference IvyUnorderedMap __UMAPTPLARGS__::front(){
     return *(_iterator_builder.front());
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reference IvyUnorderedMap __UMAPTPLARGS__::front() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reference IvyUnorderedMap __UMAPTPLARGS__::front() const{
     return *(_iterator_builder.cfront());
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reference IvyUnorderedMap __UMAPTPLARGS__::back(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reference IvyUnorderedMap __UMAPTPLARGS__::back(){
     return *(_iterator_builder.back());
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reference IvyUnorderedMap __UMAPTPLARGS__::back() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reference IvyUnorderedMap __UMAPTPLARGS__::back() const{
     return *(_iterator_builder.cback());
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::begin(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::begin(){
     return _iterator_builder.begin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::end(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::end(){
     return _iterator_builder.end();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rbegin(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rbegin(){
     return _iterator_builder.rbegin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rend(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rend(){
     return _iterator_builder.rend();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::begin() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::begin() const{
     return _iterator_builder.cbegin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::cbegin() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::cbegin() const{
     return _iterator_builder.cbegin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::end() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::end() const{
     return _iterator_builder.cend();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::cend() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::cend() const{
     return _iterator_builder.cend();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rbegin() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rbegin() const{
     return _iterator_builder.crbegin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::crbegin() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::crbegin() const{
     return _iterator_builder.crbegin();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rend() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::rend() const{
     return _iterator_builder.crend();
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::crend() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_reverse_iterator IvyUnorderedMap __UMAPTPLARGS__::crend() const{
     return _iterator_builder.crend();
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::empty() const{ return this->size()==0; }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::size() const{ return _iterator_builder.n_valid_iterators(); }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ constexpr IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::max_size() const{ return std_limits::numeric_limits<size_type>::max(); }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::capacity() const{ return _iterator_builder.n_capacity_valid_iterators(); }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ bool IvyUnorderedMap __UMAPTPLARGS__::empty() const{ return this->size()==0; }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::size() const{ return _iterator_builder.n_valid_iterators(); }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ constexpr IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::max_size() const{ return std_limits::numeric_limits<size_type>::max(); }
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::capacity() const{ return _iterator_builder.n_capacity_valid_iterators(); }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::clear(){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::clear(){
     _data.reset();
     this->reset_iterator_builder();
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::get_predicted_bucket_count() const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::get_predicted_bucket_count() const{
     return KeyEqual::bucket_size(this->size(), this->capacity());
   }
 
   template __UMAPTPLARGSINIT__
-    __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::swap(IvyUnorderedMap __UMAPTPLARGS__& v){
+    __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::swap(IvyUnorderedMap __UMAPTPLARGS__& v){
     std_util::swap(_data, v._data);
     std_util::swap(_iterator_builder, v._iterator_builder);
   }
 
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::bucket_count() const{
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::bucket_count() const{
     return _data.size();
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::bucket_capacity() const{
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::bucket_capacity() const{
     return _data.capacity();
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ constexpr IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::max_bucket_count() const{
+  __HOST_DEVICE__ constexpr IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::max_bucket_count() const{
     return std_limits::numeric_limits<size_type>::max();
   }
 
   // find functions
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find_iterator(Key const& key) const{
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find_iterator(Key const& key) const{
     // Implemented in terms of _iterator_builder.begin/end because this is a const function, and const overloads of begin/end return const_iterator, not iterator.
     for (auto it = _iterator_builder.begin(); it!=_iterator_builder.end(); ++it){ if (it->first==key) return it; }
     return _iterator_builder.end();
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find_const_iterator(Key const& key) const{
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find_const_iterator(Key const& key) const{
     for (auto it = this->cbegin(); it!=this->cend(); ++it){ if (it->first==key) return it; }
     return this->cend();
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key){
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key){
     return this->find_iterator(key);
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key) const{
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::const_iterator IvyUnorderedMap __UMAPTPLARGS__::find(Key const& key) const{
     return this->find_const_iterator(key);
   }
 
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::calculate_data_size_capacity(IvyUnorderedMap __UMAPTPLARGS__::size_type& n_size, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_capacity) const{
+  __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::calculate_data_size_capacity(IvyUnorderedMap __UMAPTPLARGS__::size_type& n_size, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_capacity) const{
     n_size = n_capacity = 0;
     if (!_data) return;
 
@@ -209,7 +209,7 @@ namespace std_ivy{
     }
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__
   IvyUnorderedMap __UMAPTPLARGS__::data_container IvyUnorderedMap __UMAPTPLARGS__::get_rehashed_data(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets) const{
     size_type const current_n_size_buckets = this->bucket_count();
 
@@ -293,7 +293,7 @@ namespace std_ivy{
 
     return new_data;
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__
   void IvyUnorderedMap __UMAPTPLARGS__::rehash(IvyUnorderedMap __UMAPTPLARGS__::size_type new_n_buckets){
     if (!_data) return;
     size_type const current_n_capacity_buckets = this->bucket_capacity();
@@ -304,11 +304,11 @@ namespace std_ivy{
 
   // insert functions
   template __UMAPTPLARGSINIT__ template<typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::emplace(
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::emplace(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
   ){ return this->insert(mem_type, stream, key, args...); }
   template __UMAPTPLARGSINIT__ template<typename... Args>
-  __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::insert_impl(
+  __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::insert_impl(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
   ){
     size_type const current_size = this->size();
@@ -426,7 +426,7 @@ namespace std_ivy{
     }
   }
   template __UMAPTPLARGSINIT__ template<typename... Args>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
     IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args
   ){
     this->insert_impl(mem_type, stream, key, args...);
@@ -437,7 +437,7 @@ namespace std_ivy{
     return find_iterator(key);
   }
   template __UMAPTPLARGSINIT__ template<typename InputIterator>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
     InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
     InputIterator it = first;
@@ -452,7 +452,7 @@ namespace std_ivy{
 
     return find_iterator(first->first);
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::iterator IvyUnorderedMap __UMAPTPLARGS__::insert(
     std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream
   ){
     if (!_data) return iterator();
@@ -466,7 +466,7 @@ namespace std_ivy{
   }
 
   // erase functions
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::erase_impl(Key const& key, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_erased){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ void IvyUnorderedMap __UMAPTPLARGS__::erase_impl(Key const& key, IvyUnorderedMap __UMAPTPLARGS__::size_type& n_erased){
     if (!_data) return iterator();
     IvyUnorderedMap __UMAPTPLARGS__::iterator res = this->end();
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -529,7 +529,7 @@ namespace std_ivy{
     }
   }
   template __UMAPTPLARGSINIT__
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(Key const& key){
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(Key const& key){
     size_type n_erased = 0;
     this->erase_impl(key, n_erased);
 
@@ -542,7 +542,7 @@ namespace std_ivy{
     return n_erased;
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator pos){
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator pos){
     size_type n_erased = 0;
     if (!_data || !pos.is_valid()) return n_erased;
     key_type const& key = pos->first;
@@ -557,7 +557,7 @@ namespace std_ivy{
     return n_erased;
   }
   template __UMAPTPLARGSINIT__ template<typename PosIterator>
-  __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator first, PosIterator last){
+  __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::size_type IvyUnorderedMap __UMAPTPLARGS__::erase(PosIterator first, PosIterator last){
     size_type n_erased = 0;
     if (!_data) return n_erased;
     while (first!=last){
@@ -574,7 +574,7 @@ namespace std_ivy{
     return n_erased;
   }
 
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type const& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key) const{
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type const& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key) const{
     if (!_data){
       __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called on an empty map.");
       assert(false);
@@ -609,7 +609,7 @@ namespace std_ivy{
     assert(false);
     return this->begin()->second;
   }
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator[](Key const& key){
     if (!_data){
       __PRINT_ERROR__("IvyUnorderedMap::operator[] cannot be called on an empty map.");
       assert(false);
@@ -644,23 +644,23 @@ namespace std_ivy{
     assert(false);
     return this->begin()->second;
   }
-  template __UMAPTPLARGSINIT__ template<typename... Args> __CUDA_HOST_DEVICE__
+  template __UMAPTPLARGSINIT__ template<typename... Args> __HOST_DEVICE__
   IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args){
     this->emplace(mem_type, stream, key, args...);
     return this->operator[](key);
   }
-  template __UMAPTPLARGSINIT__ template<typename... Args> __CUDA_HOST_DEVICE__
+  template __UMAPTPLARGSINIT__ template<typename... Args> __HOST_DEVICE__
   IvyUnorderedMap __UMAPTPLARGS__::mapped_type& IvyUnorderedMap __UMAPTPLARGS__::operator()(Key const& key, Args&&... args){
     return this->operator()(_data.get_memory_type(), _data.gpu_stream(), key, args...);
   }
 
   template __UMAPTPLARGSINIT__  struct value_printout<IvyUnorderedMap __UMAPTPLARGS__>{
-    static __CUDA_HOST_DEVICE__ void print(IvyUnorderedMap __UMAPTPLARGS__ const& x){ print_value(x.get_data_container(), false); }
+    static __HOST_DEVICE__ void print(IvyUnorderedMap __UMAPTPLARGS__ const& x){ print_value(x.get_data_container(), false); }
   };
 
 }
 namespace std_util{
-  template __UMAPTPLARGSINIT__ __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap __UMAPTPLARGS__& a, std_ivy::IvyUnorderedMap __UMAPTPLARGS__& b){
+  template __UMAPTPLARGSINIT__ __HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap __UMAPTPLARGS__& a, std_ivy::IvyUnorderedMap __UMAPTPLARGS__& b){
     a.swap(b);
   }
 }

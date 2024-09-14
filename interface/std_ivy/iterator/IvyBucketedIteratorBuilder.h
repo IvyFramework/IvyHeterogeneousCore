@@ -44,9 +44,9 @@ namespace std_ivy{
     const_iterator_collection_t chain_const;
 
   protected:
-    template<typename Iterator> static __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ Iterator get_iterator(Iterator* const& ptr){ return (ptr ? *ptr : Iterator()); }
+    template<typename Iterator> static __INLINE_FCN_FORCE__ __HOST_DEVICE__ Iterator get_iterator(Iterator* const& ptr){ return (ptr ? *ptr : Iterator()); }
 
-    template<typename Chain_t> __CUDA_HOST_DEVICE__ bool fix_prev_next(Chain_t& ch_obj, size_type pos){
+    template<typename Chain_t> __HOST_DEVICE__ bool fix_prev_next(Chain_t& ch_obj, size_type pos){
       typedef typename Chain_t::pointer chain_pointer_t;
       size_type const n = ch_obj.size();
       bool res = true;
@@ -79,11 +79,11 @@ namespace std_ivy{
       );
       return res;
     }
-    __CUDA_HOST_DEVICE__ bool fix_prev_next(size_type pos){
+    __HOST_DEVICE__ bool fix_prev_next(size_type pos){
       return fix_prev_next(chain, pos) && fix_prev_next(chain_const, pos);
     }
 
-    __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old){
+    __HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old){
       bool res = true;
       if (!chain) return res;
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -101,41 +101,41 @@ namespace std_ivy{
     }
 
   public:
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ pointable_t chain_rend() const{ return chain.get(); }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ pointable_t chain_front() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_rend() const{ return chain.get(); }
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_front() const{
       if (!chain) return nullptr;
       size_type const n_size = chain.size();
       return std_mem::addressof(chain[1]);
     }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ pointable_t chain_back() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_back() const{
       if (!chain) return nullptr;
       size_type const n_size = chain.size();
       return std_mem::addressof(chain[n_size-2]);
     }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ pointable_t chain_end() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_end() const{
       if (!chain) return nullptr;
       size_type const n_size = chain.size();
       return std_mem::addressof(chain[n_size-1]);
     }
 
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ const_pointable_t chain_const_rend() const{ return chain_const.get(); }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ const_pointable_t chain_const_front() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ const_pointable_t chain_const_rend() const{ return chain_const.get(); }
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ const_pointable_t chain_const_front() const{
       if (!chain_const) return nullptr;
       size_type const n_size = chain_const.size();
       return std_mem::addressof(chain_const[1]);
     }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ const_pointable_t chain_const_back() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ const_pointable_t chain_const_back() const{
       if (!chain_const) return nullptr;
       size_type const n_size = chain_const.size();
       return std_mem::addressof(chain_const[n_size-2]);
     }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ const_pointable_t chain_const_end() const{
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ const_pointable_t chain_const_end() const{
       if (!chain_const) return nullptr;
       size_type const n_size = chain_const.size();
       return std_mem::addressof(chain_const[n_size-1]);
     }
 
-    template<typename Chain_t> __CUDA_HOST_DEVICE__ void invalidate(Chain_t& ch_obj){
+    template<typename Chain_t> __HOST_DEVICE__ void invalidate(Chain_t& ch_obj){
       typedef typename Chain_t::pointer chain_pointer_t;
       if (!ch_obj) return;
       size_type const n = ch_obj.size();
@@ -164,25 +164,25 @@ namespace std_ivy{
       }
       ch_obj.reset();
     }
-    __CUDA_HOST_DEVICE__ void invalidate(){
+    __HOST_DEVICE__ void invalidate(){
       invalidate(chain);
       invalidate(chain_const);
     }
 
-    __CUDA_HOST_DEVICE__ iterator_type begin() const{ return get_iterator(chain_front()); }
-    __CUDA_HOST_DEVICE__ iterator_type front() const{ return get_iterator(chain_front()); }
-    __CUDA_HOST_DEVICE__ iterator_type back() const{ return get_iterator(chain_back()); }
-    __CUDA_HOST_DEVICE__ iterator_type end() const{ return get_iterator(chain_end()); }
-    __CUDA_HOST_DEVICE__ reverse_iterator_type rbegin() const{ return reverse_iterator_type(get_iterator(chain_back())); }
-    __CUDA_HOST_DEVICE__ reverse_iterator_type rend() const{ return reverse_iterator_type(get_iterator(chain_rend())); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cbegin() const{ return get_iterator(chain_const_front()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cfront() const{ return get_iterator(chain_const_front()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cback() const{ return get_iterator(chain_const_back()); }
-    __CUDA_HOST_DEVICE__ const_iterator_type cend() const{ return get_iterator(chain_const_end()); }
-    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crbegin() const{ return reverse_const_iterator_type(get_iterator(chain_const_back())); }
-    __CUDA_HOST_DEVICE__ const_reverse_iterator_type crend() const{ return reverse_const_iterator_type(get_iterator(chain_const_rend())); }
+    __HOST_DEVICE__ iterator_type begin() const{ return get_iterator(chain_front()); }
+    __HOST_DEVICE__ iterator_type front() const{ return get_iterator(chain_front()); }
+    __HOST_DEVICE__ iterator_type back() const{ return get_iterator(chain_back()); }
+    __HOST_DEVICE__ iterator_type end() const{ return get_iterator(chain_end()); }
+    __HOST_DEVICE__ reverse_iterator_type rbegin() const{ return reverse_iterator_type(get_iterator(chain_back())); }
+    __HOST_DEVICE__ reverse_iterator_type rend() const{ return reverse_iterator_type(get_iterator(chain_rend())); }
+    __HOST_DEVICE__ const_iterator_type cbegin() const{ return get_iterator(chain_const_front()); }
+    __HOST_DEVICE__ const_iterator_type cfront() const{ return get_iterator(chain_const_front()); }
+    __HOST_DEVICE__ const_iterator_type cback() const{ return get_iterator(chain_const_back()); }
+    __HOST_DEVICE__ const_iterator_type cend() const{ return get_iterator(chain_const_end()); }
+    __HOST_DEVICE__ const_reverse_iterator_type crbegin() const{ return reverse_const_iterator_type(get_iterator(chain_const_back())); }
+    __HOST_DEVICE__ const_reverse_iterator_type crend() const{ return reverse_const_iterator_type(get_iterator(chain_const_rend())); }
 
-    __CUDA_HOST_DEVICE__ pointable_t find_pointable(pointer ptr) const{
+    __HOST_DEVICE__ pointable_t find_pointable(pointer ptr) const{
       pointable_t current = chain_front();
       while (current){
         if (current->get_mem_loc() == ptr) return current;
@@ -190,7 +190,7 @@ namespace std_ivy{
       }
       return nullptr;
     }
-    __CUDA_HOST_DEVICE__ const_pointable_t find_const_pointable(pointer ptr) const{
+    __HOST_DEVICE__ const_pointable_t find_const_pointable(pointer ptr) const{
       const_pointable_t current = chain_const_front();
       while (current){
         if (current->get_mem_loc() == ptr) return current;
@@ -199,7 +199,7 @@ namespace std_ivy{
       return nullptr;
     }
 
-    __CUDA_HOST_DEVICE__ void reset(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
+    __HOST_DEVICE__ void reset(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
       this->invalidate();
 
       if (n_buckets==0) return;
@@ -288,15 +288,15 @@ namespace std_ivy{
         );
       }
     }
-    __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ void reset(){ this->invalidate(); }
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ void reset(){ this->invalidate(); }
 
-    __CUDA_HOST_DEVICE__ void push_back(pointer ptr, IvyMemoryType mem_type, IvyGPUStream* stream){
+    __HOST_DEVICE__ void push_back(pointer ptr, IvyMemoryType mem_type, IvyGPUStream* stream){
       size_type n_size = chain.size();
       chain.insert(n_size-1, ptr, mem_type, stream);
       chain_const.insert(n_size-1, ptr, mem_type, stream);
       fix_prev_next(n_size-1);
     }
-    __CUDA_HOST_DEVICE__ void pop_back(){
+    __HOST_DEVICE__ void pop_back(){
       if (!chain) return;
       size_type n_size = chain.size();
       if (n_size<3) return;
@@ -307,36 +307,36 @@ namespace std_ivy{
       fix_prev_next(n_size-2);
     }
 
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(){}
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder(){}
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder(bucket_element_type* bucket_head, size_type n_buckets, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream){
       reset(bucket_head, n_buckets, n_capacity, mem_type, stream);
     }
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder const& other) : chain(other.chain), chain_const(other.chain_const){}
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder&& other) : chain(std_util::move(other.chain)), chain_const(std_util::move(other.chain_const)){}
-    __CUDA_HOST_DEVICE__ ~IvyBucketedIteratorBuilder(){ invalidate(); }
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder const& other) : chain(other.chain), chain_const(other.chain_const){}
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder(IvyBucketedIteratorBuilder&& other) : chain(std_util::move(other.chain)), chain_const(std_util::move(other.chain_const)){}
+    __HOST_DEVICE__ ~IvyBucketedIteratorBuilder(){ invalidate(); }
 
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder const& other){
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder const& other){
       chain = other.chain;
       chain_const = other.chain_const;
       return *this;
     }
-    __CUDA_HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder&& other){
+    __HOST_DEVICE__ IvyBucketedIteratorBuilder& operator=(IvyBucketedIteratorBuilder&& other){
       chain = std_util::move(other.chain);
       chain_const = std_util::move(other.chain_const);
       return *this;
     }
 
-    __CUDA_HOST_DEVICE__ size_type n_valid_iterators() const{ return (chain ? chain.size()-2 : 0); }
-    __CUDA_HOST_DEVICE__ size_type n_capacity_valid_iterators() const{ return (chain ? chain.capacity()-2 : 0); }
+    __HOST_DEVICE__ size_type n_valid_iterators() const{ return (chain ? chain.size()-2 : 0); }
+    __HOST_DEVICE__ size_type n_capacity_valid_iterators() const{ return (chain ? chain.capacity()-2 : 0); }
 
-    __CUDA_HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder& other){
+    __HOST_DEVICE__ void swap(IvyBucketedIteratorBuilder& other){
       std_util::swap(chain, other.chain);
       std_util::swap(chain_const, other.chain_const);
     }
   };
 }
 namespace std_util{
-  template<typename Key, typename T, typename Hash> __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& a, std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
+  template<typename Key, typename T, typename Hash> __HOST_DEVICE__ void swap(std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& a, std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
 }
 
 #endif

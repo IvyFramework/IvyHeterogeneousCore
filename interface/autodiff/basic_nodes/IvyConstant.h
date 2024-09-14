@@ -23,19 +23,19 @@ namespace IvyMath{
 
   public:
     // Constructors
-    __CUDA_HOST_DEVICE__ IvyConstant() : value_(0){}
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __CUDA_HOST_DEVICE__ IvyConstant(U const& value) : value_(__STATIC_CAST__(T, value)){}
-    __CUDA_HOST_DEVICE__ IvyConstant(T const& value) : value_(value){}
-    __CUDA_HOST_DEVICE__ IvyConstant(T&& value) : value_(std_util::move(value)){}
-    template<typename U> __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant<U> const& other) : value_(__STATIC_CAST__(T, other.value())){}
-    __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant<T> const& other) : value_(other.value_){}
-    __CUDA_HOST_DEVICE__ IvyConstant(IvyConstant<T>&& other) : value_(std_util::move(other.value_)){}
+    __HOST_DEVICE__ IvyConstant() : value_(0){}
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyConstant(U const& value) : value_(__STATIC_CAST__(T, value)){}
+    __HOST_DEVICE__ IvyConstant(T const& value) : value_(value){}
+    __HOST_DEVICE__ IvyConstant(T&& value) : value_(std_util::move(value)){}
+    template<typename U> __HOST_DEVICE__ IvyConstant(IvyConstant<U> const& other) : value_(__STATIC_CAST__(T, other.value())){}
+    __HOST_DEVICE__ IvyConstant(IvyConstant<T> const& other) : value_(other.value_){}
+    __HOST_DEVICE__ IvyConstant(IvyConstant<T>&& other) : value_(std_util::move(other.value_)){}
 
     // Empty virtual destructor
-    __CUDA_HOST_DEVICE__ ~IvyConstant(){}
+    __HOST_DEVICE__ ~IvyConstant(){}
 
     // Get function
-    __CUDA_HOST_DEVICE__ value_t const& value() const{ return this->value_; }
+    __HOST_DEVICE__ value_t const& value() const{ return this->value_; }
   };
 }
 namespace IvyTypes{
@@ -48,11 +48,11 @@ namespace IvyMath{
 
   template<typename T> using IvyConstantPtr_t = IvyThreadSafePtr_t< IvyConstant<T> >;
 
-  template<typename T, typename... Args> __CUDA_HOST_DEVICE__ IvyConstantPtr_t<T> Constant(Args&&... args){ return make_IvyThreadSafePtr< IvyConstant<T> >(args...); }
+  template<typename T, typename... Args> __HOST_DEVICE__ IvyConstantPtr_t<T> Constant(Args&&... args){ return make_IvyThreadSafePtr< IvyConstant<T> >(args...); }
 }
 namespace std_ivy{
   template<typename T> struct value_printout<IvyMath::IvyConstant<T>>{
-    static __CUDA_HOST_DEVICE__ void print(IvyMath::IvyConstant<T> const& var){
+    static __HOST_DEVICE__ void print(IvyMath::IvyConstant<T> const& var){
       __PRINT_INFO__("Constant(");
       print_value(var.value(), false);
       __PRINT_INFO__(")");

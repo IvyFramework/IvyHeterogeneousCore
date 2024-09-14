@@ -22,18 +22,18 @@ public:
 class dummy_D : public dummy_B{
 public:
   double a;
-  __CUDA_HOST_DEVICE__ dummy_D() : dummy_B(){}
-  __CUDA_HOST_DEVICE__ dummy_D(double a_) : dummy_B(), a(a_){}
-  __CUDA_HOST_DEVICE__ dummy_D(dummy_D const& other) : a(other.a){}
-  //__CUDA_HOST_DEVICE__ ~dummy_D(){ printf("dummy D destructor...\n"); }
+  __HOST_DEVICE__ dummy_D() : dummy_B(){}
+  __HOST_DEVICE__ dummy_D(double a_) : dummy_B(), a(a_){}
+  __HOST_DEVICE__ dummy_D(dummy_D const& other) : a(other.a){}
+  //__HOST_DEVICE__ ~dummy_D(){ printf("dummy D destructor...\n"); }
 };
 class dummy_N{
 public:
   int n;
   dummy_N() = delete;
-  __CUDA_HOST_DEVICE__ dummy_N(int k) : n(k){}
+  __HOST_DEVICE__ dummy_N(int k) : n(k){}
 };
-template<> struct std_ivy::value_printout<dummy_D>{ static __CUDA_HOST_DEVICE__ void print(dummy_D const& x){ std_ivy::print_value(x.a, false); } };
+template<> struct std_ivy::value_printout<dummy_D>{ static __HOST_DEVICE__ void print(dummy_D const& x){ std_ivy::print_value(x.a, false); } };
 
 
 typedef std_mem::allocator<std_mem::unique_ptr<dummy_D>> uniqueptr_allocator;
@@ -54,17 +54,17 @@ typedef std_mem::allocator_traits<umap_allocator> umap_allocator_traits;
 
 
 struct set_doubles : public kernel_base_noprep_nofin{
-  static __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void kernel_unified_unit(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
+  static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void kernel_unified_unit(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
     ptr[i] = (i+2)*(is+1);
     if (i<3 || i==n-1) printf("ptr[%llu] = %f in stream %u\n", static_cast<unsigned long long int>(i), ptr[i], static_cast<unsigned int>(is));
   }
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
+  static __HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, double* ptr, unsigned char is){
     if (kernel_check_dims<set_doubles>::check_dims(i, n)) kernel_unified_unit(i, n, ptr, is);
   }
 };
 
 template<typename T> struct test_IvyVector : public kernel_base_noprep_nofin{
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::vector<T>* ptr){
+  static __HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_vec::vector<T>* ptr){
     if (kernel_check_dims<test_IvyVector<T>>::check_dims(i, n)){
       printf("Inside test_IvyVector now...\n");
       printf("test_IvyVector: ptr = %p, size = %llu, capacity = %llu\n", ptr, ptr->size(), ptr->capacity());
@@ -101,7 +101,7 @@ template<typename T> struct test_IvyVector : public kernel_base_noprep_nofin{
   }
 };
 template<typename T> struct test_IvyContiguousIterator : public kernel_base_noprep_nofin{
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_iter::IvyContiguousIteratorBuilder<T>* it_builder){
+  static __HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_iter::IvyContiguousIteratorBuilder<T>* it_builder){
     if (kernel_check_dims<test_IvyContiguousIterator<T>>::check_dims(i, n)){
       printf("Inside test_IvyContiguousIterator now...\n");
       auto& chain = it_builder->chain;
@@ -123,7 +123,7 @@ template<typename T> struct test_IvyContiguousIterator : public kernel_base_nopr
 
 
 template<typename T, typename U> struct test_IvyUMap : public kernel_base_noprep_nofin{
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_umap::unordered_map<T, U>* ptr){
+  static __HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_umap::unordered_map<T, U>* ptr){
     if (kernel_check_dims<test_IvyUMap<T, U>>::check_dims(i, n)){
       printf("Inside test_IvyUMap now...\n");
       printf("test_IvyUMap: ptr = %p, size = %llu, capacity = %llu\n", ptr, ptr->size(), ptr->capacity());
@@ -151,13 +151,13 @@ template<typename T, typename U> struct test_IvyUMap : public kernel_base_noprep
 
 
 template<typename T, std_mem::IvyPointerType IPT> struct test_unifiedptr_fcn{
-  static __CUDA_HOST_DEVICE__ void prepare(...){
+  static __HOST_DEVICE__ void prepare(...){
     printf("Preparing for test_unifiedptr_fcn...\n");
   }
-  static __CUDA_HOST_DEVICE__ void finalize(...){
+  static __HOST_DEVICE__ void finalize(...){
     printf("Finalizing test_unifiedptr_fcn...\n");
   }
-  static __CUDA_HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_mem::IvyUnifiedPtr<T, IPT>* ptr){
+  static __HOST_DEVICE__ void kernel(IvyTypes::size_t i, IvyTypes::size_t n, std_mem::IvyUnifiedPtr<T, IPT>* ptr){
     if (kernel_check_dims<test_unifiedptr_fcn<T, IPT>>::check_dims(i, n)){
       printf("Inside test_unifiedptr_fcn now...\n");
       //ptr->reset();
@@ -167,7 +167,7 @@ template<typename T, std_mem::IvyPointerType IPT> struct test_unifiedptr_fcn{
 };
 
 
-__CUDA_HOST_DEVICE__ void print_dummy_D(dummy_D* ptr){
+__HOST_DEVICE__ void print_dummy_D(dummy_D* ptr){
   if (ptr) printf("print_dummy_D: dummy_D address = %p, a = %f\n", ptr, ptr->a);
   else printf("print_dummy_D: dummy_D is null.\n");
 }
@@ -208,7 +208,7 @@ template<std_mem::IvyPointerType IPT> __CUDA_GLOBAL__ void kernel_print_unifiedp
   else printf("kernel_print_unifiedptr_cx_to_dummy_D: Unified cx pointer of dummy_D is null.\n");
 }
 
-__CUDA_HOST_DEVICE__ void print_dummy_B_as_D(dummy_B* ptr){
+__HOST_DEVICE__ void print_dummy_B_as_D(dummy_B* ptr){
   if (ptr) printf("print_dummy_B_as_D: dummy_B address = %p, a = %f\n", ptr, __STATIC_CAST__(dummy_D*, ptr)->a);
   else printf("print_dummy_B_as_D: dummy_B is null.\n");
 }

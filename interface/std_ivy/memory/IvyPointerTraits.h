@@ -51,7 +51,7 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
   private:
     struct nat{};
   public:
-    static __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__ pointer pointer_to(
+    static __HOST_DEVICE__ __CPP_CONSTEXPR__ pointer pointer_to(
       std_ttraits::conditional_t<std_ttraits::is_void_v<element_type>, nat, element_type>& x
     ){ return pointer::pointer_to(x); }
   };
@@ -64,7 +64,7 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
   private:
     struct nat{};
   public:
-    static __CUDA_HOST_DEVICE__ __CPP_CONSTEXPR__ pointer pointer_to(
+    static __HOST_DEVICE__ __CPP_CONSTEXPR__ pointer pointer_to(
       std_ttraits::conditional_t<std_ttraits::is_void_v<element_type>, nat, element_type>& x
     ) __NOEXCEPT__{ return std_ivy::addressof(x); }
   };

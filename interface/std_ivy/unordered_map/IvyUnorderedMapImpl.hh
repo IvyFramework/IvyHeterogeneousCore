@@ -67,89 +67,89 @@ namespace std_ivy{
     data_container _data;
     iterator_builder_t _iterator_builder;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old);
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_internal_memory(IvyMemoryType const& new_mem_type, bool release_old);
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void destroy_iterator_builder();
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ void reset_iterator_builder();
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void destroy_iterator_builder();
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void reset_iterator_builder();
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type get_predicted_bucket_count() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ size_type get_predicted_bucket_count() const;
 
-    __CUDA_HOST_DEVICE__ data_container get_rehashed_data(size_type new_n_buckets) const;
+    __HOST_DEVICE__ data_container get_rehashed_data(size_type new_n_buckets) const;
 
-    template<typename... Args> __CUDA_HOST_DEVICE__ void insert_impl(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
-    __CUDA_HOST_DEVICE__ void erase_impl(Key const& key, size_type& n_erased);
+    template<typename... Args> __HOST_DEVICE__ void insert_impl(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    __HOST_DEVICE__ void erase_impl(Key const& key, size_type& n_erased);
 
     /*
     IvyUnorderedMap::calculate_data_size_capacity: Brute-force calculation of the actual size and capacity of the data container.
     */
-    __CUDA_HOST_DEVICE__ void calculate_data_size_capacity(size_type& n_size, size_type& n_capacity) const;
+    __HOST_DEVICE__ void calculate_data_size_capacity(size_type& n_size, size_type& n_capacity) const;
 
-    __CUDA_HOST_DEVICE__ iterator find_iterator(Key const& key) const;
-    __CUDA_HOST_DEVICE__ const_iterator find_const_iterator(Key const& key) const;
+    __HOST_DEVICE__ iterator find_iterator(Key const& key) const;
+    __HOST_DEVICE__ const_iterator find_const_iterator(Key const& key) const;
 
   public:
-    __CUDA_HOST_DEVICE__ IvyUnorderedMap();
-    __CUDA_HOST_DEVICE__ IvyUnorderedMap(IvyUnorderedMap const& v);
-    __CUDA_HOST_DEVICE__ IvyUnorderedMap(IvyUnorderedMap&& v);
-    __CUDA_HOST_DEVICE__ ~IvyUnorderedMap();
+    __HOST_DEVICE__ IvyUnorderedMap();
+    __HOST_DEVICE__ IvyUnorderedMap(IvyUnorderedMap const& v);
+    __HOST_DEVICE__ IvyUnorderedMap(IvyUnorderedMap&& v);
+    __HOST_DEVICE__ ~IvyUnorderedMap();
 
-    __CUDA_HOST_DEVICE__ IvyUnorderedMap& operator=(IvyUnorderedMap const& v);
-    __CUDA_HOST_DEVICE__ IvyUnorderedMap& operator=(IvyUnorderedMap&& v);
+    __HOST_DEVICE__ IvyUnorderedMap& operator=(IvyUnorderedMap const& v);
+    __HOST_DEVICE__ IvyUnorderedMap& operator=(IvyUnorderedMap&& v);
 
-    __CUDA_HOST_DEVICE__ void swap(IvyUnorderedMap& v);
+    __HOST_DEVICE__ void swap(IvyUnorderedMap& v);
 
-    __CUDA_HOST_DEVICE__ reference front();
-    __CUDA_HOST_DEVICE__ const_reference front() const;
-    __CUDA_HOST_DEVICE__ reference back();
-    __CUDA_HOST_DEVICE__ const_reference back() const;
+    __HOST_DEVICE__ reference front();
+    __HOST_DEVICE__ const_reference front() const;
+    __HOST_DEVICE__ reference back();
+    __HOST_DEVICE__ const_reference back() const;
 
-    __CUDA_HOST_DEVICE__ iterator begin();
-    __CUDA_HOST_DEVICE__ const_iterator begin() const;
-    __CUDA_HOST_DEVICE__ const_iterator cbegin() const;
-    __CUDA_HOST_DEVICE__ iterator end();
-    __CUDA_HOST_DEVICE__ const_iterator end() const;
-    __CUDA_HOST_DEVICE__ const_iterator cend() const;
-    __CUDA_HOST_DEVICE__ reverse_iterator rbegin();
-    __CUDA_HOST_DEVICE__ const_reverse_iterator rbegin() const;
-    __CUDA_HOST_DEVICE__ const_reverse_iterator crbegin() const;
-    __CUDA_HOST_DEVICE__ reverse_iterator rend();
-    __CUDA_HOST_DEVICE__ const_reverse_iterator rend() const;
-    __CUDA_HOST_DEVICE__ const_reverse_iterator crend() const;
+    __HOST_DEVICE__ iterator begin();
+    __HOST_DEVICE__ const_iterator begin() const;
+    __HOST_DEVICE__ const_iterator cbegin() const;
+    __HOST_DEVICE__ iterator end();
+    __HOST_DEVICE__ const_iterator end() const;
+    __HOST_DEVICE__ const_iterator cend() const;
+    __HOST_DEVICE__ reverse_iterator rbegin();
+    __HOST_DEVICE__ const_reverse_iterator rbegin() const;
+    __HOST_DEVICE__ const_reverse_iterator crbegin() const;
+    __HOST_DEVICE__ reverse_iterator rend();
+    __HOST_DEVICE__ const_reverse_iterator rend() const;
+    __HOST_DEVICE__ const_reverse_iterator crend() const;
 
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ bool empty() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type size() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ constexpr size_type max_size() const;
-    __INLINE_FCN_RELAXED__ __CUDA_HOST_DEVICE__ size_type capacity() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool empty() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ size_type size() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr size_type max_size() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ size_type capacity() const;
 
-    __CUDA_HOST_DEVICE__ data_container const& get_data_container() const;
-    __CUDA_HOST_DEVICE__ IvyMemoryType get_memory_type() const;
-    __CUDA_HOST_DEVICE__ IvyGPUStream* gpu_stream() const;
+    __HOST_DEVICE__ data_container const& get_data_container() const;
+    __HOST_DEVICE__ IvyMemoryType get_memory_type() const;
+    __HOST_DEVICE__ IvyGPUStream* gpu_stream() const;
 
-    __CUDA_HOST_DEVICE__ void clear();
+    __HOST_DEVICE__ void clear();
 
-    template<typename... Args> __CUDA_HOST_DEVICE__ iterator insert(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
-    template<typename InputIterator> __CUDA_HOST_DEVICE__ iterator insert(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
-    __CUDA_HOST_DEVICE__ iterator insert(std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
+    template<typename... Args> __HOST_DEVICE__ iterator insert(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    template<typename InputIterator> __HOST_DEVICE__ iterator insert(InputIterator first, InputIterator last, IvyMemoryType mem_type, IvyGPUStream* stream);
+    __HOST_DEVICE__ iterator insert(std::initializer_list<value_type> ilist, IvyMemoryType mem_type, IvyGPUStream* stream);
 
-    template<typename... Args> __INLINE_FCN_FORCE__ __CUDA_HOST_DEVICE__ iterator emplace(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    template<typename... Args> __INLINE_FCN_FORCE__ __HOST_DEVICE__ iterator emplace(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
 
-    __CUDA_HOST_DEVICE__ size_type erase(Key const& key);
-    template<typename PosIterator> __CUDA_HOST_DEVICE__ size_type erase(PosIterator pos);
-    template<typename PosIterator> __CUDA_HOST_DEVICE__ size_type erase(PosIterator first, PosIterator last);
+    __HOST_DEVICE__ size_type erase(Key const& key);
+    template<typename PosIterator> __HOST_DEVICE__ size_type erase(PosIterator pos);
+    template<typename PosIterator> __HOST_DEVICE__ size_type erase(PosIterator first, PosIterator last);
 
-    __CUDA_HOST_DEVICE__ size_type bucket_count() const;
-    __CUDA_HOST_DEVICE__ size_type bucket_capacity() const;
-    __CUDA_HOST_DEVICE__ constexpr size_type max_bucket_count() const;
+    __HOST_DEVICE__ size_type bucket_count() const;
+    __HOST_DEVICE__ size_type bucket_capacity() const;
+    __HOST_DEVICE__ constexpr size_type max_bucket_count() const;
 
-    __CUDA_HOST_DEVICE__ void rehash(size_type new_n_buckets);
+    __HOST_DEVICE__ void rehash(size_type new_n_buckets);
 
-    __CUDA_HOST_DEVICE__ mapped_type const& operator[](Key const& key) const;
-    __CUDA_HOST_DEVICE__ mapped_type& operator[](Key const& key);
-    template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
-    template<typename... Args> __CUDA_HOST_DEVICE__ mapped_type& operator()(Key const& key, Args&&... args);
+    __HOST_DEVICE__ mapped_type const& operator[](Key const& key) const;
+    __HOST_DEVICE__ mapped_type& operator[](Key const& key);
+    template<typename... Args> __HOST_DEVICE__ mapped_type& operator()(IvyMemoryType mem_type, IvyGPUStream* stream, Key const& key, Args&&... args);
+    template<typename... Args> __HOST_DEVICE__ mapped_type& operator()(Key const& key, Args&&... args);
 
-    __CUDA_HOST_DEVICE__ iterator find(Key const& key);
-    __CUDA_HOST_DEVICE__ const_iterator find(Key const& key) const;
+    __HOST_DEVICE__ iterator find(Key const& key);
+    __HOST_DEVICE__ const_iterator find(Key const& key) const;
   };
   template<
     typename Key,
@@ -168,7 +168,7 @@ namespace std_ivy{
 }
 namespace std_util{
   template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
-  __CUDA_HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
+  __HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
 }
 
 #endif
