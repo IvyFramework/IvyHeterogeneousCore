@@ -11,20 +11,26 @@ using std_ivy::IvyMemoryType;
 template<unsigned int nsum, unsigned int nsum_serial> void utest_sum_parallel(IvyGPUStream& stream, double* sum_vals){
   __PRINT_INFO__("|*** Benchmarking parallel and serial summation... ***|\n");
 
-  IvyGPUEvent ev_sum(IvyGPUEvent::EventFlags::Default); ev_sum.record(stream);
-  double sum_p = std_algo::add_parallel<double>(sum_vals, nsum, nsum_serial, IvyMemoryType::Host, stream);
-  IvyGPUEvent ev_sum_end(IvyGPUEvent::EventFlags::Default); ev_sum_end.record(stream);
-  ev_sum_end.synchronize();
-  auto time_sum = ev_sum_end.elapsed_time(ev_sum);
-  __PRINT_INFO__("Sum_parallel time = %f ms\n", time_sum);
-  __PRINT_INFO__("Sum parallel = %f\n", sum_p);
-
   auto time_sum_s = std_chrono::high_resolution_clock::now();
+  __PRINT_INFO__("Calling add_serial...\n");
   double sum_s = std_algo::add_serial<double>(sum_vals, nsum);
+  __PRINT_INFO__("add_serial is complete.\n");
   auto time_sum_s_end = std_chrono::high_resolution_clock::now();
   auto time_sum_s_ms = std_chrono::duration_cast<std_chrono::microseconds>(time_sum_s_end - time_sum_s).count()/1000.;
-  __PRINT_INFO__("Sum_serial time = %f ms\n", time_sum_s_ms);
-  __PRINT_INFO__("Sum serial = %f\n", sum_s);
+  __PRINT_INFO__("\t- Sum serial time = %f ms\n", time_sum_s_ms);
+  __PRINT_INFO__("\t- Sum serial = %f\n", sum_s);
+
+  IvyGPUEvent ev_sum(IvyGPUEvent::EventFlags::Default); ev_sum.record(stream);
+  __PRINT_INFO__("Starting event is recorded.\n");
+  __PRINT_INFO__("Calling add_parallel...\n");
+  double sum_p = std_algo::add_parallel<double>(sum_vals, nsum, nsum_serial, IvyMemoryType::Host, stream);
+  __PRINT_INFO__("add_parallel is complete.\n");
+  IvyGPUEvent ev_sum_end(IvyGPUEvent::EventFlags::Default); ev_sum_end.record(stream);
+  ev_sum_end.synchronize();
+  __PRINT_INFO__("Ending event is recorded and synchronized.\n");
+  auto time_sum = ev_sum_end.elapsed_time(ev_sum);
+  __PRINT_INFO__("\t- Sum parallel time = %f ms\n", time_sum);
+  __PRINT_INFO__("\t- Sum parallel = %f\n", sum_p);
 
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");
