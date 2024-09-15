@@ -7,6 +7,7 @@ COMPILEPATH          = $(PWD)/
 INCLUDEDIR           = $(COMPILEPATH)interface/
 BINDIR               = $(COMPILEPATH)bin/
 EXEDIR               = $(COMPILEPATH)executables/
+TESTEXEDIR           = $(COMPILEPATH)test_executables/
 TESTDIR              = $(COMPILEPATH)test/
 RUNDIR               = $(COMPILEPATH)
 
@@ -40,28 +41,48 @@ LIBS          = $(filter-out -lNew, $(NLIBS))
 
 BINSCC = $(wildcard $(BINDIR)*.cc)
 BINSCXX = $(wildcard $(BINDIR)*.cxx)
+TESTSCC = $(wildcard $(TESTDIR)*.cc)
+TESTSCXX = $(wildcard $(TESTDIR)*.cxx)
 EXESPRIM = $(BINSCC:.cc=) $(BINSCXX:.cxx=)
+TESTEXESPRIM = $(TESTSCC:.cc=) $(TESTSCXX:.cxx=)
 EXES = $(subst $(BINDIR),$(EXEDIR),$(EXESPRIM))
+TESTEXES = $(subst $(TESTDIR),$(TESTEXEDIR),$(TESTEXESPRIM))
 
 
-.PHONY: all help compile clean
-.SILENT: alldirs clean $(EXES)
+.PHONY: all utests help compile clean
+.SILENT: exedirs testexedirs clean $(EXES) $(TESTEXES)
 
 
 all: $(EXES)
 
 
-alldirs:
+utests: $(TESTEXES)
+
+
+exedirs:
 	mkdir -p $(EXEDIR)
 
 
-$(EXEDIR)%::	$(BINDIR)%.cc | alldirs
+testexedirs:
+	mkdir -p $(TESTEXEDIR)
+
+
+alldirs: exedirs testexedirs
+
+
+$(EXEDIR)%:: $(BINDIR)%.cc | exedirs
+	echo "Compiling $<"; \
+	$(CXX) $(EXEFLAGS) -o $@ $< $(LIBS)
+
+
+$(TESTEXEDIR)%:: $(TESTDIR)%.cc | testexedirs
 	echo "Compiling $<"; \
 	$(CXX) $(EXEFLAGS) -o $@ $< $(LIBS)
 
 
 clean:
 	rm -rf $(EXEDIR)
+	rm -rf $(TESTEXEDIR)
 	rm -f $(BINDIR)*.o
 	rm -f $(BINDIR)*.so
 	rm -f $(BINDIR)*.d

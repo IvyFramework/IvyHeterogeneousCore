@@ -2,6 +2,9 @@
 #define IVYCUDAFLAGS_H
 
 
+#include "config/IvyCompilerFlags.h"
+
+
 #ifdef __USE_CUDA__
 
 #define __HOST__ __host__
@@ -59,7 +62,11 @@
 #define __CUDA_CONSTANT__
 #define __CUDA_SHARED__
 
-#define __RESTRICT__ restrict
+#if COMPILER==COMPILER_GCC || COMPILER==COMPILER_CLANG || COMPILER==COMPILER_MSVC
+#define __RESTRICT__ __restrict
+#else
+#define __RESTRICT__
+#endif
 #define __INLINE_FCN_FORCE__ inline
 #define __INLINE_FCN_RELAXED__ inline
 #define __INLINE_VAR__ inline

@@ -9,8 +9,6 @@
 #include "std_ivy/iterator/IvyIteratorTraits.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T> __HOST_DEVICE__ T const& min(T const& x, T const& y){ return (x>y ? y : x); }
   template<typename T> __HOST_DEVICE__ T const& max(T const& x, T const& y){ return (x>y ? x : y); }
@@ -68,8 +66,6 @@ namespace std_ivy{
     return std_util::pair(*p.first, *p.second);
   }
 }
-
-#endif
 
 
 #endif

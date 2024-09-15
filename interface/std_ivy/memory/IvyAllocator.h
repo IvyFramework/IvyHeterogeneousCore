@@ -4,9 +4,6 @@
 
 #include "config/IvyCompilerConfig.h"
 #include "IvyMemoryHelpers.h"
-
-#ifdef __USE_CUDA__
-
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyLimits.h"
 #include "std_ivy/memory/IvyAddressof.h"
@@ -420,8 +417,6 @@ namespace std_ivy{
   inline constexpr allocator_arg_t allocator_arg;
 
 }
-
-#endif
 
 
 // IvyMemoryHelpers copy_data functionality should rely on allocators so that complex data structures can be copied correctly.

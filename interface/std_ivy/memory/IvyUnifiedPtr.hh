@@ -2,8 +2,6 @@
 #define IVYUNIFIEDPTR_HH
 
 
-#ifdef __USE_CUDA__
-
 #include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyCstddef.h"
 #include "std_ivy/IvyTypeTraits.h"
@@ -275,9 +273,6 @@ namespace std_util{
   template<typename T, typename U, std_ivy::IvyPointerType IPT> __HOST_DEVICE__ void swap(std_ivy::IvyUnifiedPtr<T, IPT>& a, std_ivy::IvyUnifiedPtr<U, IPT>& b) __NOEXCEPT__;
   template<typename T, std_ivy::IvyPointerType IPT> __HOST_DEVICE__ void swap(std_ivy::IvyUnifiedPtr<T, IPT>& a, std_ivy::IvyUnifiedPtr<T, IPT>& b) __NOEXCEPT__;
 }
-
-
-#endif
 
 
 #endif

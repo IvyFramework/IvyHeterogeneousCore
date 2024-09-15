@@ -6,8 +6,6 @@
 #include "std_ivy/iterator/IvyIteratorPrimitives.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename Iterator> struct iterator_traits{
     typedef typename Iterator::value_type value_type;
@@ -24,8 +22,6 @@ namespace std_ivy{
     typedef random_access_iterator_tag iterator_category;
   };
 }
-
-#endif
 
 
 #endif

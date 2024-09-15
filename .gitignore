@@ -28,4 +28,4 @@ test/*.txt
 *.txt
 obj
 lib
-executables
+*executables

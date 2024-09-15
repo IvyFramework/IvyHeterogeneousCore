@@ -2,8 +2,6 @@
 #define IVYFIND_H
 
 
-#ifdef __USE_CUDA__
-
 #include "std_ivy/IvyIterator.h"
 
 
@@ -92,8 +90,6 @@ namespace std_ivy{
     }
   }
 }
-
-#endif
 
 
 #endif

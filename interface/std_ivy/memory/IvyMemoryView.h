@@ -5,17 +5,15 @@
 #include "std_ivy/memory/IvyAllocator.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T, typename Allocator = allocator<T>> class memview{
   public:
     typedef Allocator allocator_type;
-    typedef allocator_traits<allocator_type> allocator_traits;
-    typedef typename allocator_traits::value_type value_type;
-    typedef typename allocator_traits::reference reference;
-    typedef typename allocator_traits::pointer pointer;
-    typedef typename allocator_traits::size_type size_type;
+    typedef allocator_traits<allocator_type> allocator_traits_t;
+    typedef typename allocator_traits_t::value_type value_type;
+    typedef typename allocator_traits_t::reference reference;
+    typedef typename allocator_traits_t::pointer pointer;
+    typedef typename allocator_traits_t::size_type size_type;
 
   protected:
     pointer data;
@@ -44,10 +42,10 @@ namespace std_ivy{
       }
       else{
         // In the recursive case, the object is copied as well.
-        // The accompanying statement to free the data pointer would be allocator_traits::destroy
+        // The accompanying statement to free the data pointer would be allocator_traits_t::destroy
         // because new internal objects are created and need to be destroyed as well.
-        allocator_traits::allocate(data, n, def_mem_type, ref_stream);
-        allocator_traits::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
+        allocator_traits_t::allocate(data, n, def_mem_type, ref_stream);
+        allocator_traits_t::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
@@ -69,10 +67,10 @@ namespace std_ivy{
       }
       else{
         // In the recursive case, the object is copied as well.
-        // The accompanying statement to free the data pointer would be allocator_traits::destroy
+        // The accompanying statement to free the data pointer would be allocator_traits_t::destroy
         // because new internal objects are created and need to be destroyed as well.
-        allocator_traits::allocate(data, n, def_mem_type, ref_stream);
-        allocator_traits::transfer(data, &ref, s, def_mem_type, def_mem_type, ref_stream);
+        allocator_traits_t::allocate(data, n, def_mem_type, ref_stream);
+        allocator_traits_t::transfer(data, &ref, s, def_mem_type, def_mem_type, ref_stream);
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
@@ -95,10 +93,10 @@ namespace std_ivy{
       }
       else{
         // In the recursive case, the object is copied as well.
-        // The accompanying statement to free the data pointer would be allocator_traits::destroy
+        // The accompanying statement to free the data pointer would be allocator_traits_t::destroy
         // because new internal objects are created and need to be destroyed as well.
-        allocator_traits::allocate(data, n, def_mem_type, ref_stream);
-        allocator_traits::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
+        allocator_traits_t::allocate(data, n, def_mem_type, ref_stream);
+        allocator_traits_t::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
@@ -121,10 +119,10 @@ namespace std_ivy{
       }
       else{
         // In the recursive case, the object is copied as well.
-        // The accompanying statement to free the data pointer would be allocator_traits::destroy
+        // The accompanying statement to free the data pointer would be allocator_traits_t::destroy
         // because new internal objects are created and need to be destroyed as well.
-        allocator_traits::allocate(data, n, def_mem_type, ref_stream);
-        allocator_traits::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
+        allocator_traits_t::allocate(data, n, def_mem_type, ref_stream);
+        allocator_traits_t::transfer(data, ptr, s, def_mem_type, owning_mem_type_, ref_stream);
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
@@ -140,10 +138,10 @@ namespace std_ivy{
         build_GPU_stream_reference_from_pointer(stream, ref_stream);
         if (!recursive) IvyMemoryHelpers::free_memory(data, n, def_mem_type, ref_stream);
         else{
-          if (s==n) allocator_traits::destroy(data, n, def_mem_type, ref_stream);
+          if (s==n) allocator_traits_t::destroy(data, n, def_mem_type, ref_stream);
           else{
-            allocator_traits::destruct(data, s, def_mem_type, ref_stream);
-            allocator_traits::deallocate(data, n, def_mem_type, ref_stream);
+            allocator_traits_t::destruct(data, s, def_mem_type, ref_stream);
+            allocator_traits_t::deallocate(data, n, def_mem_type, ref_stream);
           }
         }
         destroy_GPU_stream_reference_from_pointer(stream);
@@ -158,8 +156,6 @@ namespace std_ivy{
     __HOST_DEVICE__ pointer operator->() const{ return data; }
   };
 }
-
-#endif
 
 
 #endif

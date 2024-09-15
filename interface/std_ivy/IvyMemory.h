@@ -3,8 +3,9 @@
 
 
 #ifdef __USE_CUDA__
-
 #include "cuda_runtime.h"
+#endif
+
 #include "std_ivy/memory/IvyAddressof.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 #include "std_ivy/memory/IvyAllocator.h"
@@ -13,15 +14,6 @@
 
 #ifndef std_mem
 #define std_mem std_ivy
-#endif
-
-#else
-
-#include <memory>
-#ifndef std_mem
-#define std_mem std
-#endif
-
 #endif
 
 

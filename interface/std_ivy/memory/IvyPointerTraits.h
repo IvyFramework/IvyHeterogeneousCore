@@ -7,8 +7,6 @@
 #include "std_ivy/memory/IvyAddressof.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
 #define POINTER_TRAIT_CMDS \
 POINTER_TRAIT_CMD(element_type, T) \
@@ -70,8 +68,6 @@ POINTER_TRAIT_CMD(difference_type, IvyTypes::ptrdiff_t)
   };
 
 }
-
-#endif
 
 
 #endif

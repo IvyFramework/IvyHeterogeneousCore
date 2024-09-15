@@ -45,6 +45,9 @@ public:
 
   __HOST__ void synchronize(){}
 
+  __HOST__ float elapsed_time(IvyBlankStreamEvent const& start) const{ return -1; }
+  static __HOST__ float elapsed_time(IvyBlankStreamEvent const& start, IvyBlankStreamEvent const& end){ return -1; }
+
   __HOST_DEVICE__ void swap(IvyBlankStreamEvent& other){ Base_t::swap(other); }
 };
 namespace std_util{

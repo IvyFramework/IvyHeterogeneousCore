@@ -6,8 +6,6 @@
 #include "std_ivy/IvyTypeTraits.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
 #if __check_builtin(builtin_addressof) \
  || ((COMPILER == COMPILER_GCC) && (COMPILER_VERSION >= 70000)) \
@@ -32,8 +30,6 @@ namespace std_ivy{
   template<typename T> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ T* addressof(T const&&) = delete;
   template<typename T> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ T const* addressof(T const&&) = delete;
 }
-
-#endif
 
 
 #endif

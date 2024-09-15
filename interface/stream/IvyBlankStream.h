@@ -18,7 +18,8 @@ public:
   using RawStream_t = typename Base_t::RawStream_t;
 
   enum class StreamFlags : unsigned char{
-    Default
+    Default,
+    NonBlocking
   };
 
   __HOST__ IvyBlankStream(StreamFlags flags = StreamFlags::Default, int priority = 0) : Base_t(){}
@@ -37,6 +38,7 @@ public:
   static __HOST_DEVICE__ unsigned int get_stream_flags(StreamFlags const& flags){
     switch (flags){
     case StreamFlags::Default:
+    case StreamFlags::NonBlocking:
       return 0;
     default:
       __PRINT_ERROR__("IvyBlankStream::get_stream_flags: Unknown flag option...\n");

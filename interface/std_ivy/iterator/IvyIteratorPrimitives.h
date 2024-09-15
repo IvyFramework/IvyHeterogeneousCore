@@ -6,8 +6,6 @@
 #include "std_ivy/IvyTypeTraits.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   // Iterator primitives
   struct input_iterator_tag{};
@@ -33,8 +31,6 @@ namespace std_ivy{
   template<typename T> struct stashing_iterator<T, std_ttraits::void_t<typename T::stashing_iterator_tag>> : std_ttraits::true_type{};
   template<typename T> inline constexpr bool stashing_iterator_v = stashing_iterator<T>::value;
 }
-
-#endif
 
 
 #endif

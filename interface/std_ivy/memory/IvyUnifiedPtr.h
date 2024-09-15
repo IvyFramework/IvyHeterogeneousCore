@@ -7,8 +7,6 @@
 #include "std_ivy/memory/IvyUnifiedPtr.hh"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr() :
     ptr_(nullptr),
@@ -1006,8 +1004,6 @@ namespace std_util{
   template<typename T, typename U, std_ivy::IvyPointerType IPT> __HOST_DEVICE__ void swap(std_ivy::IvyUnifiedPtr<T, IPT>& a, std_ivy::IvyUnifiedPtr<U, IPT>& b) __NOEXCEPT__{ a.swap(b); }
   template<typename T, std_ivy::IvyPointerType IPT> __HOST_DEVICE__ void swap(std_ivy::IvyUnifiedPtr<T, IPT>& a, std_ivy::IvyUnifiedPtr<T, IPT>& b) __NOEXCEPT__{ a.swap(b); }
 }
-
-#endif
 
 
 #endif

@@ -7,7 +7,7 @@
 #endif
 
 #include "config/IvyCudaFlags.h"
-#include "IvyErrorType.h"
+#include "IvyErrorTypes.h"
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyCstdio.h"
 

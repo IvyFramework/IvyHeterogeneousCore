@@ -35,8 +35,6 @@ Equivalent operations *_serial serial over the host thread, i.e., a CPU or GPU t
 #include "IvyMemoryHelpers.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename C, typename T> struct kernel_op_parallel : public kernel_base_noprep_nofin{
     static __HOST_DEVICE__ void kernel_unit_unified(IvyTypes::size_t const& i, IvyTypes::size_t const& n, IvyTypes::size_t const& n_serial, T* const& vals){
@@ -141,11 +139,7 @@ namespace std_ivy{
     if (n==1) return h_vals[0];
     else return h_vals[0] / multiply_parallel<T>((h_vals+1), n-1, n_serial, mem_type_vals, stream, dyn_shared_mem);
   }
-}
 
-#endif
-
-namespace std_ivy{
   template<typename T> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ T add_serial(T* vals, IvyTypes::size_t n){
     T res(vals[0]);
     for (IvyTypes::size_t i = 1; i < n; ++i) res = res + vals[i];
