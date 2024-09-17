@@ -27,6 +27,7 @@ For that reason, the -rdc=true flag is required when compiling device code.
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyCstdio.h"
+#include "std_ivy/IvyTypeInfo.h"
 #include "stream/IvyStream.h"
 
 

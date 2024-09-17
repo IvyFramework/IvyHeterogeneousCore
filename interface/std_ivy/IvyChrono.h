@@ -17,6 +17,7 @@
 
 #ifndef std_chrono
 #define std_chrono std::chrono
+#define std_ratio std
 #endif
 
 #endif

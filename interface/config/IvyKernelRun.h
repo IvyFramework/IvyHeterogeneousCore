@@ -80,7 +80,6 @@ template<typename... Args> struct example_kernel_implementation{
 
 */
 template<typename Kernel_t> struct kernel_check_dims{
-#if DEVICE_CODE == DEVICE_CODE_GPU
   static __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& n){
     return (i<n);
   }
@@ -90,11 +89,6 @@ template<typename Kernel_t> struct kernel_check_dims{
   static __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& j, IvyTypes::size_t const& k, IvyTypes::size_t const& nx, IvyTypes::size_t const& ny, IvyTypes::size_t const& nz){
     return (i<nx && j<ny && k<nz);
   }
-#else
-  static __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& n){ return true; }
-  static __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& j, IvyTypes::size_t const& nx, IvyTypes::size_t const& ny){ return true; }
-  static __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr bool check_dims(IvyTypes::size_t const& i, IvyTypes::size_t const& j, IvyTypes::size_t const& k, IvyTypes::size_t const& nx, IvyTypes::size_t const& ny, IvyTypes::size_t const& nz){ return true; }
-#endif
 };
 
 #ifdef __USE_CUDA__
