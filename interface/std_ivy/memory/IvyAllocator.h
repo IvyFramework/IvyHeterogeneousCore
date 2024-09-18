@@ -502,13 +502,8 @@ namespace IvyMemoryHelpers{
       assert(0);
     }
     if (n_tgt_init!=n_tgt){
-#ifdef __USE_CUDA__
       res &= std_ivy::deallocator_primitive<T>::destroy(target, n_tgt_init, type_tgt, stream);
       res &= std_ivy::allocator_primitive<T>::allocate(target, n_tgt, type_tgt, stream);
-#else
-      res &= destroy(target, n_tgt_init, type_tgt, stream);
-      res &= allocate(target, n_tgt, type_tgt, stream);
-#endif
     }
     if (res){
 #ifdef __USE_CUDA__

@@ -45,6 +45,7 @@ or
 #include "IvyBasicTypes.h"
 #include "config/IvyConfig.h"
 #include "std_ivy/IvyTypeTraits.h"
+#include "stream/IvyStream.h"
 
 
 struct run_kernel_base{

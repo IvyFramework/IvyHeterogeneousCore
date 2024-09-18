@@ -1,6 +1,5 @@
 #include "common_test_defs.h"
 
-#include "stream/IvyStream.h"
 #include "std_ivy/IvyChrono.h"
 #include "std_ivy/IvyAlgorithm.h"
 
@@ -8,7 +7,7 @@
 using std_ivy::IvyMemoryType;
 
 
-template<unsigned int nsum, unsigned int nsum_serial> void utest_sum_parallel(IvyGPUStream& stream, double* sum_vals){
+template<unsigned int nsum, unsigned int nsum_serial> void utest(IvyGPUStream& stream, double* sum_vals){
   __PRINT_INFO__("|*** Benchmarking parallel and serial summation... ***|\n");
 
   auto time_sum_s = std_chrono::high_resolution_clock::now();
@@ -37,7 +36,6 @@ template<unsigned int nsum, unsigned int nsum_serial> void utest_sum_parallel(Iv
 }
 
 
-
 int main(){
   constexpr unsigned char nStreams = 3;
 
@@ -58,7 +56,7 @@ int main(){
     auto& stream = *(streams[i]);
     __PRINT_INFO__("Stream %i (%p, %p, size in bytes = %d) computing...\n", i, &stream, stream.stream(), sizeof(&stream));
 
-    utest_sum_parallel<nsum, nsum_serial>(stream, sum_vals);
+    utest<nsum, nsum_serial>(stream, sum_vals);
 
     __PRINT_INFO__("**********\n");
   }
