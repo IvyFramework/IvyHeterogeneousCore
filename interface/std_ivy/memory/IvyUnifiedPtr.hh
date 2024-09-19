@@ -234,6 +234,7 @@ namespace std_ivy{
   */
   template<typename T, IvyPointerType IPT> class pointer_traits<IvyUnifiedPtr<T, IPT>>{
   public:
+    static constexpr IvyPointerType ivy_ptr_type = IPT;
     typedef IvyUnifiedPtr<T, IPT> pointer;
     typedef typename pointer::element_type element_type;
     typedef typename pointer::difference_type difference_type;
@@ -244,7 +245,6 @@ namespace std_ivy{
   Specialization of the value printout routine
   */
   template<typename T, IvyPointerType IPT> struct value_printout<IvyUnifiedPtr<T, IPT>>;
-
 }
 namespace IvyTypes{
   template<typename T, std_ivy::IvyPointerType IPT> struct convert_to_floating_point<std_ivy::IvyUnifiedPtr<T, IPT>>{

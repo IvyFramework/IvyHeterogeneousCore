@@ -47,9 +47,8 @@ template<unsigned int nvars> void utest(IvyGPUStream& stream, unsigned int i_st)
   __PRINT_INFO__("ptr_h new = %p\n", ptr_h);
 
   {
-    run_kernel<set_doubles> set_doubles_kernel(0, stream);
     IvyGPUEvent ev_set(IvyGPUEvent::EventFlags::Default); ev_set.record(stream);
-    set_doubles_kernel.parallel_1D(nvars, ptr_d, i_st);
+    run_kernel<set_doubles>(0, stream).parallel_1D(nvars, ptr_d, i_st);
     IvyGPUEvent ev_set_end(IvyGPUEvent::EventFlags::Default); ev_set_end.record(stream);
     ev_set_end.synchronize();
     auto time_set = ev_set_end.elapsed_time(ev_set);
