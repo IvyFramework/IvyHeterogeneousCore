@@ -7,8 +7,6 @@
 #include "std_ivy/iterator/IvyReverseIterator.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename Key, typename T, typename Hash> class IvyBucketedIteratorBuilder;
   template<typename Key, typename T, typename Hash> class transfer_memory_primitive<IvyBucketedIteratorBuilder<Key, T, Hash>> : public transfer_memory_primitive_with_internal_memory<IvyBucketedIteratorBuilder<Key, T, Hash>>{};
@@ -338,8 +336,6 @@ namespace std_ivy{
 namespace std_util{
   template<typename Key, typename T, typename Hash> __HOST_DEVICE__ void swap(std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& a, std_ivy::IvyBucketedIteratorBuilder<Key, T, Hash>& b){ a.swap(b); }
 }
-
-#endif
 
 
 #endif

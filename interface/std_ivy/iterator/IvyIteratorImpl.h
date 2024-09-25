@@ -9,8 +9,6 @@
 #include "std_ivy/IvyMemory.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   // How to access the data of a container
   DEFINE_HAS_CALL(data);
@@ -159,8 +157,6 @@ namespace std_ivy{
   template<typename T> __HOST_DEVICE__ constexpr auto cend(T const& c) -> decltype(end(c)){ return end(c); }
 
 }
-
-#endif
 
 
 #endif

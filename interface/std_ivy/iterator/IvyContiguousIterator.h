@@ -10,8 +10,6 @@
 #include "std_ivy/iterator/IvyIteratorImpl.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T, typename ContiguousTag = contiguous_iterator_tag> class IvyContiguousIterator;
   template<typename T, typename ContiguousTag> class transfer_memory_primitive<IvyContiguousIterator<T, ContiguousTag>> : public transfer_memory_primitive_with_internal_memory<IvyContiguousIterator<T, ContiguousTag>>{};
@@ -208,8 +206,6 @@ namespace std_ivy{
 namespace std_util{
   template<typename T, typename ContiguousTag> void swap(std_ivy::IvyContiguousIterator<T, ContiguousTag>& a, std_ivy::IvyContiguousIterator<T, ContiguousTag>& b){ a.swap(b); }
 }
-
-#endif
 
 
 #endif

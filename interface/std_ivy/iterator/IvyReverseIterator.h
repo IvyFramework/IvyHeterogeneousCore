@@ -6,8 +6,6 @@
 #include "std_ivy/iterator/IvyIteratorImpl.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   // Reverse iterator implementation (CUDA-style solution)
   template <class Iterator> class reverse_iterator : public iterator<
@@ -86,8 +84,6 @@ namespace std_ivy{
 namespace std_util{
   template <typename Iterator> __HOST_DEVICE__ void swap(std_ivy::reverse_iterator<Iterator>& x, std_ivy::reverse_iterator<Iterator>& y){ x.swap(y); }
 }
-
-#endif
 
 
 #endif

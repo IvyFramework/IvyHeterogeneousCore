@@ -3,8 +3,9 @@
 
 
 #ifdef __USE_CUDA__
-
 #include "cuda_runtime.h"
+#endif
+
 #include "std_ivy/iterator/IvyIteratorPrimitives.h"
 #include "std_ivy/iterator/IvyIteratorTraits.h"
 #include "std_ivy/iterator/IvyIteratorImpl.h"
@@ -14,16 +15,6 @@
 
 #ifndef std_iter
 #define std_iter std_ivy
-#endif
-
-#else
-
-#include <iterator>
-
-#ifndef std_iter
-#define std_iter std
-#endif
-
 #endif
 
 
