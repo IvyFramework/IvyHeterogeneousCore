@@ -8,6 +8,7 @@
 #include "std_ivy/memory/IvyAllocator.h"
 #include "std_ivy/memory/IvyPointerTraits.h"
 //#include "std_ivy/IvyFunctional.h"
+#include "IvySecrets.h"
 #include "IvyPrintout.h"
 
 
@@ -40,6 +41,7 @@ namespace std_ivy{
     template<typename U> using rebind = IvyUnifiedPtr<U, IPT>;
 
     friend class kernel_generic_transfer_internal_memory<IvyUnifiedPtr<T, IPT>>;
+    friend class IvySecrets::dump_helper;
 
   protected:
     pointer ptr_;

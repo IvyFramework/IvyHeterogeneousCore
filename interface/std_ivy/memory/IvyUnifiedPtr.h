@@ -123,7 +123,7 @@ namespace std_ivy{
     progenitor_mem_type_(std_util::move(other.get_progenitor_memory_type()))
   {
     other.check_write_access_or_die();
-    other.dump();
+    IvySecrets::dump_helper::dump(other);
   }
   template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr&& other) :
     ptr_(std_util::move(other.ptr_)),
@@ -193,7 +193,7 @@ namespace std_ivy{
     stream_ = std_util::move(other.gpu_stream());
     exec_mem_type_ = std_util::move(other.get_exec_memory_type());
     progenitor_mem_type_ = std_util::move(other.get_progenitor_memory_type());
-    other.dump();
+    IvySecrets::dump_helper::dump(other);
     return *this;
   }
   template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(IvyUnifiedPtr&& other){

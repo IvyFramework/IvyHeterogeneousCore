@@ -34,7 +34,7 @@ namespace IvyMath{
 
   template<typename precision_type, typename Domain>
   struct minimal_domain_type<precision_type, Domain, function_value_tag>{
-    using type = IvyFunction<std_ttraits::remove_cv_t<precision_type>, Domain, >;
+    using type = IvyFunction<std_ttraits::remove_cv_t<precision_type>, Domain>;
   };
   template<typename precision_type, typename Domain>
   struct minimal_fcn_output_type<precision_type, Domain, function_value_tag>{
