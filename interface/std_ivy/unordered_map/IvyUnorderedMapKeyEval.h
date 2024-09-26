@@ -10,8 +10,6 @@
 */
 
 
-#ifdef __USE_CUDA__
-
 #include "config/IvyCompilerConfig.h"
 #include "std_ivy/IvyFunctional.h"
 #include "std_ivy/IvyCmath.h"
@@ -81,8 +79,6 @@ namespace std_ivy{
   */
   template<typename Key> using IvyHashEqualEvalDefault = IvyKeyEqualBySqrtNSizeEval<Key>;
 }
-
-#endif
 
 
 #endif

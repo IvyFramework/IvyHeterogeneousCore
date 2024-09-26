@@ -5,8 +5,6 @@
 #include "std_ivy/vector/IvyVectorImpl.hh"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(){}
   template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector const& v){
@@ -492,8 +490,6 @@ namespace std_ivy{
 namespace std_util{
   template<typename T, typename Allocator> __HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b){ a.swap(b); }
 }
-
-#endif
 
 
 #endif

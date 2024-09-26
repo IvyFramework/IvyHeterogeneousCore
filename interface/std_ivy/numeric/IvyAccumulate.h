@@ -3,10 +3,6 @@
 
 
 #include "config/IvyCompilerConfig.h"
-
-
-#ifdef __USE_CUDA__
-
 #include "std_ivy/IvyUtility.h"
 
 
@@ -22,8 +18,6 @@ namespace std_ivy{
     return res;
   }
 }
-
-#endif
 
 
 #endif

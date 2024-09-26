@@ -10,8 +10,6 @@
 #include "IvyPrintout.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<
     typename Key,
@@ -170,8 +168,6 @@ namespace std_util{
   template<typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
   __HOST_DEVICE__ void swap(std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& a, std_ivy::IvyUnorderedMap<Key, T, Hash, KeyEqual, HashEqual, Allocator>& b);
 }
-
-#endif
 
 
 #endif

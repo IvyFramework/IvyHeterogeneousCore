@@ -12,6 +12,7 @@
 #include "std_ivy/iterator/IvyReverseIterator.h"
 #include "std_ivy/iterator/IvyContiguousIterator.h"
 #include "std_ivy/iterator/IvyContiguousIteratorBuilder.h"
+#include "std_ivy/iterator/IvyBucketedIteratorBuilder.h"
 
 #ifndef std_iter
 #define std_iter std_ivy

@@ -3,22 +3,13 @@
 
 
 #ifdef __USE_CUDA__
-
 #include "cuda_runtime.h"
+#endif
+
 #include "std_ivy/unordered_map/IvyUnorderedMapImpl.h"
 
 #ifndef std_umap
 #define std_umap std_ivy
-#endif
-
-#else
-
-#include <unordered_map>
-
-#ifndef std_umap
-#define std_umap std
-#endif
-
 #endif
 
 

@@ -6,8 +6,6 @@
 #include "IvyPrintout.h"
 
 
-#ifdef __USE_CUDA__
-
 namespace std_ivy{
   template<typename T, typename Allocator=std_mem::allocator<T>> class IvyVector;
   template<typename T, typename Allocator> class transfer_memory_primitive<IvyVector<T, Allocator>> : public transfer_memory_primitive_with_internal_memory<IvyVector<T, Allocator>>{};
@@ -138,8 +136,6 @@ namespace std_ivy{
 namespace std_util{
   template<typename T, typename Allocator> __HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b);
 }
-
-#endif
 
 
 #endif

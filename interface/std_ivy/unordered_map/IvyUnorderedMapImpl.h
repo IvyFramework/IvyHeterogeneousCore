@@ -5,10 +5,9 @@
 #include "std_ivy/unordered_map/IvyUnorderedMapImpl.hh"
 
 
-#ifdef __USE_CUDA__
-
 #define __UMAPTPLARGSINIT__ <typename Key, typename T, typename Hash, typename KeyEqual, typename HashEqual, typename Allocator>
 #define __UMAPTPLARGS__ <Key, T, Hash, KeyEqual, HashEqual, Allocator>
+
 
 namespace std_ivy{
   template __UMAPTPLARGSINIT__ __HOST_DEVICE__ IvyUnorderedMap __UMAPTPLARGS__::IvyUnorderedMap(){}
@@ -665,10 +664,9 @@ namespace std_util{
   }
 }
 
+
 #undef __UMAPTPLARGS__
 #undef __UMAPTPLARGSINIT__
-
-#endif
 
 
 #endif
