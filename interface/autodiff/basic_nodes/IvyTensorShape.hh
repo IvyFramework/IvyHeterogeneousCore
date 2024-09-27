@@ -9,6 +9,7 @@
 #include "std_ivy/IvyVector.h"
 #include "std_ivy/IvyMemory.h"
 #include "IvyBasicTypes.h"
+#include "autodiff/base_types/IvyThreadSafePtr.h"
 
 
 namespace IvyMath{
@@ -111,8 +112,15 @@ namespace IvyMath{
     friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensorShape>;
   };
 }
+
 namespace std_util{
   void swap(IvyMath::IvyTensorShape& a, IvyMath::IvyTensorShape& b);
+}
+
+namespace IvyMath{
+  using IvyTensorShapePtr_t = IvyThreadSafePtr_t<IvyTensorShape>;
+
+  template<typename... Args> __HOST_DEVICE__ IvyTensorShapePtr_t TensorShape(Args&&... args){ return make_IvyThreadSafePtr<IvyTensorShape>(args...); }
 }
 
 

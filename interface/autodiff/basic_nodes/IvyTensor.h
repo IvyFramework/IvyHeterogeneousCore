@@ -68,7 +68,7 @@ namespace IvyMath{
         stream, ref_stream,
         __ENCAPSULATE__(
           allocator_data_container_traits::transfer(ptr_data, ptr_v_data, 1, def_mem_type, def_mem_type, ref_stream);
-      )
+        )
       );
     }
 
