@@ -75,6 +75,11 @@ namespace IvyMath{
     std_mem::unique_ptr<value_t> output;
 
   public:
+    __HOST__ IvyFunction(IvyFunction const& other){
+      constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
+    }
+    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
     template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
@@ -83,11 +88,6 @@ namespace IvyMath{
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
     }
-    __HOST__ IvyFunction(IvyFunction const& other){
-      constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
-    }
-    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
     ~IvyFunction() = default;
 
     // Function evaluator implementation

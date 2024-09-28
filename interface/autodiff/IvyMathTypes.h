@@ -69,8 +69,8 @@ namespace IvyMath{
   template<typename T, typename U> struct more_precise_reduced{
     using ftype_T = unpack_if_function_t<T>;
     using ftype_U = unpack_if_function_t<U>;
-    using ctype_T = minimal_fcn_output_type<fundamental_data_t<ftype_T>, get_domain_t<ftype_T>, get_operability_t<ftype_T>>;
-    using ctype_U = minimal_fcn_output_type<fundamental_data_t<ftype_U>, get_domain_t<ftype_U>, get_operability_t<ftype_U>>;
+    using ctype_T = minimal_fcn_output_t<fundamental_data_t<ftype_T>, get_domain_t<ftype_T>, get_operability_t<ftype_T>>;
+    using ctype_U = minimal_fcn_output_t<fundamental_data_t<ftype_U>, get_domain_t<ftype_U>, get_operability_t<ftype_U>>;
     using vtype_T = reduced_value_t<ctype_T>;
     using vtype_U = reduced_value_t<ctype_U>;
     using type = reduced_value_t<more_precise_t<vtype_T, vtype_U>>;

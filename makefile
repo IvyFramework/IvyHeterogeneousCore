@@ -23,14 +23,14 @@ CXXINC        = -I$(INCLUDEDIR)
 CXXDEFINES    =
 CXXVEROPT     = -std=c++20
 CXXOPTIM      = -O2
-CXXFLAGS      = -fPIC -g $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(CXXFLAGS)
 
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
 CXXDEFINES    += -D__USE_CUDA__
 NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
-CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 endif
 

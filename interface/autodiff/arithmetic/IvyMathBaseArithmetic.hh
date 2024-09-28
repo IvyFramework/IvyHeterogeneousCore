@@ -678,7 +678,7 @@ namespace IvyMath{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
-    using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
+    using grad_t = IvyFunctionPtr_t<value_t, get_domain_t<more_precise_t<T, U>>>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
   };

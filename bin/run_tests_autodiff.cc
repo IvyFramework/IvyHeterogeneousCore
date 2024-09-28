@@ -43,9 +43,15 @@ int main(){
 
   auto fcn_negate_cplx = -cplx;
   __PRINT_INFO__("fcn_negate_cplx = ");
-  print_value(fcn_negate_cplx);
-
+  print_value(fcn_negate_cplx->value());
   auto grad_fcn_negate_cplx = fcn_negate_cplx->gradient(rvar);
   __PRINT_INFO__("grad_fcn_negate_cplx(%s) = ", typeid(grad_fcn_negate_cplx).name());
-  print_value(grad_fcn_negate_cplx);
+  print_value(grad_fcn_negate_cplx->value());
+
+  auto fcn_manual_cubed = cplx*cplx*cplx;
+  __PRINT_INFO__("fcn_manual_cubed = ");
+  print_value(fcn_manual_cubed->value());
+  auto grad_fcn_manual_cubed = fcn_manual_cubed->gradient(cplx);
+  __PRINT_INFO__("grad_fcn_manual_cubed(%s) = ", typeid(grad_fcn_manual_cubed).name());
+  print_value(grad_fcn_manual_cubed->value());
 }
