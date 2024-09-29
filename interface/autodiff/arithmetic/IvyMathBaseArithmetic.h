@@ -22,7 +22,7 @@ namespace IvyMath{
   {}
   template<typename T, typename Evaluator>
   __HOST__ void IvyRegularFunction_1D<T, Evaluator>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T, Evaluator>::get(*dep));
+    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
   }
   template<typename T, typename Evaluator>
   __HOST__ bool IvyRegularFunction_1D<T, Evaluator>::depends_on(IvyBaseNode const* node) const{
@@ -659,7 +659,11 @@ namespace IvyMath{
   }
   template<typename T, typename U>
   __HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return value_t(unpack_function_input_reduced<T>::get(x).Re()*unpack_function_input_reduced<U>::get(y).Re() - unpack_function_input_reduced<T>::get(x).Im()+unpack_function_input_reduced<U>::get(y).Im(), unpack_function_input_reduced<T>::get(x).Re()*unpack_function_input_reduced<U>::get(y).Im() + unpack_function_input_reduced<T>::get(x).Im()*unpack_function_input_reduced<U>::get(y).Re());
+    auto const xr = unpack_function_input_reduced<T>::get(x).Re();
+    auto const xi = unpack_function_input_reduced<T>::get(x).Im();
+    auto const yr = unpack_function_input_reduced<U>::get(y).Re();
+    auto const yi = unpack_function_input_reduced<U>::get(y).Im();
+    return value_t(xr*yr - xi*yi, xr*yi + xi*yr);
   }
   template<typename T, typename U>
   __HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){
@@ -846,7 +850,13 @@ namespace IvyMath{
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return unpack_function_input_reduced<T>::get(x)*MultInverse(unpack_function_input_reduced<U>::get(y));
+    auto const xn = unpack_function_input_reduced<T>::get(x).norm();
+    auto const xp = unpack_function_input_reduced<T>::get(x).phase();
+    auto const yr = unpack_function_input_reduced<U>::get(y).Re();
+    auto const yi = unpack_function_input_reduced<U>::get(y).Im();
+    auto const res_norm = xn*Exp(-xp*yi);
+    auto const res_phase = xp*yr;
+    return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y){

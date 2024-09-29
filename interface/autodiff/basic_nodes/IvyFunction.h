@@ -112,7 +112,7 @@ namespace IvyMath{
       return make_IvyThreadSafePtr<T>(
         var.get_memory_type(),
         var.gpu_stream(),
-        (depends_on(fcn, var) ? One<fundamental_data_t<T>>() : Zero<fundamental_data_t<T>>())
+        (var && depends_on(fcn, var.get()) ? One<fundamental_data_t<T>>() : Zero<fundamental_data_t<T>>())
       );
     }
   };
@@ -168,6 +168,17 @@ namespace IvyMath{
   template<typename... Args>
   struct convert_to_real_type<IvyFunction<Args...>>{ using type = convert_to_real_t<reduced_value_t<IvyFunction<Args...>>>; };
 
+}
+
+namespace std_ivy{
+  template<typename... Args>
+  struct value_printout<IvyMath::IvyFunction<Args...>>{
+    static __HOST_DEVICE__ void print(IvyMath::IvyFunction<Args...> const& var){
+      __PRINT_INFO__("Function(");
+      print_value(var.value(), false);
+      __PRINT_INFO__(")");
+    }
+  };
 }
 
 
