@@ -854,8 +854,8 @@ namespace IvyMath{
     auto const xp = unpack_function_input_reduced<T>::get(x).phase();
     auto const yr = unpack_function_input_reduced<U>::get(y).Re();
     auto const yi = unpack_function_input_reduced<U>::get(y).Im();
-    auto const res_norm = xn*Exp(-xp*yi);
-    auto const res_phase = xp*yr;
+    auto const res_norm = Pow(xn, yr)*Exp(-xp*yi);
+    auto const res_phase = xp*yr + yi*Log(xn);
     return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U>

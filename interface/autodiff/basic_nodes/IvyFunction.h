@@ -105,11 +105,13 @@ namespace IvyMath{
       return this->gradient(base_var);
     }
   };
+
   template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>> struct function_gradient{
-    static __HOST__ IvyThreadSafePtr_t<T> get(
+    using value_t = unpack_if_function_t<T>;
+    static __HOST__ IvyThreadSafePtr_t<value_t> get(
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
-      return make_IvyThreadSafePtr<T>(
+      return make_IvyThreadSafePtr<value_t>(
         var.get_memory_type(),
         var.gpu_stream(),
         (var && depends_on(fcn, var.get()) ? One<fundamental_data_t<T>>() : Zero<fundamental_data_t<T>>())

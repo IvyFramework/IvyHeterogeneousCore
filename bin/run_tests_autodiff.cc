@@ -57,9 +57,12 @@ int main(){
   __PRINT_INFO__("prod_cplx_cplx = ");
   print_value(prod_cplx_cplx);
 
-  //auto pow_cplx_cplx = Pow(cplx, cplx);
-  //__PRINT_INFO__("pow_cplx_cplx = ");
-  //print_value(pow_cplx_cplx);
+  auto pow_cplx_cplx = Pow(cplx, cplx);
+  __PRINT_INFO__("pow_cplx_cplx = ");
+  print_value(pow_cplx_cplx);
+  auto grad_pow_cplx_cplx = pow_cplx_cplx->gradient(cplx);
+  __PRINT_INFO__("grad_pow_cplx_cplx(%s) = ", typeid(grad_pow_cplx_cplx).name());
+  print_value(grad_pow_cplx_cplx); // FIXME: The output is not correct yet.
 
   auto fcn_manual_cubed = cplx*cplx*cplx;
   __PRINT_INFO__("fcn_manual_cubed = ");
