@@ -76,7 +76,7 @@ namespace std_ivy{
     if (ptr_) this->init_members(mem_type, n, n);
   }
   template<typename T, IvyPointerType IPT>
-  template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
+  template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL_IMPL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
   __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other) :
     progenitor_mem_type_(other.get_progenitor_memory_type())
   {
@@ -111,7 +111,7 @@ namespace std_ivy{
     // We should reset the other pointer if it is unique and its progenitor memory type is the same as that of the current context.
     if (IPT==IvyPointerType::unique && other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
   }
-  template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
+  template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL_IMPL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
   __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other) :
     ptr_(std_util::move(other.get())),
     mem_type_(std_util::move(other.get_memory_type_ptr())),
@@ -141,7 +141,7 @@ namespace std_ivy{
   template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::~IvyUnifiedPtr(){ this->reset(); }
 
   template<typename T, IvyPointerType IPT>
-  template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
+  template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL_IMPL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
   __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(IvyUnifiedPtr<U, IPU> const& other){
     if (*this != other){
       this->release();
@@ -181,7 +181,7 @@ namespace std_ivy{
     return *this;
   }
   template<typename T, IvyPointerType IPT>
-  template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool>>
+  template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL_IMPL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
   __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& IvyUnifiedPtr<T, IPT>::operator=(IvyUnifiedPtr<U, IPU>&& other){
     other.check_write_access_or_die();
     this->release();

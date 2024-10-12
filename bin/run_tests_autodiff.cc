@@ -45,28 +45,33 @@ int main(){
   __PRINT_INFO__("grad_cplx_cplx(%s) = ", typeid(grad_cplx_cplx).name());
   print_value(grad_cplx_cplx);
 
-  auto fcn_negate_cplx = -cplx;
-  __PRINT_INFO__("fcn_negate_cplx = ");
-  print_value(fcn_negate_cplx);
-  auto grad_fcn_negate_cplx = fcn_negate_cplx->gradient(rvar);
-  __PRINT_INFO__("grad_fcn_negate_cplx(%s) = ", typeid(grad_fcn_negate_cplx).name());
-  print_value(grad_fcn_negate_cplx);
+  //auto fcn_negate_cplx = -cplx;
+  //__PRINT_INFO__("fcn_negate_cplx = ");
+  //print_value(fcn_negate_cplx);
+  //auto grad_fcn_negate_cplx = fcn_negate_cplx->gradient(rvar);
+  //__PRINT_INFO__("grad_fcn_negate_cplx(%s) = ", typeid(grad_fcn_negate_cplx).name());
+  //print_value(grad_fcn_negate_cplx);
 
   using MultiplyEvaluator = MultiplyFcnal<std_ttraits::remove_reference_t<decltype(*cplx)>, std_ttraits::remove_reference_t<decltype(*cplx)>>;
   auto prod_cplx_cplx = MultiplyEvaluator::eval(*cplx, *cplx);
   __PRINT_INFO__("prod_cplx_cplx = ");
   print_value(prod_cplx_cplx);
 
-  auto pow_cplx_cplx = Pow(cplx, cplx);
-  __PRINT_INFO__("pow_cplx_cplx = ");
-  print_value(pow_cplx_cplx);
-  auto grad_pow_cplx_cplx = pow_cplx_cplx->gradient(cplx);
-  __PRINT_INFO__("grad_pow_cplx_cplx(%s) = ", typeid(grad_pow_cplx_cplx).name());
-  print_value(grad_pow_cplx_cplx); // FIXME: The output is not correct yet.
+  auto grad0_prod_cplx_cplx = MultiplyEvaluator::gradient(0, cplx, cplx);
+  __PRINT_INFO__("grad0_prod_cplx_cplx(%s) = ", typeid(grad0_prod_cplx_cplx).name());
+  print_value(grad0_prod_cplx_cplx);
 
-  auto fcn_manual_cubed = cplx*cplx*cplx;
-  __PRINT_INFO__("fcn_manual_cubed = ");
-  print_value(fcn_manual_cubed);
+
+  //auto pow_cplx_cplx = Pow(cplx, cplx);
+  //__PRINT_INFO__("pow_cplx_cplx = ");
+  //print_value(pow_cplx_cplx);
+  //auto grad_pow_cplx_cplx = pow_cplx_cplx->gradient(cplx);
+  //__PRINT_INFO__("grad_pow_cplx_cplx(%s) = ", typeid(grad_pow_cplx_cplx).name());
+  //print_value(grad_pow_cplx_cplx); // FIXME: The output is not correct yet.
+
+  //auto fcn_manual_cubed = cplx*cplx*cplx;
+  //__PRINT_INFO__("fcn_manual_cubed = ");
+  //print_value(fcn_manual_cubed);
   //auto grad_fcn_manual_cubed = fcn_manual_cubed->gradient(cplx);
   //__PRINT_INFO__("grad_fcn_manual_cubed(%s) = ", typeid(grad_fcn_manual_cubed).name());
   //print_value(grad_fcn_manual_cubed->value());

@@ -84,18 +84,18 @@ namespace std_ivy{
     explicit __HOST_DEVICE__ IvyUnifiedPtr(U* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     template<typename U>
     explicit __HOST_DEVICE__ IvyUnifiedPtr(U* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream);
-    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
+    template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
     __HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPU> const& other);
     __HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other);
-    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
+    template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
     __HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other);
     __HOST_DEVICE__ IvyUnifiedPtr(IvyUnifiedPtr&& other);
     __HOST_DEVICE__ ~IvyUnifiedPtr();
 
-    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
+    template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
     __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPU> const& other);
     __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr const& other);
-    template<typename U, IvyPointerType IPU, std_ttraits::enable_if_t<IPU==IPT || IPU==IvyPointerType::unique, bool> = true>
+    template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
     __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr<U, IPU>&& other);
     __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(IvyUnifiedPtr&& other);
     __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>& operator=(std_cstddef::nullptr_t);
