@@ -159,6 +159,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag = get_domain_t<T>> struct MultInverseFcnal{
     using value_t = reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct MultInverseFcnal<T, real_domain_tag>{

@@ -122,7 +122,10 @@ namespace IvyMath{
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T>
-  __HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::value_t NegateFcnal<T, complex_domain_tag>::eval(T const& x){ return value_t(-unpack_function_input_reduced<T>::get(x).Re(), -unpack_function_input_reduced<T>::get(x).Im()); }
+  __HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::value_t NegateFcnal<T, complex_domain_tag>::eval(T const& x){
+    auto const& xx = unpack_function_input_reduced<T>::get(x);
+    return value_t(-xx.Re(), -xx.Im());
+  }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
@@ -141,16 +144,18 @@ namespace IvyMath{
 
   // MULTIPLICATIVE INVERSE
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ MultInverseFcnal<T, domain_tag>::value_t MultInverseFcnal<T, domain_tag>::eval(T const& x){ return One<value_t>()/x; }
+  __HOST_DEVICE__ MultInverseFcnal<T, domain_tag>::value_t MultInverseFcnal<T, domain_tag>::eval(T const& x){ return One<fndtype_t>()/x; }
   template<typename T>
-  __HOST_DEVICE__ MultInverseFcnal<T, real_domain_tag>::value_t MultInverseFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(MultInverse(unpack_function_input_reduced<T>::get(x))); }
+  __HOST_DEVICE__ MultInverseFcnal<T, real_domain_tag>::value_t MultInverseFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(MultInverse(unpack_function_input_reduced<T>::get(x)));
+  }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ MultInverseFcnal<T, real_domain_tag>::grad_t MultInverseFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -MultInverse(x*x);
   }
   template<typename T>
   __HOST_DEVICE__ MultInverseFcnal<T, complex_domain_tag>::value_t MultInverseFcnal<T, complex_domain_tag>::eval(T const& x){
-    auto const r = MultInverse(unpack_function_input_reduced<T>::get(x).norm());
+    auto const r = unpack_function_input_reduced<T>::get(x).norm();
     auto const phi = unpack_function_input_reduced<T>::get(x).phase();
     value_t res; res.set_absval_phase(MultInverse(r), -phi);
     return res;
@@ -258,7 +263,7 @@ namespace IvyMath{
   }
   template<typename T>
   __HOST_DEVICE__ LogFcnal<T, complex_domain_tag>::value_t LogFcnal<T, complex_domain_tag>::eval(T const& x){
-    auto const r = Log(unpack_function_input_reduced<T>::get(x).norm());
+    auto const r = unpack_function_input_reduced<T>::get(x).norm();
     auto const phi = unpack_function_input_reduced<T>::get(x).phase();
     return value_t(Log(r), phi);
   }
@@ -309,11 +314,9 @@ namespace IvyMath{
   __HOST_DEVICE__ SinFcnal<T, complex_domain_tag>::value_t SinFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
     auto const& b = unpack_function_input_reduced<T>::get(x).Im();
-    auto sa = Sin(a);
-    auto chb = CosH(b);
-    auto ca = Cos(a);
-    auto shb = SinH(b);
-    return value_t(sa*chb, ca*shb);
+    value_t arg(-b, a);
+    auto const exp_arg = Exp(arg);
+    return (exp_arg - MultInverse(exp_arg))/value_t(Zero<fndtype_t>(), Two<fndtype_t>());
   }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ SinFcnal<T, complex_domain_tag>::grad_t SinFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
@@ -335,11 +338,9 @@ namespace IvyMath{
   __HOST_DEVICE__ CosFcnal<T, complex_domain_tag>::value_t CosFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
     auto const& b = unpack_function_input_reduced<T>::get(x).Im();
-    auto ca = Cos(a);
-    auto chb = CosH(b);
-    auto sa = Sin(a);
-    auto shb = CosH(b);
-    return value_t(ca*chb, -sa*shb);
+    value_t arg(-b, a);
+    auto const exp_arg = Exp(arg);
+    return (exp_arg + MultInverse(exp_arg))/Two<fndtype_t>();
   }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ CosFcnal<T, complex_domain_tag>::grad_t CosFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
@@ -364,7 +365,7 @@ namespace IvyMath{
 
   // SECANT
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ SecFcnal<T, domain_tag>::value_t SecFcnal<T, domain_tag>::eval(T const& x){ return One<dtype_t>/Cos(x); }
+  __HOST_DEVICE__ SecFcnal<T, domain_tag>::value_t SecFcnal<T, domain_tag>::eval(T const& x){ return MultInverse(Cos(x)); }
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ SecFcnal<T, domain_tag>::grad_t SecFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Sec(x)*Tan(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SecFcnal<T>::value_t Sec(T const& x){ return SecFcnal<T>::eval(x); }
@@ -376,7 +377,7 @@ namespace IvyMath{
 
   // COSECANT
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ CscFcnal<T, domain_tag>::value_t CscFcnal<T, domain_tag>::eval(T const& x){ return One<dtype_t>/Sin(x); }
+  __HOST_DEVICE__ CscFcnal<T, domain_tag>::value_t CscFcnal<T, domain_tag>::eval(T const& x){ return MultInverse(Sin(x)); }
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ CscFcnal<T, domain_tag>::grad_t CscFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Csc(x)*Cot(x);; }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CscFcnal<T>::value_t Csc(T const& x){ return CscFcnal<T>::eval(x); }
@@ -897,7 +898,7 @@ namespace IvyMath{
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t PowFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    auto const xx = unpack_function_input_reduced<T>::get(x);
+    auto const& xx = unpack_function_input_reduced<T>::get(x);
     auto const xn = Abs(xx);
     auto const xp = xx>=0 ? Zero<fndtype_t>() : Pi<fndtype_t>();
     auto const yr = unpack_function_input_reduced<U>::get(y).Re();
