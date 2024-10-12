@@ -870,23 +870,41 @@ namespace IvyMath{
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t PowFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
-    return value_t(x/unpack_function_input_reduced<U>::get(y));
+    return value_t(Pow(x, unpack_function_input_reduced<U>::get(y)));
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t PowFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
-    return value_t(unpack_function_input_reduced<T>::get(x)/y);
+    return value_t(Pow(unpack_function_input_reduced<T>::get(x), y));
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t PowFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return x*MultInverse(y);
+    auto const xn = Abs(x);
+    auto const xp = x>=0 ? Zero<fndtype_t>() : Pi<fndtype_t>();
+    auto const yr = unpack_function_input_reduced<U>::get(y).Re();
+    auto const yi = unpack_function_input_reduced<U>::get(y).Im();
+    auto const res_norm = Pow(xn, yr)*Exp(-xp*yi);
+    auto const res_phase = xp*yr + yi*Log(xn);
+    return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t PowFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
-    return value_t(unpack_function_input_reduced<T>::get(x).Re()/y, unpack_function_input_reduced<T>::get(x).Im()/y);
+    auto const xn = unpack_function_input_reduced<T>::get(x).norm();
+    auto const xp = unpack_function_input_reduced<T>::get(x).phase();
+    auto const& yr = y;
+    auto const res_norm = Pow(xn, yr);
+    auto const res_phase = xp*yr;
+    return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t PowFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return unpack_function_input_reduced<T>::get(x)*MultInverse(y);
+    auto const xx = unpack_function_input_reduced<T>::get(x);
+    auto const xn = Abs(xx);
+    auto const xp = xx>=0 ? Zero<fndtype_t>() : Pi<fndtype_t>();
+    auto const yr = unpack_function_input_reduced<U>::get(y).Re();
+    auto const yi = unpack_function_input_reduced<U>::get(y).Im();
+    auto const res_norm = Pow(xn, yr)*Exp(-xp*yi);
+    auto const res_phase = xp*yr + yi*Log(xn);
+    return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
   __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
@@ -900,7 +918,12 @@ namespace IvyMath{
   }
   template<typename T, typename U>
   __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t PowFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
-    return unpack_function_input_reduced<T>::get(x)*MultInverse(y);
+    auto const xn = unpack_function_input_reduced<T>::get(x).norm();
+    auto const xp = unpack_function_input_reduced<T>::get(x).phase();
+    auto const yr = unpack_function_input_reduced<U>::get(y);
+    auto const res_norm = Pow(xn, yr);
+    auto const res_phase = xp*yr;
+    return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
   __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){

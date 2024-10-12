@@ -60,6 +60,23 @@ int main(){
   auto grad0_prod_cplx_cplx = MultiplyEvaluator::gradient(0, cplx, cplx);
   __PRINT_INFO__("grad0_prod_cplx_cplx(%s) = ", typeid(grad0_prod_cplx_cplx).name());
   print_value(grad0_prod_cplx_cplx);
+  auto grad1_prod_cplx_cplx = MultiplyEvaluator::gradient(1, cplx, cplx);
+  __PRINT_INFO__("grad1_prod_cplx_cplx(%s) = ", typeid(grad1_prod_cplx_cplx).name());
+  print_value(grad1_prod_cplx_cplx);
+
+  auto fcn_manual_cubed = cplx*cplx*cplx;
+  __PRINT_INFO__("fcn_manual_cubed = ");
+  print_value(fcn_manual_cubed);
+  auto grad_fcn_manual_cubed = fcn_manual_cubed->gradient(cplx);
+  __PRINT_INFO__("grad_fcn_manual_cubed(%s) = ", typeid(grad_fcn_manual_cubed).name());
+  print_value(grad_fcn_manual_cubed->value());
+
+  auto fcn_pow_cubed = Pow(cplx, Constant<int>(std_ivy::IvyMemoryType::Host, nullptr, 3));
+  __PRINT_INFO__("fcn_pow_cubed = ");
+  print_value(fcn_pow_cubed);
+  auto grad_fcn_pow_cubed = fcn_pow_cubed->gradient(cplx);
+  __PRINT_INFO__("grad_fcn_pow_cubed(%s) = ", typeid(grad_fcn_pow_cubed).name());
+  print_value(grad_fcn_pow_cubed->value());
 
 
   auto pow_cplx_cplx = Pow(cplx, cplx);
@@ -68,11 +85,4 @@ int main(){
   auto grad_pow_cplx_cplx = pow_cplx_cplx->gradient(cplx);
   __PRINT_INFO__("grad_pow_cplx_cplx(%s) = ", typeid(grad_pow_cplx_cplx).name());
   print_value(grad_pow_cplx_cplx); // FIXME: The output is not correct yet.
-
-  auto fcn_manual_cubed = cplx*cplx*cplx;
-  __PRINT_INFO__("fcn_manual_cubed = ");
-  print_value(fcn_manual_cubed);
-  auto grad_fcn_manual_cubed = fcn_manual_cubed->gradient(cplx);
-  __PRINT_INFO__("grad_fcn_manual_cubed(%s) = ", typeid(grad_fcn_manual_cubed).name());
-  print_value(grad_fcn_manual_cubed->value());
 }

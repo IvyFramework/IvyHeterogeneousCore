@@ -19,7 +19,7 @@ namespace IvyMath{
     using value_t = T;
 
   protected:
-    value_t const value_;
+    value_t value_;
 
   public:
     // Constructors
@@ -30,6 +30,11 @@ namespace IvyMath{
     template<typename U> __HOST_DEVICE__ IvyConstant(IvyConstant<U> const& other) : value_(__STATIC_CAST__(T, other.value())){}
     __HOST_DEVICE__ IvyConstant(IvyConstant<T> const& other) : value_(other.value_){}
     __HOST_DEVICE__ IvyConstant(IvyConstant<T>&& other) : value_(std_util::move(other.value_)){}
+
+    // Assignment operators
+    template<typename U> __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<U> const& other){ this->value_ = __STATIC_CAST__(T, other.value()); return *this; }
+    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T> const& other){ this->value_ = other.value_; return *this; }
+    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T>&& other){ this->value_ = std_util::move(other.value_); return *this; }
 
     // Empty virtual destructor
     __HOST_DEVICE__ ~IvyConstant(){}

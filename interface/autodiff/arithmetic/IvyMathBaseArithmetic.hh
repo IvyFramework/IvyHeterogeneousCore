@@ -524,6 +524,7 @@ namespace IvyMath{
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct AddFcnal{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, real_domain_tag, real_domain_tag>{
@@ -547,21 +548,25 @@ namespace IvyMath{
   template<typename T, typename U> struct AddFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct AddFcnal<T, U, real_domain_tag, complex_domain_tag>{
@@ -596,6 +601,7 @@ namespace IvyMath{
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct SubtractFcnal{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct SubtractFcnal<T, U, real_domain_tag, real_domain_tag>{
@@ -619,21 +625,25 @@ namespace IvyMath{
   template<typename T, typename U> struct SubtractFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct SubtractFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct SubtractFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct SubtractFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct SubtractFcnal<T, U, real_domain_tag, complex_domain_tag>{
@@ -668,6 +678,7 @@ namespace IvyMath{
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct MultiplyFcnal{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>{
@@ -691,21 +702,25 @@ namespace IvyMath{
   template<typename T, typename U> struct MultiplyFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>{
@@ -740,6 +755,7 @@ namespace IvyMath{
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct DivideFcnal{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct DivideFcnal<T, U, real_domain_tag, real_domain_tag>{
@@ -763,21 +779,25 @@ namespace IvyMath{
   template<typename T, typename U> struct DivideFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct DivideFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct DivideFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct DivideFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct DivideFcnal<T, U, real_domain_tag, complex_domain_tag>{
@@ -812,6 +832,7 @@ namespace IvyMath{
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct PowFcnal{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct PowFcnal<T, U, real_domain_tag, real_domain_tag>{
@@ -835,21 +856,25 @@ namespace IvyMath{
   template<typename T, typename U> struct PowFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct PowFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct PowFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct PowFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
     using value_t = more_precise_reduced_t<T, U>;
     using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> struct PowFcnal<T, U, real_domain_tag, complex_domain_tag>{
