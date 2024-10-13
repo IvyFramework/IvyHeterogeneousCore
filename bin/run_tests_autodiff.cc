@@ -67,17 +67,19 @@ int main(){
     print_value(grad, false); \
     __PRINT_INFO__(" ?= "); \
     print_value(GRAD_RES); \
+    __PRINT_INFO__("Type of fcn: %s\n", typeid(fcn).name()); \
+    __PRINT_INFO__("Type of grad: %s\n", typeid(grad).name()); \
   } \
   __PRINT_INFO__("*****************\n");
 
   FCN_TEST_COMMAND(Exp, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 20.0855), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 20.0855));
-  //FCN_TEST_COMMAND(Log, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Sin, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Cos, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Tan, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Cot, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Sec, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  //FCN_TEST_COMMAND(Csc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 7.08617), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 49.7113));
+  FCN_TEST_COMMAND(Log, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.098612), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.333333));
+  FCN_TEST_COMMAND(Sin, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.14112), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.98999));
+  FCN_TEST_COMMAND(Cos, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.98999), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.14112));
+  FCN_TEST_COMMAND(Tan, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.14255), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.02032));
+  FCN_TEST_COMMAND(Cot, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -7.01525), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -50.2138));
+  FCN_TEST_COMMAND(Sec, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.01011), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.143987));
+  FCN_TEST_COMMAND(Csc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 7.08617), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 49.7113));
   FCN_TEST_COMMAND(SinH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677));
   FCN_TEST_COMMAND(CosH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
 
@@ -92,6 +94,39 @@ int main(){
   FCN_TEST_COMMAND(SinH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861));
   FCN_TEST_COMMAND(CosH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312));
 #undef FCN_TEST_COMMAND
+
+  /*
+  auto fcn_equal_cplx_rvar = Equal(cplx, rvar);
+  __PRINT_INFO__("fcn_equal_cplx_rvar = ");
+  print_value(fcn_equal_cplx_rvar);
+  auto grad0_fcn_equal_cplx_rvar = fcn_equal_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_equal_cplx_rvar(%s) = ", typeid(grad0_fcn_equal_cplx_rvar).name());
+  print_value(grad0_fcn_equal_cplx_rvar->value());
+  auto grad1_fcn_equal_cplx_rvar = fcn_equal_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_equal_cplx_rvar).name());
+  print_value(grad1_fcn_equal_cplx_rvar->value());
+  */
+
+  auto fcn_add_cplx_rvar = cplx + rvar;
+  __PRINT_INFO__("fcn_add_cplx_rvar = ");
+  print_value(fcn_add_cplx_rvar);
+  auto grad0_fcn_add_cplx_rvar = fcn_add_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_add_cplx_rvar(%s) = ", typeid(grad0_fcn_add_cplx_rvar).name());
+  print_value(grad0_fcn_add_cplx_rvar->value());
+  auto grad1_fcn_add_cplx_rvar = fcn_add_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_add_cplx_rvar(%s) = ", typeid(grad1_fcn_add_cplx_rvar).name());
+  print_value(grad1_fcn_add_cplx_rvar->value());
+
+  auto fcn_prod_cplx_rvar = cplx * rvar;
+  __PRINT_INFO__("fcn_prod_cplx_rvar = ");
+  print_value(fcn_prod_cplx_rvar);
+  auto grad0_fcn_prod_cplx_rvar = fcn_prod_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_prod_cplx_rvar(%s) = ", typeid(grad0_fcn_prod_cplx_rvar).name());
+  print_value(grad0_fcn_prod_cplx_rvar->value());
+  auto grad1_fcn_prod_cplx_rvar = fcn_prod_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_prod_cplx_rvar(%s) = ", typeid(grad1_fcn_prod_cplx_rvar).name());
+  print_value(grad1_fcn_prod_cplx_rvar->value());
+
 
   using MultiplyEvaluator = MultiplyFcnal<std_ttraits::remove_reference_t<decltype(*cplx)>, std_ttraits::remove_reference_t<decltype(*cplx)>>;
   auto prod_cplx_cplx = MultiplyEvaluator::eval(*cplx, *cplx);

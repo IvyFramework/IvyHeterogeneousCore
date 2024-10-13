@@ -8,28 +8,28 @@
 
 namespace IvyMath{
   // General 1D function implementation
-  template<typename T, typename Evaluator>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator>::IvyRegularFunction_1D(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
-  template<typename T, typename Evaluator>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator> const& other) :
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator, precision_type, Domain> const& other) :
     base_t(__DYNAMIC_CAST__(base_t const&, other)),
     dep(other.dep)
   {}
-  template<typename T, typename Evaluator>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator>&& other) :
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>&& other) :
     base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
     dep(std_util::move(other.dep))
   {}
-  template<typename T, typename Evaluator>
-  __HOST__ void IvyRegularFunction_1D<T, Evaluator>::eval() const{
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ void IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::eval() const{
     *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
   }
-  template<typename T, typename Evaluator>
-  __HOST__ bool IvyRegularFunction_1D<T, Evaluator>::depends_on(IvyBaseNode const* node) const{
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ bool IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
     return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
   }
-  template<typename T, typename Evaluator>
-  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_1D<T, Evaluator>::grad_t> IvyRegularFunction_1D<T, Evaluator>::gradient(
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::grad_t> IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::gradient(
     IvyThreadSafePtr_t<IvyBaseNode> const& var
   ) const{
     auto grad_dep = function_gradient<T, Evaluator>::get(*dep, var);
@@ -37,30 +37,30 @@ namespace IvyMath{
   }
 
   // General 2D function implementation
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator>::IvyRegularFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator> const& other) :
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain> const& other) :
     base_t(__DYNAMIC_CAST__(base_t const&, other)),
     x(other.x),
     y(other.y)
   {}
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator>&& other) :
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>&& other) :
     base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
     x(std_util::move(other.x)),
     y(std_util::move(other.y))
   {}
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ void IvyRegularFunction_2D<T, U, Evaluator>::eval() const{
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ void IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::eval() const{
     *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
   }
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ bool IvyRegularFunction_2D<T, U, Evaluator>::depends_on(IvyBaseNode const* node) const{
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ bool IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
     return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
   }
-  template<typename T, typename U, typename Evaluator>
-  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_2D<T, U, Evaluator>::grad_t> IvyRegularFunction_2D<T, U, Evaluator>::gradient(
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::grad_t> IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::gradient(
     IvyThreadSafePtr_t<IvyBaseNode> const& var
   ) const{
     auto grad_x = function_gradient<T>::get(*x, var);
@@ -102,7 +102,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag>
   __HOST_DEVICE__ constexpr IsRealFcnal<T, domain_tag>::value_t IsRealFcnal<T, domain_tag>::eval(T const& x){ return true; }
   template<typename T>
-  __HOST_DEVICE__ IsRealFcnal<T, complex_domain_tag>::value_t IsRealFcnal<T, complex_domain_tag>::eval(T const& x){ return unpack_function_input_reduced<T>::get(x).Im()==Zero<T>(); }
+  __HOST_DEVICE__ IsRealFcnal<T, complex_domain_tag>::value_t IsRealFcnal<T, complex_domain_tag>::eval(T const& x){ return unpack_function_input_reduced<T>::get(x).Im()==Zero<fundamental_data_t<T>>(); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename IsRealFcnal<T>::value_t IsReal(T const& x){ return IsRealFcnal<T>::eval(x); }
 
   // Test to check whether value is imaginary
@@ -463,6 +463,86 @@ namespace IvyMath{
   /****************/
   /* 2D FUNCTIONS */
   /****************/
+
+  // COMPARISON OPERATORS
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ EqualFcnal<T, U, domain_T, domain_U>::value_t EqualFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x==y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return Equal(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t EqualFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
+    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(
+      mem_type, gpu_stream,
+      Zero<fndtype_t>()
+    );
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()) && Equal(unpack_function_input_reduced<T>::get(x).Im(), unpack_function_input_reduced<U>::get(y).Im()));
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
+    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(
+      mem_type, gpu_stream,
+      Zero<fndtype_t>()
+    );
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y), x));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), x) && IsReal(unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), y) && IsReal(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x)) && IsReal(unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
+    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(
+      mem_type, gpu_stream,
+      Zero<fndtype_t>()
+    );
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)) && IsReal(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
+    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
+    return make_IvyThreadSafePtr<typename grad_t::element_type>(
+      mem_type, gpu_stream,
+      Zero<fndtype_t>()
+    );
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y){ return EqualFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
+  }
+
 
   // ADDITION
   template<typename T, typename U, typename domain_T, typename domain_U>

@@ -17,9 +17,11 @@ namespace IvyMath{
   Unless we have any sepcial cases in return types, i.e., not the return type of reduced_value_t<T> required here,
   this master class should be used with partial specializations for different Evaluator types.
   */
-  template<typename T, typename Evaluator> class IvyRegularFunction_1D : public IvyFunction<reduced_value_t<T>, get_domain_t<T>>{
+  template<typename T, typename Evaluator, typename precision_type = unpacked_reduced_value_t<T>, typename Domain = get_domain_t<T>>
+  class IvyRegularFunction_1D : public IvyFunction<precision_type, Domain>
+  {
   public:
-    using base_t = IvyFunction<reduced_value_t<T>, get_domain_t<T>>;
+    using base_t = IvyFunction<precision_type, Domain>;
     using value_t = typename base_t::value_t;
     using dtype_t = typename base_t::dtype_t;
     using grad_t = typename base_t::grad_t;
@@ -43,11 +45,11 @@ namespace IvyMath{
   Unless we have any sepcial cases in return types, i.e., not the return type of more_precise_reduced_t<T, U> required here,
   this master class should be used with partial specializations for different Evaluator types.
   */
-  template<typename T, typename U, typename Evaluator> class IvyRegularFunction_2D :
-    public IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>
+  template<typename T, typename U, typename Evaluator, typename precision_type = more_precise_reduced_t<T, U>, typename Domain = get_domain_t<more_precise_t<T, U>>>
+  class IvyRegularFunction_2D : public IvyFunction<precision_type, Domain>
   {
   public:
-    using base_t = IvyFunction<more_precise_reduced_t<T, U>, get_domain_t<more_precise_t<T, U>>>;
+    using base_t = IvyFunction<precision_type, Domain>;
     using value_t = typename base_t::value_t;
     using dtype_t = typename base_t::dtype_t;
     using grad_t = typename base_t::grad_t;
@@ -124,12 +126,12 @@ namespace IvyMath{
 
   // NEGATION
   template<typename T, typename domain_tag = get_domain_t<T>> struct NegateFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr value_t eval(T const& x);
   };
   template<typename T> struct NegateFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyConstantPtr_t<fndtype_t>;
@@ -138,7 +140,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct NegateFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyComplexVariablePtr_t<fndtype_t>;
@@ -157,13 +159,13 @@ namespace IvyMath{
 
   // MULTIPLICATIVE INVERSE
   template<typename T, typename domain_tag = get_domain_t<T>> struct MultInverseFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct MultInverseFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -172,7 +174,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct MultInverseFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -187,12 +189,12 @@ namespace IvyMath{
 
   // SQUARE ROOT
   template<typename T, typename domain_tag = get_domain_t<T>> struct SqrtFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct SqrtFcnal<T, real_domain_tag>{
-    using dtype_t = reduced_data_t<reduced_value_t<T>>;
+    using dtype_t = reduced_data_t<unpacked_reduced_value_t<T>>;
     using value_t = IvyVariable<dtype_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -201,7 +203,7 @@ namespace IvyMath{
     static __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct SqrtFcnal<T, complex_domain_tag>{
-    using dtype_t = reduced_data_t<reduced_value_t<T>>;
+    using dtype_t = reduced_data_t<unpacked_reduced_value_t<T>>;
     using value_t = IvyComplexVariable<dtype_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -247,7 +249,7 @@ namespace IvyMath{
 
   // CONJUGATION
   template<typename T, typename domain_tag = get_domain_t<T>> struct ConjugateFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
@@ -255,12 +257,12 @@ namespace IvyMath{
 
   // EXPONENTIAL
   template<typename T, typename domain_tag = get_domain_t<T>> struct ExpFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct ExpFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -269,7 +271,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct ExpFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -284,12 +286,12 @@ namespace IvyMath{
 
   // LOG (NATURAL LOG)
   template<typename T, typename domain_tag = get_domain_t<T>> struct LogFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct LogFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -298,7 +300,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct LogFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -313,12 +315,12 @@ namespace IvyMath{
 
   // LOG10 (BASE=10 LOG)
   template<typename T, typename domain_tag = get_domain_t<T>> struct Log10Fcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct Log10Fcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -327,7 +329,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct Log10Fcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -342,12 +344,12 @@ namespace IvyMath{
 
   // SINE
   template<typename T, typename domain_tag = get_domain_t<T>> struct SinFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct SinFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -356,7 +358,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct SinFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -371,12 +373,12 @@ namespace IvyMath{
 
   // COSINE
   template<typename T, typename domain_tag = get_domain_t<T>> struct CosFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct CosFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -385,7 +387,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct CosFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -400,7 +402,7 @@ namespace IvyMath{
 
   // TANGENT
   template<typename T, typename domain_tag = get_domain_t<T>> struct TanFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, domain_tag>>;
@@ -415,7 +417,7 @@ namespace IvyMath{
 
   // SECANT
   template<typename T, typename domain_tag = get_domain_t<T>> struct SecFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, domain_tag>>;
@@ -430,7 +432,7 @@ namespace IvyMath{
 
   // COSECANT
   template<typename T, typename domain_tag = get_domain_t<T>> struct CscFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, domain_tag>>;
@@ -445,7 +447,7 @@ namespace IvyMath{
 
   // COTANGENT
   template<typename T, typename domain_tag = get_domain_t<T>> struct CotFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, domain_tag>>;
@@ -460,12 +462,12 @@ namespace IvyMath{
 
   // SINH
   template<typename T, typename domain_tag = get_domain_t<T>> struct SinHFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct SinHFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -474,7 +476,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct SinHFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -489,12 +491,12 @@ namespace IvyMath{
 
   // COSH
   template<typename T, typename domain_tag = get_domain_t<T>> struct CosHFcnal{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
   };
   template<typename T> struct CosHFcnal<T, real_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
@@ -503,7 +505,7 @@ namespace IvyMath{
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
   template<typename T> struct CosHFcnal<T, complex_domain_tag>{
-    using value_t = reduced_value_t<T>;
+    using value_t = unpacked_reduced_value_t<T>;
     using dtype_t = reduced_data_t<value_t>;
     using fndtype_t = fundamental_data_t<value_t>;
     using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
@@ -520,6 +522,79 @@ namespace IvyMath{
   /****************/
   /* 2D FUNCTIONS */
   /****************/
+
+  // COMPARISON OPERATORS
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct EqualFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+    template<typename X_t, typename Y_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+    template<typename X_t, typename Y_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+    template<typename X_t, typename Y_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyConstantPtr_t<fndtype_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+    template<typename X_t, typename Y_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
+  };
+  template<typename T, typename U> using IvyEqual = IvyRegularFunction_2D<T, U, EqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>, bool, get_domain_t<IvyConstant<bool>>>;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y);
 
   // ADDITION
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct AddFcnal{

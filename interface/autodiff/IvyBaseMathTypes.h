@@ -108,6 +108,23 @@ namespace IvyMath{
   template<typename T> using unpack_if_function_t = typename unpack_if_function_type<T>::type;
 
   /*
+  unpacked_reduced_value_t:
+  The value of unpacked_reduced_value_t is supposed to be the same as that of reduced_value_t
+  unless the type is a function type, in which case it is the reduced_value_t of the functions unpacked type.
+  This means if
+  - T = arithmetic type, unpacked_reduced_value_t = T.
+  - T = Ivy(Constant,'')Variable<U>, unpacked_reduced_value_t = U (arithmetic type).
+  - T = IvyComplexVariable<U>, unpacked_reduced_value_t = IvyComplexVariable<U>.
+  - T = IvyTensor<U>, unpacked_reduced_value_t = IvyTensor<U>.
+  - T = IvyFunction<U>, unpacked_reduced_value_t = reduced_value_t<IvyFunction<U>::value_t>,
+    which is R for Ivy(Constant,'')Variable<R> or IvyComplexVariable/Tensor<R> otherwise.
+  */
+  template<typename T> struct unpacked_reduced_value_type{
+    using type = reduced_value_t<unpack_if_function_t<T>>;
+  };
+  template<typename T> using unpacked_reduced_value_t = typename unpacked_reduced_value_type<T>::type;
+
+  /*
   unpack_function_input:
   If T is a function type, unpack_function_input<T>::get(t) returns t.value().
   Otherwise, it returns t.
