@@ -1,8 +1,8 @@
-#ifndef IVYCERF_HPP
-#define IVYCERF_HPP
+#ifndef IVYCERF_H
+#define IVYCERF_H
 
 
-#include "autodiff/IvyCerf.hh"
+#include "autodiff/special_functions/cerf/IvyCerf.hh"
 
 
 namespace faddeeva_impl{

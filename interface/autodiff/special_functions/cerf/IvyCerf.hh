@@ -10,7 +10,7 @@ This file is meant to be inserted, not to be used alone.
 
 
 #include "config/IvyCompilerConfig.h"
-#include "autodiff/IvyComplexVariable.h"
+#include "autodiff/basic_nodes/IvyComplexVariable.h"
 
 
 namespace IvyCerf{
