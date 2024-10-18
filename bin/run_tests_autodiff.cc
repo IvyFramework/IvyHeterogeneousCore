@@ -82,6 +82,8 @@ int main(){
   FCN_TEST_COMMAND(Csc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 7.08617), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 49.7113));
   FCN_TEST_COMMAND(SinH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677));
   FCN_TEST_COMMAND(CosH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
+  FCN_TEST_COMMAND(Erf, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.999978), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.000139253));
+  FCN_TEST_COMMAND(Erfc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.0000220905), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.000139253));
 
   FCN_TEST_COMMAND(Exp, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.1312, 2.47173), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.1312, 2.47173));
   FCN_TEST_COMMAND(Log, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.804719, 1.10715), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.2, -0.4));
@@ -93,6 +95,8 @@ int main(){
   FCN_TEST_COMMAND(Csc, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.228375, -0.141363), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.131658, 0.229433));
   FCN_TEST_COMMAND(SinH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861));
   FCN_TEST_COMMAND(CosH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312));
+  FCN_TEST_COMMAND(Erf, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.536644, -5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -14.8142, 17.1522));
+  FCN_TEST_COMMAND(Erfc, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.536644, 5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 14.8142, -17.1522));
 #undef FCN_TEST_COMMAND
 
   /*
@@ -160,5 +164,7 @@ int main(){
   print_value(pow_cplx_cplx);
   auto grad_pow_cplx_cplx = pow_cplx_cplx->gradient(cplx);
   __PRINT_INFO__("grad_pow_cplx_cplx(%s) = ", typeid(grad_pow_cplx_cplx).name());
-  print_value(grad_pow_cplx_cplx); // FIXME: The output is not correct yet.
+  print_value(grad_pow_cplx_cplx);
+
+
 }

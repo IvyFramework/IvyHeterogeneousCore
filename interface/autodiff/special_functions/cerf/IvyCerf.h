@@ -6,6 +6,8 @@
 
 
 namespace faddeeva_impl{
+  using namespace IvyMath;
+
   template<typename T> __HOST_DEVICE__ void cexp(T& re, T& im){
     IvyComplexVariable<T> val(re, im);
     val = IvyMath::Exp(val);
@@ -19,8 +21,6 @@ namespace faddeeva_impl{
     const T(&a)[N], const T* npi,
     const T(&taylorarr)[N * NTAYLOR * 2]
   ){
-    using namespace IvyMath;
-
     // catch singularities in the Fourier representation At
     // z = n pi / tm, and provide a Taylor series expansion in those
     // points, and only use it when we're close enough to the real axis
@@ -166,7 +166,6 @@ namespace faddeeva_impl{
   template<typename T, faddeeva_impl_size_t N> struct npicomp{
     T arr[N];
     constexpr npicomp(){
-      using namespace IvyMath;
       for (faddeeva_impl_size_t i=0; i<N; ++i) arr[i] = Pi<T>()*T(i);
     }
     __HOST_DEVICE__ const T* get() const{ return arr; }
@@ -174,9 +173,9 @@ namespace faddeeva_impl{
 }
 
 namespace IvyCerf{
-  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
+  using namespace IvyMath;
 
+  template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva(IvyComplexVariable<T> const& z){
     constexpr faddeeva_impl::npicomp<T, 24> npicomp24;
     auto npi24 = npicomp24.get();
     constexpr T a24[24] ={ // precomputed Fourier coefficient prefactors
@@ -367,8 +366,6 @@ namespace IvyCerf{
   }
 
   template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> faddeeva_fast(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
-
     constexpr faddeeva_impl::npicomp<T, 11> npicomp11;
     auto npi11 = npicomp11.get();
     constexpr T a11[11]={ // precomputed Fourier coefficient prefactors
@@ -431,8 +428,6 @@ namespace IvyCerf{
   }
 
   template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
-
     auto const zRe = z.Re();
     auto const zIm = z.Im();
     auto exp_mz2 = Exp(-Pow(z, 2));
@@ -446,8 +441,6 @@ namespace IvyCerf{
   }
 
   template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erfc_fast(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
-
     auto const zRe = z.Re();
     auto const zIm = z.Im();
     auto exp_mz2 = Exp(-Pow(z, 2));
@@ -461,8 +454,6 @@ namespace IvyCerf{
   }
 
   template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
-
     auto const zRe = z.Re();
     auto const zIm = z.Im();
     auto exp_mz2 = Exp(-Pow(z, 2));
@@ -475,8 +466,6 @@ namespace IvyCerf{
   }
 
   template<typename T> __HOST_DEVICE__ IvyComplexVariable<T> erf_fast(IvyComplexVariable<T> const& z){
-    using namespace IvyMath;
-
     auto const zRe = z.Re();
     auto const zIm = z.Im();
     auto exp_mz2 = Exp(-Pow(z, 2));

@@ -14,6 +14,8 @@ This file is meant to be inserted, not to be used alone.
 
 
 namespace IvyCerf{
+  using namespace IvyMath;
+
   /** @brief evaluate Faddeeva function for complex argument
   *
   * @author Manuel Schiller <manuel.schiller@nikhef.nl>

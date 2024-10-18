@@ -518,6 +518,63 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCosH<typename T::element_type>::base_t> CosH(T const& x);
 
+  // ERF
+  template<typename T, typename domain_tag = get_domain_t<T>> struct ErfFcnal{
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
+  };
+  template<typename T> struct ErfFcnal<T, real_domain_tag>{
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
+    static __HOST_DEVICE__ value_t eval(T const& x);
+    template<typename X_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  template<typename T> struct ErfFcnal<T, complex_domain_tag>{
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
+    static __HOST_DEVICE__ value_t eval(T const& x);
+    template<typename X_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  template<typename T> using IvyErf = IvyRegularFunction_1D<T, ErfFcnal<unpack_if_function_t<T>>>;
+  template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename ErfFcnal<T>::value_t Erf(T const& x);
+  template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErf<typename T::element_type>::base_t> Erf(T const& x);
+
+  // ERFC
+  template<typename T, typename domain_tag = get_domain_t<T>> struct ErfcFcnal {
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x);
+  };
+  template<typename T> struct ErfcFcnal<T, real_domain_tag> {
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, real_domain_tag>>;
+    static __HOST_DEVICE__ value_t eval(T const& x);
+    template<typename X_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  template<typename T> struct ErfcFcnal<T, complex_domain_tag> {
+    using value_t = unpacked_reduced_value_t<T>;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    using grad_t = IvyThreadSafePtr_t<IvyFunction<value_t, complex_domain_tag>>;
+    static __HOST_DEVICE__ value_t eval(T const& x);
+    template<typename X_t>
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  template<typename T> using IvyErfc = IvyRegularFunction_1D<T, ErfcFcnal<unpack_if_function_t<T>>>;
+  template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x);
+  template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x);
 
   /****************/
   /* 2D FUNCTIONS */

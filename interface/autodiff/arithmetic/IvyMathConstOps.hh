@@ -11,9 +11,10 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T Zero();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T OneHalf();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T One();
+  template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T Two();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T MinusOneHalf();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T MinusOne();
-  template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T Two();
+  template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T MinusTwo();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T LogTwo();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T LogTen();
   template<typename T, ENABLE_IF_ARITHMETIC(T)> __HOST_DEVICE__ constexpr T PiOverTwo();

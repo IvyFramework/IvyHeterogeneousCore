@@ -4,6 +4,7 @@
 
 #include "autodiff/arithmetic/IvyMathBaseArithmetic.hh"
 #include "std_ivy/IvyCmath.h"
+#include "autodiff/special_functions/cerf/IvyCerf.h"
 
 
 namespace IvyMath{
@@ -457,6 +458,62 @@ namespace IvyMath{
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCosH<typename T::element_type>::base_t> CosH(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyCosH<typename T::element_type>>(def_mem_type, nullptr, IvyCosH(x));
+  }
+
+  // ERF
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ ErfFcnal<T, domain_tag>::value_t ErfFcnal<T, domain_tag>::eval(T const& x){
+    return std_math::erf(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfFcnal<T, real_domain_tag>::value_t ErfFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(Erf(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfFcnal<T, real_domain_tag>::grad_t ErfFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfFcnal<T, complex_domain_tag>::value_t ErfFcnal<T, complex_domain_tag>::eval(T const& x){
+    return IvyCerf::erf(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfFcnal<T, complex_domain_tag>::grad_t ErfFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfFcnal<T>::value_t Erf(T const& x){ return ErfFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErf<typename T::element_type>::base_t> Erf(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyErf<typename T::element_type>>(def_mem_type, nullptr, IvyErf(x));
+  }
+
+  // ERFC
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ ErfcFcnal<T, domain_tag>::value_t ErfcFcnal<T, domain_tag>::eval(T const& x) {
+    return std_math::erfc(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::value_t ErfcFcnal<T, real_domain_tag>::eval(T const& x) {
+    return value_t(Erfc(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::grad_t ErfcFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x) {
+    return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::value_t ErfcFcnal<T, complex_domain_tag>::eval(T const& x) {
+    return IvyCerf::erfc(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::grad_t ErfcFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x) {
+    return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x) { return ErfcFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x) {
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyErfc<typename T::element_type>>(def_mem_type, nullptr, IvyErfc(x));
   }
 
 
