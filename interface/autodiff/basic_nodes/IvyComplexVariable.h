@@ -106,6 +106,31 @@ namespace IvyMath{
   template<typename T> struct convert_to_real_type<IvyComplexVariable<T>>{
     using type = IvyVariable<T>;
   };
+
+  /*
+  convert_to_complex_t:
+  The type of convert_to_complex_t is supposed to be the corresponding complex value of a class.
+  */
+  template<typename T> struct convert_to_complex_type{
+    using type = IvyComplexVariable<T>;
+  };
+  template<typename T> using convert_to_complex_t = typename convert_to_complex_type<T>::type;
+  template<typename T> struct convert_to_complex_type<IvyThreadSafePtr_t<T>>{
+    using type = IvyThreadSafePtr_t<convert_to_complex_t<T>>;
+  };
+  template<typename T> struct convert_to_complex_type<T const>{
+    using type = convert_to_complex_t<T> const;
+  };
+  template<typename T> struct convert_to_complex_type<IvyConstant<T>>{
+    using type = IvyComplexVariable<T>;
+  };
+  template<typename T> struct convert_to_complex_type<IvyVariable<T>>{
+    using type = IvyComplexVariable<T>;
+  };
+  template<typename T> struct convert_to_complex_type<IvyComplexVariable<T>>{
+    using type = IvyComplexVariable<T>;
+  };
+
   template<typename T> struct minimal_domain_type<T, complex_domain_tag, variable_value_tag>{ using type = IvyComplexVariable<std_ttraits::remove_cv_t<T>>; };
 
   template<typename T> using IvyComplexVariablePtr_t = IvyThreadSafePtr_t< IvyComplexVariable<T> >;

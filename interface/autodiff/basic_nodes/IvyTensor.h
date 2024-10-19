@@ -165,7 +165,10 @@ namespace IvyMath{
     using type = IvyTensor<convert_to_floating_point_if_complex_t<T>>;
   };
   template<typename T> struct convert_to_real_type<IvyTensor<T>>{
-    using type = IvyVariable<convert_to_real_t<T>>;
+    using type = IvyTensor<convert_to_real_t<T>>;
+  };
+  template<typename T> struct convert_to_complex_type<IvyTensor<T>>{
+    using type = IvyTensor<convert_to_complex_t<T>>;
   };
   template<typename T> struct minimal_domain_type<T, tensor_domain_tag, get_operability_t<T>>{ using type = IvyTensor<std_ttraits::remove_cv_t<T>>; };
 

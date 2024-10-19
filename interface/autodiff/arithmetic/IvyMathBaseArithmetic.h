@@ -490,30 +490,150 @@ namespace IvyMath{
 
   // ERFC
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ ErfcFcnal<T, domain_tag>::value_t ErfcFcnal<T, domain_tag>::eval(T const& x) {
+  __HOST_DEVICE__ ErfcFcnal<T, domain_tag>::value_t ErfcFcnal<T, domain_tag>::eval(T const& x){
     return std_math::erfc(x);
   }
   template<typename T>
-  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::value_t ErfcFcnal<T, real_domain_tag>::eval(T const& x) {
+  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::value_t ErfcFcnal<T, real_domain_tag>::eval(T const& x){
     return value_t(Erfc(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::grad_t ErfcFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x) {
+  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::grad_t ErfcFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
-  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::value_t ErfcFcnal<T, complex_domain_tag>::eval(T const& x) {
+  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::value_t ErfcFcnal<T, complex_domain_tag>::eval(T const& x){
     return IvyCerf::erfc(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::grad_t ErfcFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x) {
+  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::grad_t ErfcFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x) { return ErfcFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x){ return ErfcFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x) {
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyErfc<typename T::element_type>>(def_mem_type, nullptr, IvyErfc(x));
+  }
+
+  // FADDEEVA
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ FaddeevaFcnal<T, domain_tag>::value_t FaddeevaFcnal<T, domain_tag>::eval(T const& x){
+    return IvyCerf::faddeeva(IvyComplexVariable(x));
+  }
+  template<typename T>
+  __HOST_DEVICE__ FaddeevaFcnal<T, real_domain_tag>::value_t FaddeevaFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(Faddeeva(IvyComplexVariable(unpack_function_input_reduced<T>::get(x))));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ FaddeevaFcnal<T, real_domain_tag>::grad_t FaddeevaFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return
+      Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
+      - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*Faddeeva(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ FaddeevaFcnal<T, complex_domain_tag>::value_t FaddeevaFcnal<T, complex_domain_tag>::eval(T const& x){
+    return IvyCerf::faddeeva(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ FaddeevaFcnal<T, complex_domain_tag>::grad_t FaddeevaFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return
+      Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
+      - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*Faddeeva(x);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename FaddeevaFcnal<T>::value_t Faddeeva(T const& x){ return FaddeevaFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeeva<typename T::element_type>::base_t> Faddeeva(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyFaddeeva<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeeva(x));
+  }
+
+  // ERF-FAST
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ ErfFastFcnal<T, domain_tag>::value_t ErfFastFcnal<T, domain_tag>::eval(T const& x){
+    return std_math::erf(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfFastFcnal<T, real_domain_tag>::value_t ErfFastFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(ErfFast(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfFastFcnal<T, real_domain_tag>::grad_t ErfFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfFastFcnal<T, complex_domain_tag>::value_t ErfFastFcnal<T, complex_domain_tag>::eval(T const& x){
+    return IvyCerf::erf_fast(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfFastFcnal<T, complex_domain_tag>::grad_t ErfFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfFastFcnal<T>::value_t ErfFast(T const& x){ return ErfFastFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfFast<typename T::element_type>::base_t> ErfFast(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyErfFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfFast(x));
+  }
+
+  // ERFC-FAST
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ ErfcFastFcnal<T, domain_tag>::value_t ErfcFastFcnal<T, domain_tag>::eval(T const& x){
+    return std_math::erfc(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfcFastFcnal<T, real_domain_tag>::value_t ErfcFastFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(ErfcFast(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfcFastFcnal<T, real_domain_tag>::grad_t ErfcFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T>
+  __HOST_DEVICE__ ErfcFastFcnal<T, complex_domain_tag>::value_t ErfcFastFcnal<T, complex_domain_tag>::eval(T const& x){
+    return IvyCerf::erfc_fast(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ ErfcFastFcnal<T, complex_domain_tag>::grad_t ErfcFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFastFcnal<T>::value_t ErfcFast(T const& x){ return ErfcFastFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfcFast<typename T::element_type>::base_t> ErfcFast(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyErfcFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfcFast(x));
+  }
+
+  // FADDEEVA-FAST
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ FaddeevaFastFcnal<T, domain_tag>::value_t FaddeevaFastFcnal<T, domain_tag>::eval(T const& x){
+    return IvyCerf::faddeeva_fast(IvyComplexVariable(x));
+  }
+  template<typename T>
+  __HOST_DEVICE__ FaddeevaFastFcnal<T, real_domain_tag>::value_t FaddeevaFastFcnal<T, real_domain_tag>::eval(T const& x){
+    return value_t(FaddeevaFast(IvyComplexVariable(unpack_function_input_reduced<T>::get(x))));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ FaddeevaFastFcnal<T, real_domain_tag>::grad_t FaddeevaFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return
+      Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
+      - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*FaddeevaFast(x);
+  }
+  template<typename T>
+  __HOST_DEVICE__ FaddeevaFastFcnal<T, complex_domain_tag>::value_t FaddeevaFastFcnal<T, complex_domain_tag>::eval(T const& x){
+    return IvyCerf::faddeeva_fast(unpack_function_input_reduced<T>::get(x));
+  }
+  template<typename T> template<typename X_t>
+  __HOST_DEVICE__ FaddeevaFastFcnal<T, complex_domain_tag>::grad_t FaddeevaFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+    return
+      Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
+      - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*FaddeevaFast(x);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename FaddeevaFastFcnal<T>::value_t FaddeevaFast(T const& x){ return FaddeevaFastFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeevaFast<typename T::element_type>::base_t> FaddeevaFast(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyFaddeevaFast<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeevaFast(x));
   }
 
 
