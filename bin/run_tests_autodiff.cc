@@ -105,7 +105,6 @@ int main(){
   FCN_TEST_COMMAND(FaddeevaFast, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.218492, 0.0929978), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.0649940, 0.0684131));
 #undef FCN_TEST_COMMAND
 
-  /*
   auto fcn_equal_cplx_rvar = Equal(cplx, rvar);
   __PRINT_INFO__("fcn_equal_cplx_rvar = ");
   print_value(fcn_equal_cplx_rvar);
@@ -115,7 +114,6 @@ int main(){
   auto grad1_fcn_equal_cplx_rvar = fcn_equal_cplx_rvar->gradient(rvar);
   __PRINT_INFO__("grad1_fcn_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_equal_cplx_rvar).name());
   print_value(grad1_fcn_equal_cplx_rvar->value());
-  */
 
   auto fcn_add_cplx_rvar = cplx + rvar;
   __PRINT_INFO__("fcn_add_cplx_rvar = ");

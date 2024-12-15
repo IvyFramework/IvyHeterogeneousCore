@@ -69,6 +69,37 @@ namespace IvyMath{
     return evaluator_t::gradient(0, x, y)*grad_x + evaluator_t::gradient(1, x, y)*grad_y;
   }
 
+  // General 2D conditional function implementation
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain> const& other) :
+    base_t(__DYNAMIC_CAST__(base_t const&, other)),
+    x(other.x),
+    y(other.y)
+  {}
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>&& other) :
+    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
+    x(std_util::move(other.x)),
+    y(std_util::move(other.y))
+  {}
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ void IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::eval() const{
+    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
+  }
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ bool IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
+    return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
+  }
+  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyThreadSafePtr_t<typename IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::grad_t> IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::gradient(
+    IvyThreadSafePtr_t<IvyBaseNode> const& var
+  ) const{
+    auto tmp = Constant<precision_type>(x.get_memory_type(), x.gpu_stream(), Zero<precision_type>());
+    return tmp*tmp;
+  }
+
 
   /****************/
   /* 1D FUNCTIONS */
