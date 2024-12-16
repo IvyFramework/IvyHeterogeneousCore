@@ -1291,6 +1291,7 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
   }
+  template<typename T, typename U> __HOST_DEVICE__ auto XOr(T const& x, U const& y) -> decltype(Xor(x, y)){ return Xor(x, y); }
 
   // AND
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -1357,7 +1358,7 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
   }
-  template<typename T, typename U> auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y)){ return GreaterThan(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y)){ return GreaterThan(x, y); }
 
   // LESS THAN
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -1401,7 +1402,7 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
   }
-  template<typename T, typename U> auto LT(T const& x, U const& y) -> decltype(LessThan(x, y)){ return LessThan(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto LT(T const& x, U const& y) -> decltype(LessThan(x, y)){ return LessThan(x, y); }
 
   // GREATER THAN OR EQUAL TO
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -1445,8 +1446,8 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
   }
-  template<typename T, typename U> auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
-  template<typename T, typename U> auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
 
   // LESS THAN OR EQUAL TO
   template<typename T, typename U, typename domain_T, typename domain_U>
@@ -1490,8 +1491,8 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));
   }
-  template<typename T, typename U> auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
-  template<typename T, typename U> auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
+  template<typename T, typename U> __HOST_DEVICE__ auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
 
 }
 

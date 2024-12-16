@@ -135,7 +135,7 @@ int main(){
   __PRINT_INFO__("grad1_fcn_or(%s) = ", typeid(grad1_fcn_or).name());
   print_value(grad1_fcn_or->value());
 
-  auto fcn_xor = Xor(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
+  auto fcn_xor = XOr(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
   __PRINT_INFO__("fcn_xor = ");
   print_value(fcn_xor);
   auto grad0_fcn_xor = fcn_xor->gradient(cplx);

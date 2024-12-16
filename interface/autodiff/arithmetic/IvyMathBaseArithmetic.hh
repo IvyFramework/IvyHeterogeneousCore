@@ -1324,6 +1324,7 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y);
+  template<typename T, typename U> __HOST_DEVICE__ auto XOr(T const& x, U const& y) -> decltype(Xor(x, y));
 
   // AND
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct AndFcnal{
@@ -1430,7 +1431,7 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y);
-  template<typename T, typename U> auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y));
 
   // LESS THAN
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct LessThanFcnal{
@@ -1496,7 +1497,7 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y);
-  template<typename T, typename U> auto LT(T const& x, U const& y) -> decltype(LessThan(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto LT(T const& x, U const& y) -> decltype(LessThan(x, y));
 
   // GREATER THAN OR EQUAL TO
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct GreaterOrEqualFcnal{
@@ -1562,8 +1563,8 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y);
-  template<typename T, typename U> auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
-  template<typename T, typename U> auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
 
   // LESS THAN OR EQUAL TO
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct LessOrEqualFcnal{
@@ -1629,8 +1630,8 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y);
-  template<typename T, typename U> auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
-  template<typename T, typename U> auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
+  template<typename T, typename U> __HOST_DEVICE__ auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
 
 }
 
