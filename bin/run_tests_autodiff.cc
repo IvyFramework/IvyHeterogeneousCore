@@ -115,6 +115,86 @@ int main(){
   __PRINT_INFO__("grad1_fcn_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_equal_cplx_rvar).name());
   print_value(grad1_fcn_equal_cplx_rvar->value());
 
+  auto fcn_not_equal_cplx_rvar = Not(fcn_equal_cplx_rvar);
+  __PRINT_INFO__("fcn_not_equal_cplx_rvar = ");
+  print_value(fcn_not_equal_cplx_rvar);
+  auto grad0_fcn_not_equal_cplx_rvar = fcn_not_equal_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_not_equal_cplx_rvar(%s) = ", typeid(grad0_fcn_not_equal_cplx_rvar).name());
+  print_value(grad0_fcn_not_equal_cplx_rvar->value());
+  auto grad1_fcn_not_equal_cplx_rvar = fcn_not_equal_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_not_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_not_equal_cplx_rvar).name());
+  print_value(grad1_fcn_not_equal_cplx_rvar->value());
+
+  auto fcn_or = Or(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
+  __PRINT_INFO__("fcn_or = ");
+  print_value(fcn_or);
+  auto grad0_fcn_or = fcn_or->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_or(%s) = ", typeid(grad0_fcn_or).name());
+  print_value(grad0_fcn_or->value());
+  auto grad1_fcn_or = fcn_or->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_or(%s) = ", typeid(grad1_fcn_or).name());
+  print_value(grad1_fcn_or->value());
+
+  auto fcn_xor = Xor(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
+  __PRINT_INFO__("fcn_xor = ");
+  print_value(fcn_xor);
+  auto grad0_fcn_xor = fcn_xor->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_xor(%s) = ", typeid(grad0_fcn_xor).name());
+  print_value(grad0_fcn_xor->value());
+  auto grad1_fcn_xor = fcn_xor->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_xor(%s) = ", typeid(grad1_fcn_xor).name());
+  print_value(grad1_fcn_xor->value());
+
+  auto fcn_and = And(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
+  __PRINT_INFO__("fcn_and = ");
+  print_value(fcn_and);
+  auto grad0_fcn_and = fcn_and->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_and(%s) = ", typeid(grad0_fcn_and).name());
+  print_value(grad0_fcn_and->value());
+  auto grad1_fcn_and = fcn_and->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_and(%s) = ", typeid(grad1_fcn_and).name());
+  print_value(grad1_fcn_and->value());
+
+  auto fcn_gt_cplx_rvar = GT(cplx, rvar);
+  __PRINT_INFO__("fcn_gt_cplx_rvar = ");
+  print_value(fcn_gt_cplx_rvar);
+  auto grad0_fcn_gt_cplx_rvar = fcn_gt_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_gt_cplx_rvar(%s) = ", typeid(grad0_fcn_gt_cplx_rvar).name());
+  print_value(grad0_fcn_gt_cplx_rvar->value());
+  auto grad1_fcn_gt_cplx_rvar = fcn_gt_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_gt_cplx_rvar(%s) = ", typeid(grad1_fcn_gt_cplx_rvar).name());
+  print_value(grad1_fcn_gt_cplx_rvar->value());
+
+  auto fcn_lt_cplx_rvar = LT(cplx, rvar);
+  __PRINT_INFO__("fcn_lt_cplx_rvar = ");
+  print_value(fcn_lt_cplx_rvar);
+  auto grad0_fcn_lt_cplx_rvar = fcn_lt_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_lt_cplx_rvar(%s) = ", typeid(grad0_fcn_lt_cplx_rvar).name());
+  print_value(grad0_fcn_lt_cplx_rvar->value());
+  auto grad1_fcn_lt_cplx_rvar = fcn_lt_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_lt_cplx_rvar(%s) = ", typeid(grad1_fcn_lt_cplx_rvar).name());
+  print_value(grad1_fcn_lt_cplx_rvar->value());
+
+  auto fcn_geq_cplx_rvar = GEQ(cplx, rvar);
+  __PRINT_INFO__("fcn_geq_cplx_rvar = ");
+  print_value(fcn_geq_cplx_rvar);
+  auto grad0_fcn_geq_cplx_rvar = fcn_geq_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_geq_cplx_rvar(%s) = ", typeid(grad0_fcn_geq_cplx_rvar).name());
+  print_value(grad0_fcn_geq_cplx_rvar->value());
+  auto grad1_fcn_geq_cplx_rvar = fcn_geq_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_geq_cplx_rvar(%s) = ", typeid(grad1_fcn_geq_cplx_rvar).name());
+  print_value(grad1_fcn_geq_cplx_rvar->value());
+
+  auto fcn_leq_cplx_rvar = LEQ(cplx, rvar);
+  __PRINT_INFO__("fcn_leq_cplx_rvar = ");
+  print_value(fcn_leq_cplx_rvar);
+  auto grad0_fcn_leq_cplx_rvar = fcn_leq_cplx_rvar->gradient(cplx);
+  __PRINT_INFO__("grad0_fcn_leq_cplx_rvar(%s) = ", typeid(grad0_fcn_leq_cplx_rvar).name());
+  print_value(grad0_fcn_leq_cplx_rvar->value());
+  auto grad1_fcn_leq_cplx_rvar = fcn_leq_cplx_rvar->gradient(rvar);
+  __PRINT_INFO__("grad1_fcn_leq_cplx_rvar(%s) = ", typeid(grad1_fcn_leq_cplx_rvar).name());
+  print_value(grad1_fcn_leq_cplx_rvar->value());
+
   auto fcn_add_cplx_rvar = cplx + rvar;
   __PRINT_INFO__("fcn_add_cplx_rvar = ");
   print_value(fcn_add_cplx_rvar);

@@ -74,6 +74,37 @@ namespace IvyMath{
   };
 
   /*
+  IvyConditionalFunction_1D:
+  This is a master class for regular 1D functions.
+  Unless we have any sepcial cases in return types, i.e., not the return type of reduced_value_t<T> required here,
+  this master class should be used with partial specializations for different Evaluator types.
+  */
+  template<
+    typename T, typename Evaluator,
+    typename precision_type = bool, typename Domain = real_domain_tag
+  > class IvyConditionalFunction_1D : public IvyFunction<precision_type, Domain>
+  {
+  public:
+    using base_t = IvyFunction<precision_type, Domain>;
+    using value_t = typename base_t::value_t;
+    using dtype_t = typename base_t::dtype_t;
+    using grad_t = typename base_t::grad_t;
+    using evaluator_t = Evaluator;
+
+  protected:
+    IvyThreadSafePtr_t<T> dep;
+
+  public:
+    __HOST__ IvyConditionalFunction_1D(IvyThreadSafePtr_t<T> const& dep);
+    __HOST__ IvyConditionalFunction_1D(IvyConditionalFunction_1D const& other);
+    __HOST__ IvyConditionalFunction_1D(IvyConditionalFunction_1D&& other);
+
+    __HOST__ void eval() const override;
+    __HOST__ bool depends_on(IvyBaseNode const* node) const override;
+    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
+  };
+
+  /*
   IvyConditionalFunction_2D:
   This is a master class for 2D conditional functions.
   */
@@ -740,83 +771,6 @@ namespace IvyMath{
   /* 2D FUNCTIONS */
   /****************/
 
-  // COMPARISON OPERATORS
-  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct EqualFcnal{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, real_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    using grad_t = IvyConstantPtr_t<fndtype_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    template<typename X_t, typename Y_t>
-    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    using grad_t = IvyConstantPtr_t<fndtype_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    template<typename X_t, typename Y_t>
-    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, complex_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    using grad_t = IvyConstantPtr_t<fndtype_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    template<typename X_t, typename Y_t>
-    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
-  };
-  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, real_domain_tag>{
-    using value_t = bool;
-    using dtype_t = reduced_data_t<value_t>;
-    using fndtype_t = fundamental_data_t<value_t>;
-    using grad_t = IvyConstantPtr_t<fndtype_t>;
-    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
-    template<typename X_t, typename Y_t>
-    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
-  };
-  template<typename T, typename U> using IvyEqual = IvyConditionalFunction_2D<
-    T, U,
-    EqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
-  >;
-  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
-  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y);
-
   // ADDITION
   template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct AddFcnal{
     using value_t = more_precise_reduced_t<T, U>;
@@ -1197,6 +1151,486 @@ namespace IvyMath{
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename PowFcnal<T, U>::value_t Pow(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyPow<typename T::element_type, typename U::element_type>::base_t> Pow(T const& x, U const& y);
+
+
+  /******************/
+  /* 1D COMPARISONS */
+  /******************/
+
+  // NOT
+  template<typename T, typename domain_tag = get_domain_t<T>> struct NotFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr value_t eval(T const& x);
+  };
+  template<typename T> struct NotFcnal<T, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x);
+  };
+  template<typename T> using IvyNot = IvyConditionalFunction_1D<T, NotFcnal<unpack_if_function_t<T>>>;
+  template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename NotFcnal<T>::value_t Not(T const& x);
+  template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNot<typename T::element_type>::base_t> Not(T const& x);
+
+
+  /******************/
+  /* 2D COMPARISONS */
+  /******************/
+
+  // EQUALITY
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct EqualFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct EqualFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyEqual = IvyConditionalFunction_2D<
+    T, U,
+    EqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y);
+
+  // OR
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct OrFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct OrFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct OrFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct OrFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct OrFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyOr = IvyConditionalFunction_2D<
+    T, U,
+    OrFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename OrFcnal<T, U>::value_t Or(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y);
+
+  // XOR
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct XorFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct XorFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct XorFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct XorFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct XorFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyXor = IvyConditionalFunction_2D<
+    T, U,
+    XorFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y);
+
+  // AND
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct AndFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct AndFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct AndFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct AndFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct AndFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyAnd = IvyConditionalFunction_2D<
+    T, U,
+    AndFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename AndFcnal<T, U>::value_t And(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y);
+
+  // GREATER THAN
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct GreaterThanFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterThanFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyGreaterThan = IvyConditionalFunction_2D<
+    T, U,
+    GreaterThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y);
+  template<typename T, typename U> auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y));
+
+  // LESS THAN
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct LessThanFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessThanFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyLessThan = IvyConditionalFunction_2D<
+    T, U,
+    LessThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y);
+  template<typename T, typename U> auto LT(T const& x, U const& y) -> decltype(LessThan(x, y));
+
+  // GREATER THAN OR EQUAL TO
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct GreaterOrEqualFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct GreaterOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyGreaterOrEqual = IvyConditionalFunction_2D<
+    T, U,
+    GreaterOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y);
+  template<typename T, typename U> auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
+  template<typename T, typename U> auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y));
+
+  // LESS THAN OR EQUAL TO
+  template<typename T, typename U, typename domain_T = get_domain_t<T>, typename domain_U = get_domain_t<U>> struct LessOrEqualFcnal{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> struct LessOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>{
+    using value_t = bool;
+    using dtype_t = reduced_data_t<value_t>;
+    using fndtype_t = fundamental_data_t<value_t>;
+    static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
+  };
+  template<typename T, typename U> using IvyLessOrEqual = IvyConditionalFunction_2D<
+    T, U,
+    LessOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
+    bool, get_domain_t<IvyConstant<bool>>
+  >;
+  template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y);
+  template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y);
+  template<typename T, typename U> auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
+  template<typename T, typename U> auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y));
 
 }
 

@@ -69,6 +69,35 @@ namespace IvyMath{
     return evaluator_t::gradient(0, x, y)*grad_x + evaluator_t::gradient(1, x, y)*grad_y;
   }
 
+  // General 1D conditional function implementation
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain> const& other) :
+    base_t(__DYNAMIC_CAST__(base_t const&, other)),
+    dep(other.dep)
+  {}
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>&& other) :
+    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
+    dep(std_util::move(other.dep))
+  {}
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ void IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::eval() const{
+    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
+  }
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ bool IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
+    return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
+  }
+  template<typename T, typename Evaluator, typename precision_type, typename Domain>
+  __HOST__ IvyThreadSafePtr_t<typename IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::grad_t> IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::gradient(
+    IvyThreadSafePtr_t<IvyBaseNode> const& var
+  ) const{
+    auto tmp = Constant<precision_type>(dep.get_memory_type(), dep.gpu_stream(), Zero<precision_type>());
+    return tmp*tmp;
+  }
+
   // General 2D conditional function implementation
   template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
   __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
@@ -672,86 +701,6 @@ namespace IvyMath{
   /* 2D FUNCTIONS */
   /****************/
 
-  // COMPARISON OPERATORS
-  template<typename T, typename U, typename domain_T, typename domain_U>
-  __HOST_DEVICE__ EqualFcnal<T, U, domain_T, domain_U>::value_t EqualFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x==y; }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
-    return Equal(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
-  }
-  template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t EqualFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
-    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
-    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
-    return make_IvyThreadSafePtr<typename grad_t::element_type>(
-      mem_type, gpu_stream,
-      Zero<fndtype_t>()
-    );
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()) && Equal(unpack_function_input_reduced<T>::get(x).Im(), unpack_function_input_reduced<U>::get(y).Im()));
-  }
-  template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
-    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
-    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
-    return make_IvyThreadSafePtr<typename grad_t::element_type>(
-      mem_type, gpu_stream,
-      Zero<fndtype_t>()
-    );
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<U>::get(y), x));
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<T>::get(x), y));
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), x) && IsReal(unpack_function_input_reduced<U>::get(y)));
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), y) && IsReal(unpack_function_input_reduced<T>::get(x)));
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x)) && IsReal(unpack_function_input_reduced<U>::get(y)));
-  }
-  template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
-    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
-    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
-    return make_IvyThreadSafePtr<typename grad_t::element_type>(
-      mem_type, gpu_stream,
-      Zero<fndtype_t>()
-    );
-  }
-  template<typename T, typename U>
-  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
-    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)) && IsReal(unpack_function_input_reduced<T>::get(x)));
-  }
-  template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
-    auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
-    auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
-    return make_IvyThreadSafePtr<typename grad_t::element_type>(
-      mem_type, gpu_stream,
-      Zero<fndtype_t>()
-    );
-  }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
-  __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y){ return EqualFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
-    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
-  }
-
-
   // ADDITION
   template<typename T, typename U, typename domain_T, typename domain_U>
   __HOST_DEVICE__ AddFcnal<T, U, domain_T, domain_U>::value_t AddFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x+y; }
@@ -1231,6 +1180,318 @@ namespace IvyMath{
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyPow<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyPow(x, y));
   }
+
+
+  /******************/
+  /* 1D COMPARISONS */
+  /******************/
+
+  // NOT
+  template<typename T, typename domain_tag>
+  __HOST_DEVICE__ constexpr NotFcnal<T, domain_tag>::value_t NotFcnal<T, domain_tag>::eval(T const& x){ return !x; }
+  template<typename T>
+  __HOST_DEVICE__ NotFcnal<T, real_domain_tag>::value_t NotFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Not(unpack_function_input_reduced<T>::get(x))); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename NotFcnal<T>::value_t Not(T const& x){ return NotFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNot<typename T::element_type>::base_t> Not(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyNot<typename T::element_type>>(def_mem_type, nullptr, IvyNot(x));
+  }
+
+
+  /******************/
+  /* 2D COMPARISONS */
+  /******************/
+
+  // EQUALITY
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ EqualFcnal<T, U, domain_T, domain_U>::value_t EqualFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x==y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return Equal(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()) && Equal(unpack_function_input_reduced<T>::get(x).Im(), unpack_function_input_reduced<U>::get(y).Im()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y), x));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), x) && IsReal(unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), y) && IsReal(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t EqualFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x)) && IsReal(unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t EqualFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Equal(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)) && IsReal(unpack_function_input_reduced<T>::get(x)));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y){ return EqualFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
+  }
+
+  // OR
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ OrFcnal<T, U, domain_T, domain_U>::value_t OrFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x||y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ OrFcnal<T, U, real_domain_tag, real_domain_tag>::value_t OrFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return Or(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ OrFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t OrFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Or(unpack_function_input_reduced<U>::get(y), x));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ OrFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t OrFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Or(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename OrFcnal<T, U>::value_t Or(T const& x, U const& y){ return OrFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyOr<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyOr(x, y));
+  }
+
+  // XOR
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ XorFcnal<T, U, domain_T, domain_U>::value_t XorFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x^y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ XorFcnal<T, U, real_domain_tag, real_domain_tag>::value_t XorFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return Xor(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ XorFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t XorFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Xor(unpack_function_input_reduced<U>::get(y), x));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ XorFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t XorFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(Xor(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y){ return XorFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
+  }
+
+  // AND
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ AndFcnal<T, U, domain_T, domain_U>::value_t AndFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x&&y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ AndFcnal<T, U, real_domain_tag, real_domain_tag>::value_t AndFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return And(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ AndFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t AndFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(And(unpack_function_input_reduced<U>::get(y), x));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ AndFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t AndFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(And(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename AndFcnal<T, U>::value_t And(T const& x, U const& y){ return AndFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyAnd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAnd(x, y));
+  }
+
+  // GREATER THAN
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, domain_T, domain_U>::value_t GreaterThanFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x>y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, real_domain_tag, real_domain_tag>::value_t GreaterThanFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return GreaterThan(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t GreaterThanFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t GreaterThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(x, unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t GreaterThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t GreaterThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(x, unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t GreaterThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(unpack_function_input_reduced<T>::get(x).Re(), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t GreaterThanFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterThanFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t GreaterThanFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterThan(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y){ return GreaterThanFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
+  }
+  template<typename T, typename U> auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y)){ return GreaterThan(x, y); }
+
+  // LESS THAN
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, domain_T, domain_U>::value_t LessThanFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x<y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, real_domain_tag, real_domain_tag>::value_t LessThanFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return LessThan(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t LessThanFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t LessThanFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(x, unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t LessThanFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t LessThanFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(x, unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t LessThanFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(unpack_function_input_reduced<T>::get(x).Re(), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t LessThanFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessThanFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t LessThanFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessThan(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y){ return LessThanFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
+  }
+  template<typename T, typename U> auto LT(T const& x, U const& y) -> decltype(LessThan(x, y)){ return LessThan(x, y); }
+
+  // GREATER THAN OR EQUAL TO
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, domain_T, domain_U>::value_t GreaterOrEqualFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x>=y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>::value_t GreaterOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return GreaterOrEqual(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t GreaterOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(x, unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t GreaterOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t GreaterOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(x, unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t GreaterOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(unpack_function_input_reduced<T>::get(x).Re(), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t GreaterOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ GreaterOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t GreaterOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(GreaterOrEqual(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y){ return GreaterOrEqualFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
+  }
+  template<typename T, typename U> auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
+  template<typename T, typename U> auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
+
+  // LESS THAN OR EQUAL TO
+  template<typename T, typename U, typename domain_T, typename domain_U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, domain_T, domain_U>::value_t LessOrEqualFcnal<T, U, domain_T, domain_U>::eval(T const& x, U const& y){ return x<=y; }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>::value_t LessOrEqualFcnal<T, U, real_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return LessOrEqual(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::value_t LessOrEqualFcnal<T, U, complex_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::value_t LessOrEqualFcnal<T, U, arithmetic_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(x, unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::value_t LessOrEqualFcnal<T, U, real_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(unpack_function_input_reduced<T>::get(x), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::value_t LessOrEqualFcnal<T, U, arithmetic_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(x, unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::value_t LessOrEqualFcnal<T, U, complex_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(unpack_function_input_reduced<T>::get(x).Re(), y));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>::value_t LessOrEqualFcnal<T, U, real_domain_tag, complex_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y).Re()));
+  }
+  template<typename T, typename U>
+  __HOST_DEVICE__ LessOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>::value_t LessOrEqualFcnal<T, U, complex_domain_tag, real_domain_tag>::eval(T const& x, U const& y){
+    return value_t(LessOrEqual(unpack_function_input_reduced<T>::get(x).Re(), unpack_function_input_reduced<U>::get(y)));
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y){ return LessOrEqualFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    return make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));
+  }
+  template<typename T, typename U> auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
+  template<typename T, typename U> auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
 
 }
 

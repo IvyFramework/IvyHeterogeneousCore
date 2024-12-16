@@ -22,8 +22,13 @@
 #define ENABLE_IF_BOOL_IMPL(...) std_ttraits::enable_if_t<__VA_ARGS__, bool>
 #define ENABLE_IF_BOOL(...) ENABLE_IF_BOOL_IMPL(__VA_ARGS__) = true
 #define IS_BASE_OF(BASE, DERIVED) std_ttraits::is_base_of_v<BASE, DERIVED>
+#define IS_SAME(A, B) std_ttraits::is_same_v<A, B>
 #define ENABLE_IF_BASE_OF_IMPL(BASE, DERIVED) ENABLE_IF_BOOL_IMPL(IS_BASE_OF(BASE, DERIVED))
 #define ENABLE_IF_BASE_OF(BASE, DERIVED) ENABLE_IF_BOOL(IS_BASE_OF(BASE, DERIVED))
+#define ENABLE_IF_SAME_IMPL(A, B) ENABLE_IF_BOOL_IMPL(IS_SAME(A, B))
+#define ENABLE_IF_NOT_SAME_IMPL(A, B) ENABLE_IF_BOOL_IMPL(!IS_SAME(A, B))
+#define ENABLE_IF_NOT_SAME(A, B) ENABLE_IF_BOOL(!IS_SAME(A, B))
+#define ENABLE_IF_SAME(A, B) ENABLE_IF_BOOL(IS_SAME(A, B))
 #define ENABLE_IF_ARITHMETIC_IMPL(...) ENABLE_IF_BOOL_IMPL(std_ttraits::is_arithmetic_v<__VA_ARGS__>)
 #define ENABLE_IF_ARITHMETIC(...) ENABLE_IF_BOOL(std_ttraits::is_arithmetic_v<__VA_ARGS__>)
 #define DEFINE_HAS_TRAIT(TRAIT) \
