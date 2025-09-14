@@ -21,7 +21,18 @@ namespace _fcn_eval{
   __HOST__ void eval(T& fcn){
     auto& tensor = fcn.value();
     IvyTensorDim_t const n = tensor.num_elements();
-    for (IvyTensorDim_t i=0; i<n; ++i) _fcn_eval::eval(tensor[i]);
+    #define _CMD for (IvyTensorDim_t i=0; i<n; ++i) _fcn_eval::eval(tensor[i]);
+#if defined(OPENMP_ENABLED)
+    if (n>=NUM_CPU_THREADS_THRESHOLD){
+      #pragma omp parallel for schedule(static)
+      _CMD
+    }
+    else
+#endif
+    {
+      _CMD
+    }
+    #undef _CMD
   }
   template<typename T> void eval(IvyThreadSafePtr_t<T> const& fcn){ eval(*fcn); }
 };

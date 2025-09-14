@@ -178,11 +178,7 @@ namespace std_ivy{
         }
       }
       else{
-        pointer pr = ptr;
-        for (size_type i=0; i<n; ++i){
-          res &= kernel_type::transfer_internal_memory(pr, mem_type, release_old);
-          ++pr;
-        }
+        for (size_type i=0; i<n; ++i) res &= kernel_type::transfer_internal_memory(ptr+i, mem_type, release_old);
       }
       return res;
     }
@@ -201,9 +197,12 @@ namespace std_ivy{
       */
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       constexpr bool release_old = false; // We do not release existing memory from internal memory transfers in order to preserve src pointer.
+#if defined(__USE_CUDA__)
       if (def_mem_type==type_tgt && def_mem_type==type_src){
+#endif
         res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
         res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream, release_old);
+#if defined(__USE_CUDA__)
       }
       else{
         pointer p_int = nullptr;
@@ -213,6 +212,7 @@ namespace std_ivy{
         res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
         res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       }
+#endif
       return res;
     }
   };
@@ -236,7 +236,9 @@ namespace std_ivy{
     static __HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       bool res = true;
+#if defined(__USE_CUDA__)
       if (ptr_mem_type==def_mem_type){
+#endif
         for (size_type i=0; i<n; ++i){
           res &= (
             transfer_primitive_T::transfer_internal_memory(&(ptr[i].first), n, ptr_mem_type, mem_type, stream, release_old)
@@ -244,6 +246,7 @@ namespace std_ivy{
             transfer_primitive_U::transfer_internal_memory(&(ptr[i].second), n, ptr_mem_type, mem_type, stream, release_old)
             );
         }
+#if defined(__USE_CUDA__)
       }
       else{
         pointer p_int = nullptr;
@@ -259,6 +262,7 @@ namespace std_ivy{
         res &= IvyMemoryHelpers::transfer_memory(ptr, p_int, n, ptr_mem_type, def_mem_type, stream);
         res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       }
+#endif
       return res;
     }
 
@@ -271,9 +275,12 @@ namespace std_ivy{
       bool res = true;
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       constexpr bool release_old = false; // We do not release existing memory from internal memory transfers in order to preserve src pointer.
+#if defined(__USE_CUDA__)
       if (def_mem_type==type_tgt && def_mem_type==type_src){
+#endif
         res &= IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
         res &= transfer_internal_memory(tgt, n, type_tgt, type_tgt, stream, release_old);
+#if defined(__USE_CUDA__)
       }
       else{
         pointer p_int = nullptr;
@@ -283,6 +290,7 @@ namespace std_ivy{
         res &= IvyMemoryHelpers::transfer_memory(tgt, p_int, n, type_tgt, def_mem_type, stream);
         res &= IvyMemoryHelpers::free_memory(p_int, n, def_mem_type, stream);
       }
+#endif
       return res;
     }
   };

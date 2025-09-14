@@ -80,6 +80,7 @@ namespace std_ivy{
 
     T res = *h_res;
     obj_allocator.deallocate(h_res, 1, mem_type_vals, stream);
+
     return res;
   }
 
@@ -93,9 +94,9 @@ namespace std_ivy{
       return (n-1+n_serial)/n_serial;
     }
     static __HOST_DEVICE__ void parallel_op_n_mem(IvyTypes::size_t n, IvyTypes::size_t n_serial, IvyTypes::size_t& m){
-      if (n==1) m+=1;
+      if (n==1) m += 1;
       else{
-        m+=n;
+        m += n;
         parallel_op_base<Base, T>::parallel_op_n_mem((n-1+n_serial)/n_serial, n_serial, m);
       }
     }

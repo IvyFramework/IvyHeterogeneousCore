@@ -23,14 +23,23 @@ CXXINC        = -I$(INCLUDEDIR)
 CXXDEFINES    =
 CXXVEROPT     = -std=c++20
 CXXOPTIM      = -O2
-CXXFLAGS      = -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+
+# Check for OpenMP support
+OPENMP_TEST := $(shell echo '\#include <omp.h>' | $(CXX) -x c++ -fopenmp -E - > /dev/null 2>&1 && echo "yes")
+ifeq ($(OPENMP_TEST),yes)
+  OPENMP_FLAGS=-fopenmp
+else
+  OPENMP_FLAGS=
+endif
+
+CXXFLAGS      = -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(CXXFLAGS)
 
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
 CXXDEFINES    += -D__USE_CUDA__
 NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
-CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 endif
 

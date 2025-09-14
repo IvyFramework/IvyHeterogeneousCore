@@ -29,7 +29,7 @@ int main(){
   __PRINT_INFO__("Absolute index of tensor coordinates {0, 1, 2} = %llu, size = %llu\n", absi, tshape.num_elements());
 
   auto t3d = Tensor<double>(tshape.get_memory_type(), tshape.gpu_stream(), tshape, 5.);
-  t3d->at({ 0,1,2 }) = 3.14;
+  t3d->at({ 0, 1, 2 }) = 3.14;
   print_value(t3d);
 
   using NegateEvaluator = NegateFcnal<std_ttraits::remove_reference_t<decltype(*cplx)>>;

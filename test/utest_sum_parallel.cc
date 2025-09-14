@@ -19,6 +19,10 @@ template<unsigned int nsum, unsigned int nsum_serial> void utest(IvyGPUStream& s
   __PRINT_INFO__("\t- Sum serial time = %f ms\n", time_sum_s_ms);
   __PRINT_INFO__("\t- Sum serial = %f\n", sum_s);
 
+  IvyTypes::size_t neff=0;
+  std_algo::add_parallel_op<double>::parallel_op_n_mem(nsum, nsum_serial, neff);
+  __PRINT_INFO__("\t- n: %i, neff: %i\n", nsum, neff);
+
   IvyGPUEvent ev_sum(IvyGPUEvent::EventFlags::Default); ev_sum.record(stream);
   __PRINT_INFO__("Starting event is recorded.\n");
   __PRINT_INFO__("Calling add_parallel...\n");

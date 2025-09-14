@@ -70,13 +70,13 @@ namespace IvyMath{
         stream, ref_stream,
         __ENCAPSULATE__(
           allocator_data_container::transfer_internal_memory(&h_dims, 1, def_mem_type, def_mem_type, ref_stream, true);
-      res = std_numeric::accumulate(
-        std_iter::begin(h_dims),
-        std_iter::end(h_dims),
-        __STATIC_CAST__(IvyTensorDim_t, 1),
-        std_fcnal::multiplies<IvyTensorDim_t>()
-      );
-      )
+          res = std_numeric::accumulate(
+            std_iter::begin(h_dims),
+            std_iter::end(h_dims),
+            __STATIC_CAST__(IvyTensorDim_t, 1),
+            std_fcnal::multiplies<IvyTensorDim_t>()
+          );
+        )
       );
     }
 
@@ -186,10 +186,22 @@ namespace IvyMath{
       }
       for (IvyTensorDim_t i=0; i<nel; ++i){
         std_vec::vector<IvyTensorDim_t> idxs(rank_, def_mem_type, stream, 0);
-        for (IvyTensorRank_t iax=0; iax<rank_; ++iax){
-          auto const& iax_revord = ref_reord_ax.at(iax);
-          idxs.at(iax_revord) = (i/nels_axs.at(iax)) % dims_reord.at(iax);
+        #define _CMD \
+        for (IvyTensorRank_t iax=0; iax<rank_; ++iax){ \
+          auto const& iax_revord = ref_reord_ax.at(iax); \
+          idxs.at(iax_revord) = (i/nels_axs.at(iax)) % dims_reord.at(iax); \
         }
+#if defined(OPENMP_ENABLED)
+        if (rank_>=NUM_CPU_THREADS_THRESHOLD){
+          #pragma omp parallel for schedule(static)
+          _CMD
+        }
+        else
+#endif
+        {
+          _CMD
+        }
+        #undef _CMD
         res.emplace_back(get_abs_index(idxs));
       }
     }

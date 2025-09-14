@@ -188,7 +188,18 @@ template<typename Kernel_t> struct run_kernel<Kernel_t, true> : run_kernel_base{
     }
     else{
       Kernel_t::prepare(false, n, args...);
-      for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel_unit_unified(i, n, args...);
+      #define _KERNEL_UNIT_CMD for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel_unit_unified(i, n, args...);
+#if defined(OPENMP_ENABLED)
+      if (n>=NUM_CPU_THREADS_THRESHOLD){
+        #pragma omp parallel for schedule(static)
+        _KERNEL_UNIT_CMD
+      }
+      else
+#endif
+      {
+        _KERNEL_UNIT_CMD
+      }
+      #undef _KERNEL_UNIT_CMD
       Kernel_t::finalize(false, n, args...);
     }
     return true;
@@ -202,9 +213,22 @@ template<typename Kernel_t> struct run_kernel<Kernel_t, true> : run_kernel_base{
     }
     else{
       Kernel_t::prepare(false, nx, ny, args...);
-      for (IvyTypes::size_t i = 0; i < nx; ++i){
-        for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel_unit_unified(i, j, nx, ny, args...);
+      #define _KERNEL_UNIT_CMD \
+      for (IvyTypes::size_t i = 0; i < nx; ++i){ \
+        for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel_unit_unified(i, j, nx, ny, args...); \
       }
+#if defined(OPENMP_ENABLED)
+      IvyTypes::size_t nxy = nx*ny;
+      if (nxy>=8){
+        #pragma omp parallel for collapse(2) schedule(static)
+        _KERNEL_UNIT_CMD
+      }
+      else
+#endif
+      {
+        _KERNEL_UNIT_CMD
+      }
+      #undef _KERNEL_UNIT_CMD
       Kernel_t::finalize(false, nx, ny, args...);
     }
     return true;
@@ -218,11 +242,24 @@ template<typename Kernel_t> struct run_kernel<Kernel_t, true> : run_kernel_base{
     }
     else{
       Kernel_t::prepare(false, nx, ny, nz, args...);
-      for (IvyTypes::size_t i = 0; i < nx; ++i){
-        for (IvyTypes::size_t j = 0; j < ny; ++j){
-          for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel_unit_unified(i, j, k, nx, ny, nz, args...);
-        }
+      #define _KERNEL_UNIT_CMD \
+      for (IvyTypes::size_t i = 0; i < nx; ++i){ \
+        for (IvyTypes::size_t j = 0; j < ny; ++j){ \
+          for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel_unit_unified(i, j, k, nx, ny, nz, args...); \
+        } \
       }
+#if defined(OPENMP_ENABLED)
+      IvyTypes::size_t nxyz = nx*ny*nz;
+      if (nxyz>=8){
+        #pragma omp parallel for collapse(3) schedule(static)
+        _KERNEL_UNIT_CMD
+      }
+      else
+#endif
+      {
+        _KERNEL_UNIT_CMD
+      }
+      #undef _KERNEL_UNIT_CMD
       Kernel_t::finalize(false, nx, ny, nz, args...);
     }
     return true;
@@ -236,25 +273,62 @@ template<typename Kernel_t> struct run_kernel : run_kernel_base{
 
   template<typename... Args> __HOST_DEVICE__ bool parallel_1D(IvyTypes::size_t n, Args... args){
     Kernel_t::prepare(false, n, args...);
-    for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel(i, n, args...);
+    #define _KERNEL_CMD for (IvyTypes::size_t i = 0; i < n; ++i) Kernel_t::kernel(i, n, args...);
+#if defined(OPENMP_ENABLED)
+    if (n>=NUM_CPU_THREADS_THRESHOLD){
+      #pragma omp parallel for schedule(static)
+      _KERNEL_CMD
+    }
+    else
+#endif
+    {
+      _KERNEL_CMD
+    }
+    #undef _KERNEL_CMD
     Kernel_t::finalize(false, n, args...);
     return true;
   }
   template<typename... Args> __HOST_DEVICE__ bool parallel_2D(IvyTypes::size_t nx, IvyTypes::size_t ny, Args... args){
     Kernel_t::prepare(false, nx, ny, args...);
-    for (IvyTypes::size_t i = 0; i < nx; ++i){
-      for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel(i, j, nx, ny, args...);
+    #define _KERNEL_CMD \
+    for (IvyTypes::size_t i = 0; i < nx; ++i){ \
+      for (IvyTypes::size_t j = 0; j < ny; ++j) Kernel_t::kernel(i, j, nx, ny, args...); \
     }
+#if defined(OPENMP_ENABLED)
+    IvyTypes::size_t nxy = nx*ny;
+    if (nxy>=8){
+      #pragma omp parallel for collapse(2) schedule(static)
+      _KERNEL_CMD
+    }
+    else
+#endif
+    {
+      _KERNEL_CMD
+    }
+    #undef _KERNEL_CMD
     Kernel_t::finalize(false, nx, ny, args...);
     return true;
   }
   template<typename... Args> __HOST_DEVICE__ bool parallel_3D(IvyTypes::size_t nx, IvyTypes::size_t ny, IvyTypes::size_t nz, Args... args){
     Kernel_t::prepare(false, nx, ny, nz, args...);
-    for (IvyTypes::size_t i = 0; i < nx; ++i){
-      for (IvyTypes::size_t j = 0; j < ny; ++j){
-        for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel(i, j, k, nx, ny, nz, args...);
-      }
+    #define _KERNEL_CMD \
+    for (IvyTypes::size_t i = 0; i < nx; ++i){ \
+      for (IvyTypes::size_t j = 0; j < ny; ++j){ \
+        for (IvyTypes::size_t k = 0; k < nz; ++k) Kernel_t::kernel(i, j, k, nx, ny, nz, args...); \
+      } \
     }
+#if defined(OPENMP_ENABLED)
+    IvyTypes::size_t nxyz = nx*ny*nz;
+    if (nxyz>=8){
+      #pragma omp parallel for collapse(3) schedule(static)
+      _KERNEL_CMD
+    }
+    else
+#endif
+    {
+      _KERNEL_CMD
+    }
+    #undef _KERNEL_CMD
     Kernel_t::finalize(false, nx, ny, nz, args...);
     return true;
   }
