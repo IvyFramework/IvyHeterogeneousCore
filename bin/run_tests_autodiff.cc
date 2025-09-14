@@ -68,6 +68,7 @@ int main(){
     __PRINT_INFO__(" ?= "); \
     print_value(GRAD_RES); \
     __PRINT_INFO__("Type of fcn: %s\n", typeid(fcn).name()); \
+    __PRINT_INFO__("Type of fcn value: %s\n", typeid(fcn->value()).name()); \
     __PRINT_INFO__("Type of grad: %s\n", typeid(grad).name()); \
   } \
   __PRINT_INFO__("*****************\n");

@@ -35,6 +35,18 @@ void utest(){
   auto t3d = Tensor<double>(tshape.get_memory_type(), tshape.gpu_stream(), tshape, 5.);
   t3d->at({ 0,1,2 }) = 3.14;
   print_value(t3d);
+
+  auto t3dp = Tensor<IvyMath::IvyConstantPtr_t<double>>(
+    tshape.get_memory_type(),
+    tshape.gpu_stream(),
+    tshape,
+    Constant<double>(
+      tshape.get_memory_type(),
+      tshape.gpu_stream(),
+      5.
+    )
+  );
+  print_value(t3dp);
 }
 
 

@@ -42,7 +42,7 @@ namespace std_ivy{
         stream, ref_stream,
         __ENCAPSULATE__(
           res = std_mem::allocator<mem_loc_container_t>::transfer_internal_memory(&ptr_mem_loc_, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-      )
+        )
       );
       return res;
     }

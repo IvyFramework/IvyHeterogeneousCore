@@ -39,7 +39,7 @@ namespace IvyMath{
       stream, ref_stream,
       __ENCAPSULATE__(
         res &= allocator_data_container::transfer_internal_memory(&dims, 1, def_mem_type, new_mem_type, ref_stream, release_old);
-    )
+      )
     );
     return res;
   }

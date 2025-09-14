@@ -29,12 +29,26 @@ namespace IvyMath{
     using data_container = std_mem::unique_ptr<dtype_t>;
     using allocator_data_container = std_mem::allocator<data_container>;
     using allocator_data_container_traits = std_mem::allocator_traits<allocator_data_container>;
+    using allocator_tensor_shape = std_mem::allocator<IvyTensorShape>;
+    using allocator_tensor_shape_traits = std_mem::allocator_traits<allocator_tensor_shape>;
 
   protected:
     IvyTensorShape shape_;
     data_container data_;
 
-    __HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
+    __HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
+      bool res = true;
+      constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      auto stream = this->gpu_stream();
+      operate_with_GPU_stream_from_pointer(
+        stream, ref_stream,
+        __ENCAPSULATE__(
+          res &= allocator_tensor_shape::transfer_internal_memory(&shape_, 1, def_mem_type, new_mem_type, ref_stream, release_old);
+          res &= allocator_data_container::transfer_internal_memory(&data_, 1, def_mem_type, new_mem_type, ref_stream, release_old);
+        )
+      );
+      return res;
+    }
 
   public:
     // Convenience accessors from IvyTensorShape
