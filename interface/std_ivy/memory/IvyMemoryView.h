@@ -6,6 +6,20 @@
 
 
 namespace std_ivy{
+  /*
+  class memview:
+
+  A memory view class that provides a view of an object in a different memory space.
+
+  When the recursive flag is false, only the bytes in memory are copied. The contents of the object remain as in the original object.
+  Otherwise, internal objects are copied as well.
+
+  The memory view does not own the memory if the memory type of the original object is the same as the default execution memory type.
+  In that case, the data pointer is simply set to the original pointer.
+
+  If the memory types are different, a new memory is allocated in the default execution memory type, and the data is copied over.
+  In that case, the memory view owns the memory, and it is freed upon destruction of the memory view object.
+  */
   template<typename T, typename Allocator = allocator<T>> class memview{
   public:
     typedef Allocator allocator_type;
