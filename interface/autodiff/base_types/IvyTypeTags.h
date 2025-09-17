@@ -66,10 +66,10 @@ namespace IvyMath{
   It is further specialized in IvyConstant, IvyVariable, IvyComplexVariable, IvyTensor, and IvyFunction
   for their own domain and operability tags.
   */
-  template<typename precision_type, typename domain_tag, typename operability_tag>
+  template<typename precision_type, typename domain_tag, typename operability_tag, typename gradient_domain_tag=domain_tag>
   struct minimal_domain_type{ using type = std_ttraits::remove_cv_t<precision_type>; };
-  template<typename precision_type, typename operability_tag>
-  struct minimal_domain_type<precision_type, undefined_domain_tag, operability_tag>{};
+  template<typename precision_type, typename operability_tag, typename gradient_domain_tag>
+  struct minimal_domain_type<precision_type, undefined_domain_tag, operability_tag, gradient_domain_tag>{};
   template<typename precision_type, typename domain_tag, typename operability_tag>
   using minimal_domain_t = typename minimal_domain_type<precision_type, domain_tag, operability_tag>::type;
 

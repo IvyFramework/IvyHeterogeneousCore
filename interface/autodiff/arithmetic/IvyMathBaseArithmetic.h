@@ -8,128 +8,6 @@
 
 
 namespace IvyMath{
-  // General 1D function implementation
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator, precision_type, Domain> const& other) :
-    base_t(__DYNAMIC_CAST__(base_t const&, other)),
-    dep(other.dep)
-  {}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::IvyRegularFunction_1D(IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>&& other) :
-    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
-    dep(std_util::move(other.dep))
-  {}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ void IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
-  }
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ bool IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
-    return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
-  }
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::grad_t> IvyRegularFunction_1D<T, Evaluator, precision_type, Domain>::gradient(
-    IvyThreadSafePtr_t<IvyBaseNode> const& var
-  ) const{
-    auto grad_dep = function_gradient<T, Evaluator>::get(*dep, var);
-    return evaluator_t::gradient(dep)*grad_dep;
-  }
-
-  // General 2D function implementation
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain> const& other) :
-    base_t(__DYNAMIC_CAST__(base_t const&, other)),
-    x(other.x),
-    y(other.y)
-  {}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyRegularFunction_2D(IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>&& other) :
-    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
-    x(std_util::move(other.x)),
-    y(std_util::move(other.y))
-  {}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ void IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
-  }
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ bool IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
-    return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
-  }
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::grad_t> IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain>::gradient(
-    IvyThreadSafePtr_t<IvyBaseNode> const& var
-  ) const{
-    auto grad_x = function_gradient<T>::get(*x, var);
-    auto grad_y = function_gradient<U>::get(*y, var);
-    return evaluator_t::gradient(0, x, y)*grad_x + evaluator_t::gradient(1, x, y)*grad_y;
-  }
-
-  // General 1D conditional function implementation
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyThreadSafePtr_t<T> const& dep) : base_t(), dep(dep){}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain> const& other) :
-    base_t(__DYNAMIC_CAST__(base_t const&, other)),
-    dep(other.dep)
-  {}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::IvyConditionalFunction_1D(IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>&& other) :
-    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
-    dep(std_util::move(other.dep))
-  {}
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ void IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
-  }
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ bool IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
-    return (base_t::depends_on(node) || IvyMath::depends_on(dep, node));
-  }
-  template<typename T, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyThreadSafePtr_t<typename IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::grad_t> IvyConditionalFunction_1D<T, Evaluator, precision_type, Domain>::gradient(
-    IvyThreadSafePtr_t<IvyBaseNode> const& var
-  ) const{
-    auto tmp = Constant<precision_type>(dep.get_memory_type(), dep.gpu_stream(), Zero<precision_type>());
-    return tmp*tmp;
-  }
-
-  // General 2D conditional function implementation
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y) : base_t(), x(x), y(y){}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain> const& other) :
-    base_t(__DYNAMIC_CAST__(base_t const&, other)),
-    x(other.x),
-    y(other.y)
-  {}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::IvyConditionalFunction_2D(IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>&& other) :
-    base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))),
-    x(std_util::move(other.x)),
-    y(std_util::move(other.y))
-  {}
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ void IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
-  }
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ bool IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::depends_on(IvyBaseNode const* node) const{
-    return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
-  }
-  template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
-  __HOST__ IvyThreadSafePtr_t<typename IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::grad_t> IvyConditionalFunction_2D<T, U, Evaluator, precision_type, Domain>::gradient(
-    IvyThreadSafePtr_t<IvyBaseNode> const& var
-  ) const{
-    auto tmp = Constant<precision_type>(x.get_memory_type(), x.gpu_stream(), Zero<precision_type>());
-    return tmp*tmp;
-  }
-
-
   /****************/
   /* 1D FUNCTIONS */
   /****************/
@@ -1240,7 +1118,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y){ return EqualFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
@@ -1263,7 +1141,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename OrFcnal<T, U>::value_t Or(T const& x, U const& y){ return OrFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyOr<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyOr(x, y));
@@ -1286,7 +1164,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y){ return XorFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
@@ -1310,7 +1188,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename AndFcnal<T, U>::value_t And(T const& x, U const& y){ return AndFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyAnd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAnd(x, y));
@@ -1353,7 +1231,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y){ return GreaterThanFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
@@ -1397,7 +1275,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y){ return LessThanFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
@@ -1441,7 +1319,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y){ return GreaterOrEqualFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
@@ -1486,7 +1364,7 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y){ return LessOrEqualFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     return make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));

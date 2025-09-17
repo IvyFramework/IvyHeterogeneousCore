@@ -40,12 +40,12 @@ namespace _fcn_eval{
 #define eval_fcn(fcn) _fcn_eval::eval(fcn)
 
 namespace IvyMath{
-  template<typename precision_type, typename Domain> class IvyFunction;
-  template<typename precision_type, typename Domain> using IvyFunctionPtr_t = IvyThreadSafePtr_t< IvyFunction<precision_type, Domain> >;
+  template<typename precision_type, typename Domain, typename GradientDomain=Domain> class IvyFunction;
+  template<typename precision_type, typename Domain, typename GradientDomain=Domain> using IvyFunctionPtr_t = IvyThreadSafePtr_t< IvyFunction<precision_type, Domain, GradientDomain> >;
 
-  template<typename precision_type, typename Domain>
-  struct minimal_domain_type<precision_type, Domain, function_value_tag>{
-    using type = IvyFunction<std_ttraits::remove_cv_t<precision_type>, Domain>;
+  template<typename precision_type, typename Domain, typename GradientDomain>
+  struct minimal_domain_type<precision_type, Domain, function_value_tag, GradientDomain>{
+    using type = IvyFunction<std_ttraits::remove_cv_t<precision_type>, Domain, GradientDomain>;
   };
   template<typename precision_type, typename Domain>
   struct minimal_fcn_output_type<precision_type, Domain, function_value_tag>{
@@ -62,8 +62,12 @@ namespace IvyMath{
     >;
   };
 
+
+  template<typename precision_type, typename Domain, typename GradientDomain>
+  class IvyFunction{};
+
   template<typename precision_type, typename Domain>
-  class IvyFunction :
+  class IvyFunction<precision_type, Domain, Domain> :
     public IvyBaseNode,
     public Domain,
     public function_value_tag
@@ -115,6 +119,52 @@ namespace IvyMath{
       IvyThreadSafePtr_t<IvyBaseNode> base_var(var);
       return this->gradient(base_var);
     }
+  };
+
+  template<typename precision_type, typename Domain>
+  class IvyFunction<precision_type, Domain, undefined_domain_tag> :
+    public IvyBaseNode,
+    public Domain,
+    public function_value_tag
+  {
+  public:
+    // Domain tag of the function
+    using domain_tag = Domain;
+    // Type of the output
+    using value_t = minimal_fcn_output_t<reduced_data_t<precision_type>, domain_tag, get_operability_t<precision_type>>;
+    // Data type of the output
+    using dtype_t = reduced_data_t<value_t>;
+
+  protected:
+    // Output of the function
+    // This is a pointer so that we can have a const-qualified eval function,
+    // which would const-qualify the pointer, not the value itself.
+    // That way, we can have the call to the const-qualified value() function run the evaluation.
+    std_mem::unique_ptr<value_t> output;
+
+  public:
+    __HOST__ IvyFunction(IvyFunction const& other){
+      constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
+    }
+    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
+    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args){
+      constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
+    }
+    __HOST__ IvyFunction(){
+      constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
+    }
+    ~IvyFunction() = default;
+
+    // Function evaluator implementation
+    virtual __HOST__ void eval() const = 0;
+    // Since functions can only exist on the host, there is no issue with having a virtual depends_on call
+    virtual __HOST__ bool depends_on(IvyBaseNode const* node) const{ return (this==node); }
+
+    // Value of the function
+    __HOST__ value_t const& value() const{ this->eval(); return *output; }
   };
 
   template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>> struct function_gradient{

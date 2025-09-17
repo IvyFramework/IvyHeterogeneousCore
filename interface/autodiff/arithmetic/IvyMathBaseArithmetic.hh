@@ -5,135 +5,11 @@
 #include "autodiff/basic_nodes/IvyConstant.h"
 #include "autodiff/basic_nodes/IvyVariable.h"
 #include "autodiff/basic_nodes/IvyComplexVariable.h"
-#include "autodiff/basic_nodes/IvyFunction.h"
 #include "autodiff/arithmetic/IvyMathConstOps.h"
-#include "autodiff/IvyMathTypes.h"
+#include "autodiff/arithmetic/IvyMathFunctionPrimitives.h"
 
 
 namespace IvyMath{
-  /*
-  IvyRegularFunction_1D:
-  This is a master class for regular 1D functions.
-  Unless we have any sepcial cases in return types, i.e., not the return type of reduced_value_t<T> required here,
-  this master class should be used with partial specializations for different Evaluator types.
-  */
-  template<
-    typename T, typename Evaluator,
-    typename precision_type = unpacked_reduced_value_t<T>, typename Domain = get_domain_t<T>
-  > class IvyRegularFunction_1D : public IvyFunction<precision_type, Domain>
-  {
-  public:
-    using base_t = IvyFunction<precision_type, Domain>;
-    using value_t = typename base_t::value_t;
-    using dtype_t = typename base_t::dtype_t;
-    using grad_t = typename base_t::grad_t;
-    using evaluator_t = Evaluator;
-
-  protected:
-    IvyThreadSafePtr_t<T> dep;
-
-  public:
-    __HOST__ IvyRegularFunction_1D(IvyThreadSafePtr_t<T> const& dep);
-    __HOST__ IvyRegularFunction_1D(IvyRegularFunction_1D const& other);
-    __HOST__ IvyRegularFunction_1D(IvyRegularFunction_1D&& other);
-
-    __HOST__ void eval() const override;
-    __HOST__ bool depends_on(IvyBaseNode const* node) const override;
-    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
-  };
-  /*
-  IvyRegularFunction_2D:
-  This is a master class for regular 2D functions.
-  Unless we have any sepcial cases in return types, i.e., not the return type of more_precise_reduced_t<T, U> required here,
-  this master class should be used with partial specializations for different Evaluator types.
-  */
-  template<
-    typename T, typename U, typename Evaluator,
-    typename precision_type = more_precise_reduced_t<T, U>, typename Domain = get_domain_t<more_precise_t<T, U>>
-  > class IvyRegularFunction_2D : public IvyFunction<precision_type, Domain>
-  {
-  public:
-    using base_t = IvyFunction<precision_type, Domain>;
-    using value_t = typename base_t::value_t;
-    using dtype_t = typename base_t::dtype_t;
-    using grad_t = typename base_t::grad_t;
-    using evaluator_t = Evaluator;
-
-  protected:
-    IvyThreadSafePtr_t<T> x;
-    IvyThreadSafePtr_t<U> y;
-
-  public:
-    __HOST__ IvyRegularFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
-    __HOST__ IvyRegularFunction_2D(IvyRegularFunction_2D const& other);
-    __HOST__ IvyRegularFunction_2D(IvyRegularFunction_2D&& other);
-
-    __HOST__ void eval() const override;
-    __HOST__ bool depends_on(IvyBaseNode const* node) const override;
-    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
-  };
-
-  /*
-  IvyConditionalFunction_1D:
-  This is a master class for regular 1D functions.
-  Unless we have any sepcial cases in return types, i.e., not the return type of reduced_value_t<T> required here,
-  this master class should be used with partial specializations for different Evaluator types.
-  */
-  template<
-    typename T, typename Evaluator,
-    typename precision_type = bool, typename Domain = real_domain_tag
-  > class IvyConditionalFunction_1D : public IvyFunction<precision_type, Domain>
-  {
-  public:
-    using base_t = IvyFunction<precision_type, Domain>;
-    using value_t = typename base_t::value_t;
-    using dtype_t = typename base_t::dtype_t;
-    using grad_t = typename base_t::grad_t;
-    using evaluator_t = Evaluator;
-
-  protected:
-    IvyThreadSafePtr_t<T> dep;
-
-  public:
-    __HOST__ IvyConditionalFunction_1D(IvyThreadSafePtr_t<T> const& dep);
-    __HOST__ IvyConditionalFunction_1D(IvyConditionalFunction_1D const& other);
-    __HOST__ IvyConditionalFunction_1D(IvyConditionalFunction_1D&& other);
-
-    __HOST__ void eval() const override;
-    __HOST__ bool depends_on(IvyBaseNode const* node) const override;
-    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
-  };
-
-  /*
-  IvyConditionalFunction_2D:
-  This is a master class for 2D conditional functions.
-  */
-  template<
-    typename T, typename U, typename Evaluator,
-    typename precision_type = bool, typename Domain = real_domain_tag
-  > class IvyConditionalFunction_2D : public IvyFunction<precision_type, Domain>
-  {
-  public:
-    using base_t = IvyFunction<precision_type, Domain>;
-    using value_t = typename base_t::value_t;
-    using dtype_t = typename base_t::dtype_t;
-    using grad_t = typename base_t::grad_t;
-    using evaluator_t = Evaluator;
-
-  protected:
-    IvyThreadSafePtr_t<T> x;
-    IvyThreadSafePtr_t<U> y;
-
-  public:
-    __HOST__ IvyConditionalFunction_2D(IvyThreadSafePtr_t<T> const& x, IvyThreadSafePtr_t<U> const& y);
-    __HOST__ IvyConditionalFunction_2D(IvyConditionalFunction_2D const& other);
-    __HOST__ IvyConditionalFunction_2D(IvyConditionalFunction_2D&& other);
-
-    __HOST__ void eval() const override;
-    __HOST__ bool depends_on(IvyBaseNode const* node) const override;
-    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(IvyThreadSafePtr_t<IvyBaseNode> const& var) const override;
-  };
-
   // Get real part of a variable
   template<typename T, typename domain_tag = get_domain_t<T>> struct RealFcnal{
     using value_t = convert_to_real_t<T>;
@@ -1235,8 +1111,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyEqual = IvyConditionalFunction_2D<
     T, U,
-    EqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    EqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y);
@@ -1276,8 +1151,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyOr = IvyConditionalFunction_2D<
     T, U,
-    OrFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    OrFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename OrFcnal<T, U>::value_t Or(T const& x, U const& y);
@@ -1317,8 +1191,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyXor = IvyConditionalFunction_2D<
     T, U,
-    XorFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    XorFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y);
@@ -1359,8 +1232,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyAnd = IvyConditionalFunction_2D<
     T, U,
-    AndFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    AndFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename AndFcnal<T, U>::value_t And(T const& x, U const& y);
@@ -1424,8 +1296,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyGreaterThan = IvyConditionalFunction_2D<
     T, U,
-    GreaterThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    GreaterThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y);
@@ -1490,8 +1361,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyLessThan = IvyConditionalFunction_2D<
     T, U,
-    LessThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    LessThanFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y);
@@ -1556,8 +1426,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyGreaterOrEqual = IvyConditionalFunction_2D<
     T, U,
-    GreaterOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    GreaterOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y);
@@ -1623,8 +1492,7 @@ namespace IvyMath{
   };
   template<typename T, typename U> using IvyLessOrEqual = IvyConditionalFunction_2D<
     T, U,
-    LessOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>,
-    bool, get_domain_t<IvyConstant<bool>>
+    LessOrEqualFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>
   >;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y);

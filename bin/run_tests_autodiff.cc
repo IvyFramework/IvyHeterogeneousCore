@@ -9,9 +9,9 @@ int main(){
   using namespace std_ivy;
   using namespace IvyMath;
 
-  auto cplx = Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 1, 2);
-  auto rvar = Variable<double>(std_ivy::IvyMemoryType::Host, nullptr, 3);
-  auto rconst = Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 5);
+  auto cplx = Complex<double>(IvyMemoryType::Host, nullptr, 1, 2);
+  auto rvar = Variable<double>(IvyMemoryType::Host, nullptr, 3);
+  auto rconst = Constant<double>(IvyMemoryType::Host, nullptr, 5);
 
   __PRINT_INFO__("cplx = "); print_value(cplx);
   __PRINT_INFO__("-cplx = "); print_value(-(*cplx));
@@ -73,128 +73,74 @@ int main(){
   } \
   __PRINT_INFO__("*****************\n");
 
-  FCN_TEST_COMMAND(Exp, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 20.0855), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 20.0855));
-  FCN_TEST_COMMAND(Log, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.098612), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.333333));
-  FCN_TEST_COMMAND(Sin, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.14112), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.98999));
-  FCN_TEST_COMMAND(Cos, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.98999), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.14112));
-  FCN_TEST_COMMAND(Tan, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.14255), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.02032));
-  FCN_TEST_COMMAND(Cot, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -7.01525), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -50.2138));
-  FCN_TEST_COMMAND(Sec, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.01011), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.143987));
-  FCN_TEST_COMMAND(Csc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 7.08617), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 49.7113));
-  FCN_TEST_COMMAND(SinH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677));
-  FCN_TEST_COMMAND(CosH, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 10.0179));
-  FCN_TEST_COMMAND(Erf, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.999978), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.000139253));
-  FCN_TEST_COMMAND(Erfc, rvar, Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.0000220905), Constant<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.000139253));
-  FCN_TEST_COMMAND(Faddeeva, rvar, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.000123410, 0.201157), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.000740459, -0.0785647));
-  FCN_TEST_COMMAND(FaddeevaFast, rvar, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.000123410, 0.201157), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.000740459, -0.0785647));
+  FCN_TEST_COMMAND(Exp, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 20.0855), Constant<double>(IvyMemoryType::Host, nullptr, 20.0855));
+  FCN_TEST_COMMAND(Log, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 1.098612), Constant<double>(IvyMemoryType::Host, nullptr, 0.333333));
+  FCN_TEST_COMMAND(Sin, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 0.14112), Constant<double>(IvyMemoryType::Host, nullptr, -0.98999));
+  FCN_TEST_COMMAND(Cos, rvar, Constant<double>(IvyMemoryType::Host, nullptr, -0.98999), Constant<double>(IvyMemoryType::Host, nullptr, -0.14112));
+  FCN_TEST_COMMAND(Tan, rvar, Constant<double>(IvyMemoryType::Host, nullptr, -0.14255), Constant<double>(IvyMemoryType::Host, nullptr, 1.02032));
+  FCN_TEST_COMMAND(Cot, rvar, Constant<double>(IvyMemoryType::Host, nullptr, -7.01525), Constant<double>(IvyMemoryType::Host, nullptr, -50.2138));
+  FCN_TEST_COMMAND(Sec, rvar, Constant<double>(IvyMemoryType::Host, nullptr, -1.01011), Constant<double>(IvyMemoryType::Host, nullptr, 0.143987));
+  FCN_TEST_COMMAND(Csc, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 7.08617), Constant<double>(IvyMemoryType::Host, nullptr, 49.7113));
+  FCN_TEST_COMMAND(SinH, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 10.0179), Constant<double>(IvyMemoryType::Host, nullptr, 10.0677));
+  FCN_TEST_COMMAND(CosH, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 10.0677), Constant<double>(IvyMemoryType::Host, nullptr, 10.0179));
+  FCN_TEST_COMMAND(Erf, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 0.999978), Constant<double>(IvyMemoryType::Host, nullptr, 0.000139253));
+  FCN_TEST_COMMAND(Erfc, rvar, Constant<double>(IvyMemoryType::Host, nullptr, 0.0000220905), Constant<double>(IvyMemoryType::Host, nullptr, -0.000139253));
+  FCN_TEST_COMMAND(Faddeeva, rvar, Complex<double>(IvyMemoryType::Host, nullptr, 0.000123410, 0.201157), Complex<double>(IvyMemoryType::Host, nullptr, -0.000740459, -0.0785647));
+  FCN_TEST_COMMAND(FaddeevaFast, rvar, Complex<double>(IvyMemoryType::Host, nullptr, 0.000123410, 0.201157), Complex<double>(IvyMemoryType::Host, nullptr, -0.000740459, -0.0785647));
 
-  FCN_TEST_COMMAND(Exp, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.1312, 2.47173), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -1.1312, 2.47173));
-  FCN_TEST_COMMAND(Log, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.804719, 1.10715), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.2, -0.4));
-  FCN_TEST_COMMAND(Sin, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 3.16578, 1.9596), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 2.03272, -3.0519));
-  FCN_TEST_COMMAND(Cos, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 2.03272, -3.0519), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -3.16578, -1.9596));
-  FCN_TEST_COMMAND(Tan, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.0338128, 1.01479), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.0286628, 0.0686261));
-  FCN_TEST_COMMAND(Cot, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.0327978, -0.984329), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.0321717, 0.0645676));
-  FCN_TEST_COMMAND(Sec, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.151176, 0.226974), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.22522, 0.161087));
-  FCN_TEST_COMMAND(Csc, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.228375, -0.141363), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.131658, 0.229433));
-  FCN_TEST_COMMAND(SinH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861));
-  FCN_TEST_COMMAND(CosH, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.642148, 1.06861), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.489056, 1.40312));
-  FCN_TEST_COMMAND(Erf, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.536644, -5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -14.8142, 17.1522));
-  FCN_TEST_COMMAND(Erfc, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.536644, 5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 14.8142, -17.1522));
-  FCN_TEST_COMMAND(Faddeeva, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.218492, 0.0929978), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.0649940, 0.0684131));
-  FCN_TEST_COMMAND(ErfFast, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.536644, -5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -14.8142, 17.1522));
-  FCN_TEST_COMMAND(ErfcFast, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 1.536644, 5.04914), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 14.8142, -17.1522));
-  FCN_TEST_COMMAND(FaddeevaFast, cplx, Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, 0.218492, 0.0929978), Complex<double>(std_ivy::IvyMemoryType::Host, nullptr, -0.0649940, 0.0684131));
+  FCN_TEST_COMMAND(Exp, cplx, Complex<double>(IvyMemoryType::Host, nullptr, -1.1312, 2.47173), Complex<double>(IvyMemoryType::Host, nullptr, -1.1312, 2.47173));
+  FCN_TEST_COMMAND(Log, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.804719, 1.10715), Complex<double>(IvyMemoryType::Host, nullptr, 0.2, -0.4));
+  FCN_TEST_COMMAND(Sin, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 3.16578, 1.9596), Complex<double>(IvyMemoryType::Host, nullptr, 2.03272, -3.0519));
+  FCN_TEST_COMMAND(Cos, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 2.03272, -3.0519), Complex<double>(IvyMemoryType::Host, nullptr, -3.16578, -1.9596));
+  FCN_TEST_COMMAND(Tan, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.0338128, 1.01479), Complex<double>(IvyMemoryType::Host, nullptr, -0.0286628, 0.0686261));
+  FCN_TEST_COMMAND(Cot, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.0327978, -0.984329), Complex<double>(IvyMemoryType::Host, nullptr, -0.0321717, 0.0645676));
+  FCN_TEST_COMMAND(Sec, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.151176, 0.226974), Complex<double>(IvyMemoryType::Host, nullptr, -0.22522, 0.161087));
+  FCN_TEST_COMMAND(Csc, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.228375, -0.141363), Complex<double>(IvyMemoryType::Host, nullptr, 0.131658, 0.229433));
+  FCN_TEST_COMMAND(SinH, cplx, Complex<double>(IvyMemoryType::Host, nullptr, -0.489056, 1.40312), Complex<double>(IvyMemoryType::Host, nullptr, -0.642148, 1.06861));
+  FCN_TEST_COMMAND(CosH, cplx, Complex<double>(IvyMemoryType::Host, nullptr, -0.642148, 1.06861), Complex<double>(IvyMemoryType::Host, nullptr, -0.489056, 1.40312));
+  FCN_TEST_COMMAND(Erf, cplx, Complex<double>(IvyMemoryType::Host, nullptr, -0.536644, -5.04914), Complex<double>(IvyMemoryType::Host, nullptr, -14.8142, 17.1522));
+  FCN_TEST_COMMAND(Erfc, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 1.536644, 5.04914), Complex<double>(IvyMemoryType::Host, nullptr, 14.8142, -17.1522));
+  FCN_TEST_COMMAND(Faddeeva, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.218492, 0.0929978), Complex<double>(IvyMemoryType::Host, nullptr, -0.0649940, 0.0684131));
+  FCN_TEST_COMMAND(ErfFast, cplx, Complex<double>(IvyMemoryType::Host, nullptr, -0.536644, -5.04914), Complex<double>(IvyMemoryType::Host, nullptr, -14.8142, 17.1522));
+  FCN_TEST_COMMAND(ErfcFast, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 1.536644, 5.04914), Complex<double>(IvyMemoryType::Host, nullptr, 14.8142, -17.1522));
+  FCN_TEST_COMMAND(FaddeevaFast, cplx, Complex<double>(IvyMemoryType::Host, nullptr, 0.218492, 0.0929978), Complex<double>(IvyMemoryType::Host, nullptr, -0.0649940, 0.0684131));
 #undef FCN_TEST_COMMAND
 
   auto fcn_equal_cplx_rvar = Equal(cplx, rvar);
   __PRINT_INFO__("fcn_equal_cplx_rvar = ");
   print_value(fcn_equal_cplx_rvar);
-  auto grad0_fcn_equal_cplx_rvar = fcn_equal_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_equal_cplx_rvar(%s) = ", typeid(grad0_fcn_equal_cplx_rvar).name());
-  print_value(grad0_fcn_equal_cplx_rvar->value());
-  auto grad1_fcn_equal_cplx_rvar = fcn_equal_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_equal_cplx_rvar).name());
-  print_value(grad1_fcn_equal_cplx_rvar->value());
 
   auto fcn_not_equal_cplx_rvar = Not(fcn_equal_cplx_rvar);
   __PRINT_INFO__("fcn_not_equal_cplx_rvar = ");
   print_value(fcn_not_equal_cplx_rvar);
-  auto grad0_fcn_not_equal_cplx_rvar = fcn_not_equal_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_not_equal_cplx_rvar(%s) = ", typeid(grad0_fcn_not_equal_cplx_rvar).name());
-  print_value(grad0_fcn_not_equal_cplx_rvar->value());
-  auto grad1_fcn_not_equal_cplx_rvar = fcn_not_equal_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_not_equal_cplx_rvar(%s) = ", typeid(grad1_fcn_not_equal_cplx_rvar).name());
-  print_value(grad1_fcn_not_equal_cplx_rvar->value());
 
   auto fcn_or = Or(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
   __PRINT_INFO__("fcn_or = ");
   print_value(fcn_or);
-  auto grad0_fcn_or = fcn_or->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_or(%s) = ", typeid(grad0_fcn_or).name());
-  print_value(grad0_fcn_or->value());
-  auto grad1_fcn_or = fcn_or->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_or(%s) = ", typeid(grad1_fcn_or).name());
-  print_value(grad1_fcn_or->value());
 
   auto fcn_xor = XOr(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
   __PRINT_INFO__("fcn_xor = ");
   print_value(fcn_xor);
-  auto grad0_fcn_xor = fcn_xor->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_xor(%s) = ", typeid(grad0_fcn_xor).name());
-  print_value(grad0_fcn_xor->value());
-  auto grad1_fcn_xor = fcn_xor->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_xor(%s) = ", typeid(grad1_fcn_xor).name());
-  print_value(grad1_fcn_xor->value());
 
   auto fcn_and = And(fcn_not_equal_cplx_rvar, fcn_equal_cplx_rvar);
   __PRINT_INFO__("fcn_and = ");
   print_value(fcn_and);
-  auto grad0_fcn_and = fcn_and->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_and(%s) = ", typeid(grad0_fcn_and).name());
-  print_value(grad0_fcn_and->value());
-  auto grad1_fcn_and = fcn_and->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_and(%s) = ", typeid(grad1_fcn_and).name());
-  print_value(grad1_fcn_and->value());
 
   auto fcn_gt_cplx_rvar = GT(cplx, rvar);
   __PRINT_INFO__("fcn_gt_cplx_rvar = ");
   print_value(fcn_gt_cplx_rvar);
-  auto grad0_fcn_gt_cplx_rvar = fcn_gt_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_gt_cplx_rvar(%s) = ", typeid(grad0_fcn_gt_cplx_rvar).name());
-  print_value(grad0_fcn_gt_cplx_rvar->value());
-  auto grad1_fcn_gt_cplx_rvar = fcn_gt_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_gt_cplx_rvar(%s) = ", typeid(grad1_fcn_gt_cplx_rvar).name());
-  print_value(grad1_fcn_gt_cplx_rvar->value());
 
   auto fcn_lt_cplx_rvar = LT(cplx, rvar);
   __PRINT_INFO__("fcn_lt_cplx_rvar = ");
   print_value(fcn_lt_cplx_rvar);
-  auto grad0_fcn_lt_cplx_rvar = fcn_lt_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_lt_cplx_rvar(%s) = ", typeid(grad0_fcn_lt_cplx_rvar).name());
-  print_value(grad0_fcn_lt_cplx_rvar->value());
-  auto grad1_fcn_lt_cplx_rvar = fcn_lt_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_lt_cplx_rvar(%s) = ", typeid(grad1_fcn_lt_cplx_rvar).name());
-  print_value(grad1_fcn_lt_cplx_rvar->value());
 
   auto fcn_geq_cplx_rvar = GEQ(cplx, rvar);
   __PRINT_INFO__("fcn_geq_cplx_rvar = ");
   print_value(fcn_geq_cplx_rvar);
-  auto grad0_fcn_geq_cplx_rvar = fcn_geq_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_geq_cplx_rvar(%s) = ", typeid(grad0_fcn_geq_cplx_rvar).name());
-  print_value(grad0_fcn_geq_cplx_rvar->value());
-  auto grad1_fcn_geq_cplx_rvar = fcn_geq_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_geq_cplx_rvar(%s) = ", typeid(grad1_fcn_geq_cplx_rvar).name());
-  print_value(grad1_fcn_geq_cplx_rvar->value());
 
   auto fcn_leq_cplx_rvar = LEQ(cplx, rvar);
   __PRINT_INFO__("fcn_leq_cplx_rvar = ");
   print_value(fcn_leq_cplx_rvar);
-  auto grad0_fcn_leq_cplx_rvar = fcn_leq_cplx_rvar->gradient(cplx);
-  __PRINT_INFO__("grad0_fcn_leq_cplx_rvar(%s) = ", typeid(grad0_fcn_leq_cplx_rvar).name());
-  print_value(grad0_fcn_leq_cplx_rvar->value());
-  auto grad1_fcn_leq_cplx_rvar = fcn_leq_cplx_rvar->gradient(rvar);
-  __PRINT_INFO__("grad1_fcn_leq_cplx_rvar(%s) = ", typeid(grad1_fcn_leq_cplx_rvar).name());
-  print_value(grad1_fcn_leq_cplx_rvar->value());
 
   auto fcn_add_cplx_rvar = cplx + rvar;
   __PRINT_INFO__("fcn_add_cplx_rvar = ");
@@ -236,7 +182,7 @@ int main(){
   __PRINT_INFO__("grad_fcn_manual_cubed(%s) = ", typeid(grad_fcn_manual_cubed).name());
   print_value(grad_fcn_manual_cubed->value());
 
-  auto fcn_pow_cubed = Pow(cplx, Constant<int>(std_ivy::IvyMemoryType::Host, nullptr, 3));
+  auto fcn_pow_cubed = Pow(cplx, Constant<int>(IvyMemoryType::Host, nullptr, 3));
   __PRINT_INFO__("fcn_pow_cubed = ");
   print_value(fcn_pow_cubed);
   auto grad_fcn_pow_cubed = fcn_pow_cubed->gradient(cplx);
