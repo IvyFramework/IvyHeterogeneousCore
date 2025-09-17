@@ -41,13 +41,21 @@ namespace IvyTypes{
   template<typename T> using convert_to_floating_point_t = typename convert_to_floating_point<T>::type;
 #define FLOAT_TYPE(TYPE) IvyTypes::convert_to_floating_point_t<TYPE>
 
-  template<typename T> struct convert_to_integral_precision{
-    static constexpr int d10_t = std_limits::numeric_limits<T>::digits10;
-    static constexpr int d10_char = std_limits::numeric_limits<char>::digits10;
-    static constexpr int d10_short = std_limits::numeric_limits<short>::digits10;
-    static constexpr int d10_int = std_limits::numeric_limits<int>::digits10;
+  template<typename T, bool is_unsigned = false> struct convert_to_integral_precision{
+    using char_type = std_ttraits::conditional_t<is_unsigned, unsigned char, char>;
+    using short_type = std_ttraits::conditional_t<is_unsigned, unsigned short, short>;
+    using int_type = std_ttraits::conditional_t<is_unsigned, unsigned int, int>;
 #ifndef __LONG_INT_FORBIDDEN__
-    static constexpr int d10_lint = std_limits::numeric_limits<long int>::digits10;
+    using lint_type = std_ttraits::conditional_t<is_unsigned, unsigned long int, long int>;
+#endif
+    using llint_type = std_ttraits::conditional_t<is_unsigned, unsigned long long int, long long int>;
+
+    static constexpr int d10_t = std_limits::numeric_limits<T>::digits10;
+    static constexpr int d10_char = std_limits::numeric_limits<char_type>::digits10;
+    static constexpr int d10_short = std_limits::numeric_limits<short_type>::digits10;
+    static constexpr int d10_int = std_limits::numeric_limits<int_type>::digits10;
+#ifndef __LONG_INT_FORBIDDEN__
+    static constexpr int d10_lint = std_limits::numeric_limits<lint_type>::digits10;
 #endif
 
     static constexpr bool use_native_type = std_ttraits::is_integral_v<T> || !std_ttraits::is_arithmetic_v<T>;
@@ -61,25 +69,28 @@ namespace IvyTypes{
     using type = std_ttraits::conditional_t<
       use_native_type, T,
       std_ttraits::conditional_t<
-        convert_to_char, char,
+        convert_to_char, char_type,
         std_ttraits::conditional_t<
-          convert_to_short, short,
+          convert_to_short, short_type,
           std_ttraits::conditional_t<
-            convert_to_int, int,
+            convert_to_int, int_type,
 #ifndef __LONG_INT_FORBIDDEN__
             std_ttraits::conditional_t<
-              convert_to_lint, long int, long long int
+              convert_to_lint, lint_type,
+#endif
+              llint_type
+#ifndef __LONG_INT_FORBIDDEN__
             >
-#else
-            long long int
 #endif
           >
         >
       >
     >;
   };
-  template<typename T> using convert_to_integral_precision_t = typename convert_to_integral_precision<T>::type;
+  template<typename T, bool is_unsigned=false>
+  using convert_to_integral_precision_t = typename convert_to_integral_precision<T, is_unsigned>::type;
 #define INT_TYPE(TYPE) IvyTypes::convert_to_integral_precision_t<TYPE>
+#define UINT_TYPE(TYPE) IvyTypes::convert_to_integral_precision_t<TYPE, true>
 
   using type_rank_t = unsigned short;
   template<typename T> struct type_rank : public std_ttraits::integral_constant<
