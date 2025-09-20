@@ -6,11 +6,13 @@
 #include "stream/IvyStream.h"
 #include "autodiff/IvyBaseMathTypes.h"
 #include "autodiff/base_types/IvyNodeRelations.h"
+#include "autodiff/base_types/IvyClientManager.h"
 
 
 namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyConstant final :
     public IvyBaseNode,
+    public IvyClientManager,
     public real_domain_tag,
     public constant_value_tag
   {
@@ -23,18 +25,30 @@ namespace IvyMath{
 
   public:
     // Constructors
-    __HOST_DEVICE__ IvyConstant() : value_(0){}
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyConstant(U const& value) : value_(__STATIC_CAST__(T, value)){}
-    __HOST_DEVICE__ IvyConstant(T const& value) : value_(value){}
-    __HOST_DEVICE__ IvyConstant(T&& value) : value_(std_util::move(value)){}
-    template<typename U> __HOST_DEVICE__ IvyConstant(IvyConstant<U> const& other) : value_(__STATIC_CAST__(T, other.value())){}
-    __HOST_DEVICE__ IvyConstant(IvyConstant<T> const& other) : value_(other.value_){}
-    __HOST_DEVICE__ IvyConstant(IvyConstant<T>&& other) : value_(std_util::move(other.value_)){}
+    __HOST_DEVICE__ IvyConstant() : IvyClientManager(), value_(0){}
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyConstant(U const& value) : IvyClientManager(), value_(__STATIC_CAST__(T, value)){}
+    __HOST_DEVICE__ IvyConstant(T const& value) : IvyClientManager(), value_(value){}
+    __HOST_DEVICE__ IvyConstant(T&& value) : IvyClientManager(), value_(std_util::move(value)){}
+    template<typename U> __HOST_DEVICE__ IvyConstant(IvyConstant<U> const& other) : IvyClientManager(), value_(__STATIC_CAST__(T, other.value())){}
+    __HOST_DEVICE__ IvyConstant(IvyConstant<T> const& other) : IvyClientManager(), value_(other.value_){}
+    __HOST_DEVICE__ IvyConstant(IvyConstant<T>&& other) : IvyClientManager(), value_(std_util::move(other.value_)){}
 
     // Assignment operators
-    template<typename U> __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<U> const& other){ this->value_ = __STATIC_CAST__(T, other.value()); return *this; }
-    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T> const& other){ this->value_ = other.value_; return *this; }
-    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T>&& other){ this->value_ = std_util::move(other.value_); return *this; }
+    template<typename U> __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<U> const& other){
+      this->value_ = __STATIC_CAST__(T, other.value());
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T> const& other){
+      this->value_ = other.value_;
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyConstant<T>& operator=(IvyConstant<T>&& other){
+      this->value_ = std_util::move(other.value_);
+      this->update_clients_modified();
+      return *this;
+    }
 
     // Empty virtual destructor
     __HOST_DEVICE__ ~IvyConstant(){}

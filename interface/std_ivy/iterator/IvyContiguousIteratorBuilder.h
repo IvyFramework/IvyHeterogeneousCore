@@ -28,7 +28,7 @@ namespace std_ivy{
   protected:
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ auto _pref(pointable_t const& ptr) -> decltype(*ptr){ return *ptr; }
 
-    __HOST_DEVICE__ bool fix_prev_next(size_type pos, char mem_loc_inc = 0){
+    __HOST_DEVICE__ bool fix_prev_next(size_type pos, signed char mem_loc_inc = 0){
       size_type const n = chain.size();
       bool res = true;
       if (n<=2 || pos<1 || pos>n-1) return res;
@@ -99,7 +99,6 @@ namespace std_ivy{
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_rend() const{ return chain.get(); }
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_front() const{
       if (!chain) return nullptr;
-      size_type const n_size = chain.size();
       return std_mem::addressof(chain[1]);
     }
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ pointable_t chain_back() const{
@@ -180,18 +179,16 @@ namespace std_ivy{
       this->invalidate();
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       chain = std_mem::make_unique<iterator_type>(n_size+2, n_capacity+2, def_mem_type, stream);
-      if (n_size>0){
-        pointable_t current = chain.get();
-        pointer ptr_data = ptr;
-        for (size_type i=0; i<n_size+2; ++i){
-          if (i==0) current->next() = current+1;
-          else if (i==n_size+1) current->prev() = current-1;
-          else{
-            current->set_mem_loc(ptr_data, mem_type, stream);
-            ++ptr_data;
-          }
-          ++current;
+      pointable_t current = chain.get();
+      pointer ptr_data = ptr;
+      for (size_type i=0; i<n_size+2; ++i){
+        if (i==0) current->next() = current+1;
+        else if (i==n_size+1) current->prev() = current-1;
+        else{
+          current->set_mem_loc(ptr_data, mem_type, stream);
+          ++ptr_data;
         }
+        ++current;
       }
       if (mem_type!=def_mem_type){
         operate_with_GPU_stream_from_pointer(

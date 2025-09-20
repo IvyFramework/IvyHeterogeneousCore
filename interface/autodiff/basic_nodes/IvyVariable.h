@@ -15,6 +15,7 @@ namespace IvyMath{
 
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> class IvyVariable final :
     public IvyBaseNode,
+    public IvyClientManager,
     public real_domain_tag,
     public variable_value_tag
   {
@@ -28,44 +29,82 @@ namespace IvyMath{
 
   public:
     // Empty default constructor
-    __HOST_DEVICE__ IvyVariable() : value_(0), infinitesimal_(0){}
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable(U const& value) : value_(__STATIC_CAST__(T, value)), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T const& value) : value_(value), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T&& value) : value_(std_util::move(value)), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : value_(value), infinitesimal_(infinitesimal){}
-    __HOST_DEVICE__ IvyVariable(T&& value, T&& infinitesimal) : value_(std_util::move(value)), infinitesimal_(std_util::move(infinitesimal)){}
-    template<typename U> __HOST_DEVICE__ IvyVariable(IvyVariable<U> const& other) : value_(__STATIC_CAST__(T, other.value())), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyVariable<T> const& other) : value_(other.value_), infinitesimal_(other.infinitesimal_){}
-    __HOST_DEVICE__ IvyVariable(IvyVariable<T>&& other) : value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
-    template<typename U> __HOST_DEVICE__ IvyVariable(IvyConstant<U> const& value) : value_(__STATIC_CAST__(T, value.value())), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyConstant<T> const& value) : value_(value.value()), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyConstant<T>&& value) : value_(value.value()), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable() : IvyClientManager(), value_(0), infinitesimal_(0){}
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable(U const& value) : IvyClientManager(), value_(__STATIC_CAST__(T, value)), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T const& value) : IvyClientManager(), value_(value), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T&& value) : IvyClientManager(), value_(std_util::move(value)), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : IvyClientManager(), value_(value), infinitesimal_(infinitesimal){}
+    __HOST_DEVICE__ IvyVariable(T&& value, T&& infinitesimal) : IvyClientManager(), value_(std_util::move(value)), infinitesimal_(std_util::move(infinitesimal)){}
+    template<typename U> __HOST_DEVICE__ IvyVariable(IvyVariable<U> const& other) : IvyClientManager(), value_(__STATIC_CAST__(T, other.value())), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyVariable<T> const& other) : IvyClientManager(), value_(other.value_), infinitesimal_(other.infinitesimal_){}
+    __HOST_DEVICE__ IvyVariable(IvyVariable<T>&& other) : IvyClientManager(), value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
+    template<typename U> __HOST_DEVICE__ IvyVariable(IvyConstant<U> const& value) : IvyClientManager(), value_(__STATIC_CAST__(T, value.value())), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyConstant<T> const& value) : IvyClientManager(), value_(value.value()), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyConstant<T>&& value) : IvyClientManager(), value_(value.value()), infinitesimal_(0){}
     __HOST_DEVICE__ ~IvyVariable(){}
 
     // Assignment operators
-    template<typename U> __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<U> const& other){ this->value_ = __STATIC_CAST__(T, other.value()); return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<T> const& other){ this->value_ = other.value_; this->infinitesimal_ = other.infinitesimal_; return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<T>&& other){ this->value_ = std_util::move(other.value_); this->infinitesimal_ = std_util::move(other.infinitesimal_); return *this; }
+    template<typename U> __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<U> const& other){
+      this->value_ = __STATIC_CAST__(T, other.value());
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<T> const& other){
+      this->value_ = other.value_;
+      this->infinitesimal_ = other.infinitesimal_;
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyVariable<T>&& other){
+      this->value_ = std_util::move(other.value_);
+      this->infinitesimal_ = std_util::move(other.infinitesimal_);
+      this->update_clients_modified();
+      return *this;
+    }
 
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable<T>& operator=(U const& value){ this->value_ = __STATIC_CAST__(T, value); return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(T const& value){ this->value_ = value; return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(T&& value){ this->value_ = std_util::move(value); return *this; }
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable<T>& operator=(U const& value){
+      this->value_ = __STATIC_CAST__(T, value);
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(T const& value){
+      this->value_ = value;
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(T&& value){
+      this->value_ = std_util::move(value);
+      this->update_clients_modified();
+      return *this;
+    }
 
-    template<typename U> __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<U> const& value){ this->value_ = __STATIC_CAST__(T, value.value()); return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<T> const& value){ this->value_ = value.value(); return *this; }
-    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<T>&& value){ this->value_ = value.value(); return *this; }
+    template<typename U> __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<U> const& value){
+      this->value_ = __STATIC_CAST__(T, value.value());
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<T> const& value){
+      this->value_ = value.value();
+      this->update_clients_modified();
+      return *this;
+    }
+    __HOST_DEVICE__ IvyVariable<T>& operator=(IvyConstant<T>&& value){
+      this->value_ = value.value();
+      this->update_clients_modified();
+      return *this;
+    }
 
     // Set functions
-    __HOST_DEVICE__ void set_value(T const& value){ this->value_ = value; }
-    __HOST_DEVICE__ void set_infinitesimal(T const& infinitesimal){ this->infinitesimal_ = infinitesimal; }
+    __HOST_DEVICE__ void set_value(T const& value){ this->value_ = value; this->update_clients_modified(); }
+    __HOST_DEVICE__ void set_infinitesimal(T const& infinitesimal){ this->infinitesimal_ = infinitesimal; this->update_clients_modified(); }
 
     // Get functions
-    __HOST_DEVICE__ value_t& value(){ return this->value_; }
+    //__HOST_DEVICE__ value_t& value(){ return this->value_; }
     __HOST_DEVICE__ value_t const& value() const{ return this->value_; }
     __HOST_DEVICE__ value_t const& infinitesimal() const{ return this->infinitesimal_; }
 
     // IvyVariables are differentiable objects.
-    __HOST_DEVICE__ bool is_differentiable() const{ return true; }
+    __HOST_DEVICE__ constexpr bool is_differentiable() __NOEXCEPT__ { return true; }
 
     friend struct IvyNodeSelfRelations<IvyVariable<T>>;
   };
@@ -77,8 +116,8 @@ namespace IvyTypes{
 }
 namespace IvyMath{
   template<typename T> struct IvyNodeSelfRelations<IvyVariable<T>>{
-    static __HOST_DEVICE__ constexpr bool is_differentiable(IvyVariable<T> const& x){ return true; }
-    static __HOST_DEVICE__ void conjugate(IvyVariable<T>& x){}
+    static __HOST_DEVICE__ constexpr bool is_differentiable(IvyVariable<T> const& x) __NOEXCEPT__ { return true; }
+    static __HOST_DEVICE__ void conjugate(IvyVariable<T>& x) __NOEXCEPT__ {}
     static constexpr bool is_conjugatable = false;
   };
 

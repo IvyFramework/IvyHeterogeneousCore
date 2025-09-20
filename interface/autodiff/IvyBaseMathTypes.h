@@ -5,7 +5,57 @@
 #include "config/IvyCompilerConfig.h"
 #include "IvyBasicTypes.h"
 #include "autodiff/base_types/IvyTypeTags.h"
+#include "autodiff/base_types/IvyBaseModifiable.h"
 
+
+namespace IvyMath{
+  typedef unsigned short IvyTensorRank_t;
+  typedef IvyTypes::size_t IvyTensorDim_t;
+}
+
+namespace _fcn_eval{
+  using namespace IvyMath;
+
+  template<typename T, ENABLE_IF_BOOL(
+    is_arithmetic_v<T>
+    || (
+      !std_ttraits::is_base_of_v<IvyBaseModifiable, std_ttraits::remove_cv_t<T>>
+      &&
+      (is_constant_v<T> || is_variable_v<T>)
+    )
+  )
+  > __HOST_DEVICE__ void eval(T const&) __NOEXCEPT__ {}
+  template<
+    typename T, ENABLE_IF_BOOL(
+      std_ttraits::is_base_of_v<IvyBaseModifiable, std_ttraits::remove_cv_t<T>>
+      &&
+      (is_constant_v<T> || is_variable_v<T>)
+    )
+  > __HOST_DEVICE__ void eval(T& fcn){ fcn.set_modified(false); }
+  template<typename T, ENABLE_IF_BOOL(!is_tensor_v<T> && is_function_v<T>)>
+  __HOST__ void eval(T& fcn){ fcn.eval(); fcn.set_modified(false); }
+  template<typename T, ENABLE_IF_BOOL(is_tensor_v<T>)> // The type T being a function or not does not matter here. A call to value will return the tensor either way.
+  __HOST__ void eval(T& fcn){
+    auto& tensor = fcn.value();
+    IvyTensorDim_t const n = tensor.num_elements();
+    #define _CMD for (IvyTensorDim_t i=0; i<n; ++i) _fcn_eval::eval(tensor[i]);
+#if defined(OPENMP_ENABLED)
+    if (n>=NUM_CPU_THREADS_THRESHOLD){
+      #pragma omp parallel for schedule(static)
+      _CMD
+    }
+    else
+#endif
+    {
+      _CMD
+    }
+    #undef _CMD
+    fcn.set_modified(false);
+  }
+  template<typename T> void eval(IvyThreadSafePtr_t<T> const& fcn){ eval(*fcn); }
+};
+// Shorthand to eval functions and other objects
+#define eval_fcn(fcn) _fcn_eval::eval(fcn)
 
 namespace IvyMath{
   using namespace IvyTypes;

@@ -111,7 +111,9 @@ void utest(IvyGPUStream& stream){
   for (auto const& v:h_vec) __PRINT_INFO__("h_vec.a = %f\n", v.a);
 
   {
-    h_vec.erase(h_vec.cbegin()+6); h_vec.erase(h_vec.cbegin()+2); auto it_ers = h_vec.erase(h_vec.cbegin()+6);
+    h_vec.erase(h_vec.cbegin()+6);
+    h_vec.erase(h_vec.cbegin()+2);
+    auto it_ers = h_vec.erase(h_vec.cbegin()+6);
     __PRINT_INFO__("First element after all erases: it_ers->a = %f\n", it_ers->a);
   }
   __PRINT_INFO__("h_vec after erase...\n");
@@ -142,6 +144,11 @@ void utest(IvyGPUStream& stream){
   stream.synchronize();
   //__PRINT_INFO__("Destroying h_vec...\n");
   //vector_allocator_traits::destroy(h_vec, 1, IvyMemoryType::Host, stream);
+
+  __PRINT_INFO__("Empty vector check...\n");
+  std_vec::vector<dummy_D> e_vec;
+  for (auto const& v: e_vec){}
+  __PRINT_INFO__("Empty vector check completed.\n");
 
   stream.synchronize();
   __PRINT_INFO__("|\\-/|/-\\|\\-/|/-\\|\\-/|/-\\|\n");

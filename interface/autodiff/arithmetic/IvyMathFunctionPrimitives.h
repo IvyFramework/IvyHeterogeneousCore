@@ -21,7 +21,7 @@ namespace IvyMath{
   {}
   template<typename T, typename Evaluator, typename precision_type, typename Domain, typename GradientDomain>
   __HOST__ void IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, GradientDomain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
+    if (this->is_modified()) *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
   }
   template<typename T, typename Evaluator, typename precision_type, typename Domain, typename GradientDomain>
   __HOST__ bool IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, GradientDomain>::depends_on(IvyBaseNode const* node) const{
@@ -50,7 +50,7 @@ namespace IvyMath{
   {}
   template<typename T, typename Evaluator, typename precision_type, typename Domain>
   __HOST__ void IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, undefined_domain_tag>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
+    if (this->is_modified()) *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*dep));
   }
   template<typename T, typename Evaluator, typename precision_type, typename Domain>
   __HOST__ bool IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, undefined_domain_tag>::depends_on(IvyBaseNode const* node) const{
@@ -74,7 +74,7 @@ namespace IvyMath{
   {}
   template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain, typename GradientDomain>
   __HOST__ void IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain, GradientDomain>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
+    if (this->is_modified()) *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
   }
   template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain, typename GradientDomain>
   __HOST__ bool IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain, GradientDomain>::depends_on(IvyBaseNode const* node) const{
@@ -106,13 +106,12 @@ namespace IvyMath{
   {}
   template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
   __HOST__ void IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain, undefined_domain_tag>::eval() const{
-    *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
+    if (this->is_modified()) *(this->output) = evaluator_t::eval(unpack_function_input<T>::get(*x), unpack_function_input<U>::get(*y));
   }
   template<typename T, typename U, typename Evaluator, typename precision_type, typename Domain>
   __HOST__ bool IvyRegularFunction_2D<T, U, Evaluator, precision_type, Domain, undefined_domain_tag>::depends_on(IvyBaseNode const* node) const{
     return (base_t::depends_on(node) || IvyMath::depends_on(x, node) || IvyMath::depends_on(y, node));
   }
-    
 
 }
 

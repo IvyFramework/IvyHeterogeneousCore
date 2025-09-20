@@ -2,6 +2,7 @@
 #define IVYFUNCTION_H
 
 
+#include "autodiff/base_types/IvyBaseModifiable.h"
 #include "autodiff/basic_nodes/IvyConstant.h"
 #include "autodiff/basic_nodes/IvyVariable.h"
 #include "autodiff/basic_nodes/IvyComplexVariable.h"
@@ -10,38 +11,10 @@
 #include "autodiff/arithmetic/IvyMathConstOps.h"
 
 
-namespace _fcn_eval{
-  using namespace IvyMath;
-
-  template<typename T, ENABLE_IF_BOOL(is_arithmetic_v<T> || is_constant_v<T> || is_variable_v<T>)>
-  __HOST_DEVICE__ void eval(T const&) __NOEXCEPT__ {}
-  template<typename T, ENABLE_IF_BOOL(!is_tensor_v<T> && is_function_v<T>)>
-  __HOST__ void eval(T& fcn){ fcn.eval(); }
-  template<typename T, ENABLE_IF_BOOL(is_tensor_v<T>)> // The type T being a function or not does not matter here. A call to value will return the tensor either way.
-  __HOST__ void eval(T& fcn){
-    auto& tensor = fcn.value();
-    IvyTensorDim_t const n = tensor.num_elements();
-    #define _CMD for (IvyTensorDim_t i=0; i<n; ++i) _fcn_eval::eval(tensor[i]);
-#if defined(OPENMP_ENABLED)
-    if (n>=NUM_CPU_THREADS_THRESHOLD){
-      #pragma omp parallel for schedule(static)
-      _CMD
-    }
-    else
-#endif
-    {
-      _CMD
-    }
-    #undef _CMD
-  }
-  template<typename T> void eval(IvyThreadSafePtr_t<T> const& fcn){ eval(*fcn); }
-};
-// Shorthand to eval functions and other objects
-#define eval_fcn(fcn) _fcn_eval::eval(fcn)
-
 namespace IvyMath{
   template<typename precision_type, typename Domain, typename GradientDomain=Domain> class IvyFunction;
-  template<typename precision_type, typename Domain, typename GradientDomain=Domain> using IvyFunctionPtr_t = IvyThreadSafePtr_t< IvyFunction<precision_type, Domain, GradientDomain> >;
+  template<typename precision_type, typename Domain, typename GradientDomain=Domain>
+  using IvyFunctionPtr_t = IvyThreadSafePtr_t< IvyFunction<precision_type, Domain, GradientDomain> >;
 
   template<typename precision_type, typename Domain, typename GradientDomain>
   struct minimal_domain_type<precision_type, Domain, function_value_tag, GradientDomain>{
@@ -69,6 +42,7 @@ namespace IvyMath{
   template<typename precision_type, typename Domain>
   class IvyFunction<precision_type, Domain, Domain> :
     public IvyBaseNode,
+    public IvyBaseModifiable,
     public Domain,
     public function_value_tag
   {
@@ -90,16 +64,22 @@ namespace IvyMath{
     std_mem::unique_ptr<value_t> output;
 
   public:
-    __HOST__ IvyFunction(IvyFunction const& other){
+    __HOST__ IvyFunction(IvyFunction const& other) :
+      IvyBaseModifiable()
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
-    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
-    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args){
+    __HOST__ IvyFunction(IvyFunction&& other) : IvyBaseModifiable(), output(std_util::move(other.output)){}
+    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args) :
+      IvyBaseModifiable()
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
-    __HOST__ IvyFunction(){
+    __HOST__ IvyFunction() :
+      IvyBaseModifiable()
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
     }
@@ -124,6 +104,7 @@ namespace IvyMath{
   template<typename precision_type, typename Domain>
   class IvyFunction<precision_type, Domain, undefined_domain_tag> :
     public IvyBaseNode,
+    public IvyBaseModifiable,
     public Domain,
     public function_value_tag
   {

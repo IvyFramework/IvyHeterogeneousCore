@@ -9,6 +9,8 @@
 #include "std_ivy/IvyMemory.h"
 #include "autodiff/IvyBaseMathTypes.h"
 #include "autodiff/base_types/IvyNodeRelations.h"
+#include "autodiff/base_types/IvyBaseModifiable.h"
+#include "autodiff/base_types/IvyClientManager.h"
 #include "autodiff/basic_nodes/IvyTensorShape.h"
 #include "IvyPrintout.h"
 
@@ -18,8 +20,49 @@ namespace IvyMath{
   template<typename T> struct IvyNodeSelfRelations<IvyTensor<T>>;
   template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>;
 
-  template<typename T> class IvyTensor :
+  template<typename T> struct IvyTensorBase : 
     public IvyBaseNode,
+    public IvyBaseModifiable,
+    public IvyClientlessManager
+  {
+    __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientlessManager(){}
+    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientlessManager(other){}
+    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientlessManager(std_util::move(other)){}
+    __HOST_DEVICE__ ~IvyTensorBase() = default;
+    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
+      if (this == &other) return *this;
+      IvyClientlessManager::operator=(other);
+      return *this;
+    }
+    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
+      if (this == &other) return *this;
+      IvyClientlessManager::operator=(std_util::move(other));
+      return *this;
+    }
+  };
+  template<typename T> struct IvyTensorBase<IvyThreadSafePtr_t<T>> : 
+    public IvyBaseNode,
+    public IvyBaseModifiable,
+    public IvyClientManager
+  {
+    __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientManager(){}
+    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientManager(other){}
+    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientManager(std_util::move(other)){}
+    __HOST_DEVICE__ ~IvyTensorBase() = default;
+    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
+      if (this == &other) return *this;
+      IvyClientManager::operator=(other);
+      return *this;
+    }
+    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
+      if (this == &other) return *this;
+      IvyClientManager::operator=(std_util::move(other));
+      return *this;
+    }
+  };
+
+  template<typename T> class IvyTensor :
+    public IvyTensorBase<T>,
     public tensor_domain_tag,
     public get_operability_t<T>
   {
@@ -67,11 +110,16 @@ namespace IvyMath{
 
     // Get container to data
     __HOST_DEVICE__ data_container const& get_data_container() const{ return data_; }
-    __HOST_DEVICE__ data_container& get_data_container(){ return data_; }
+    //__HOST_DEVICE__ data_container& get_data_container(){ return data_; }
 
   protected:
+    __HOST_DEVICE__ void track_clients(){
+      //for (IvyTensorDim_t i=0; i<this->num_elements(); ++i) this->add_client(data_[i]);
+      this->set_modified(true);
+    }
     template<typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void build_data(Args&&... args){
       data_ = std_mem::make_unique<dtype_t>(this->num_elements(), this->get_memory_type(), this->gpu_stream(), args...);
+      track_clients();
     }
     __HOST_DEVICE__ void copy_data(IvyTensor const& other){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -84,13 +132,29 @@ namespace IvyMath{
           allocator_data_container_traits::transfer(ptr_data, ptr_v_data, 1, def_mem_type, def_mem_type, ref_stream);
         )
       );
+      this->set_modified(other.is_modified());
+      IvyTensorBase<T>::operator=(other);
     }
 
   public:
-    __HOST_DEVICE__ IvyTensor(){}
-    template<typename... Args> __HOST_DEVICE__ IvyTensor(IvyTensorShape const& shape, Args&&... args) : shape_(shape){ build_data(args...); }
-    __HOST_DEVICE__ IvyTensor(IvyTensor const& other) : shape_(other.shape_){ copy_data(other); }
-    __HOST_DEVICE__ IvyTensor(IvyTensor&& other) : shape_(std_util::move(other.shape_)), data_(std_util::move(other.data_)){}
+    __HOST_DEVICE__ IvyTensor() : IvyTensorBase<T>(){}
+    template<typename... Args> __HOST_DEVICE__ IvyTensor(IvyTensorShape const& shape, Args&&... args) :
+      IvyTensorBase<T>(),
+      shape_(shape)
+    {
+      build_data(args...);
+    }
+    __HOST_DEVICE__ IvyTensor(IvyTensor const& other) :
+      IvyTensorBase<T>(other),
+      shape_(other.shape_)
+    {
+      copy_data(other);
+    }
+    __HOST_DEVICE__ IvyTensor(IvyTensor&& other) :
+      IvyTensorBase<T>(std_util::move(other)),
+      shape_(std_util::move(other.shape_)),
+      data_(std_util::move(other.data_))
+    {}
     __HOST_DEVICE__ ~IvyTensor(){}
 
     // Assignment operator
@@ -102,28 +166,50 @@ namespace IvyMath{
     __HOST_DEVICE__ IvyTensor& operator=(IvyTensor&& other){
       this->shape_ = std_util::move(other.shape_);
       this->data_ = std_util::move(other.data_);
+      this->set_modified(other.is_modified());
+      IvyTensorBase<T>::operator=(other);
       return *this;
     }
     __HOST_DEVICE__ IvyTensor& operator=(T const& val){
       data_ = std_mem::make_unique<dtype_t>(this->num_elements(), this->get_memory_type(), this->gpu_stream(), val);
+      this->set_modified(true);
       return *this;
     }
     __HOST_DEVICE__ IvyTensor& operator=(T&& val){
       data_ = std_mem::make_unique<dtype_t>(this->num_elements(), this->get_memory_type(), this->gpu_stream(), std_util::move(val));
+      this->set_modified(true);
       return *this;
     }
 
     // Get a pointer to the data
-    __HOST_DEVICE__ T* data() const{ return data_.get(); }
+    //__HOST_DEVICE__ T* data() const{ return data_.get(); }
     __HOST_DEVICE__ T* const& data(){ return data_.get(); }
 
     // Access operator (for nonconst tensor)
-    __HOST_DEVICE__ T& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
-    __HOST_DEVICE__ T& operator[](std_vec::vector<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
-    __INLINE_FCN_FORCE__ __HOST_DEVICE__ T& operator[](IvyTensorDim_t const& idx){ return data_[idx]; }
-    __HOST_DEVICE__ T& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
-    __HOST_DEVICE__ T& at(std_vec::vector<IvyTensorDim_t> const& indices){ return data_[shape_.get_abs_index(indices)]; }
-    __INLINE_FCN_FORCE__ __HOST_DEVICE__ T& at(IvyTensorDim_t const& idx){ return data_[idx]; }
+    __HOST_DEVICE__ T& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices){
+      this->set_modified(true);
+      return data_[shape_.get_abs_index(indices)];
+    }
+    __HOST_DEVICE__ T& operator[](std_vec::vector<IvyTensorDim_t> const& indices){
+      this->set_modified(true);
+      return data_[shape_.get_abs_index(indices)];
+    }
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ T& operator[](IvyTensorDim_t const& idx){
+      this->set_modified(true);
+      return data_[idx];
+    }
+    __HOST_DEVICE__ T& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices){
+      this->set_modified(true);
+      return data_[shape_.get_abs_index(indices)];
+    }
+    __HOST_DEVICE__ T& at(std_vec::vector<IvyTensorDim_t> const& indices){
+      this->set_modified(true);
+      return data_[shape_.get_abs_index(indices)];
+    }
+    __INLINE_FCN_FORCE__ __HOST_DEVICE__ T& at(IvyTensorDim_t const& idx){
+      this->set_modified(true);
+      return data_[idx];
+    }
 
     // Access operator (for const tensor)
     __HOST_DEVICE__ T const& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
@@ -135,7 +221,7 @@ namespace IvyMath{
 
     // Ensure that a tensor can operate in just the same way as a variable or a constant.
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t const& value() const{ return *this; }
-    __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t& value(){ return *this; }
+    //__INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t& value(){ return *this; }
 
     // friend classes
     friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>>;
@@ -152,7 +238,20 @@ namespace IvyMath{
     }
     static __HOST_DEVICE__ void conjugate(IvyTensor<T>& x){
       if (!is_conjugatable) return;
-      for (IvyTensorDim_t i=0; i<x.num_elements(); ++i){ conjugate(x.data_[i]); }
+      IvyTensorDim_t const n = x.num_elements();
+      #define _CMD \
+      for (IvyTensorDim_t i=0; i<n; ++i){ conjugate(x.data_[i]); }
+#if defined(OPENMP_ENABLED)
+      if (n>=NUM_CPU_THREADS_THRESHOLD){
+        #pragma omp parallel for schedule(static)
+        _CMD
+      }
+      else
+#endif
+      {
+        _CMD
+      }
+      #undef _CMD
     }
   };
   template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>{

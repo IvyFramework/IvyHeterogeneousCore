@@ -12,7 +12,7 @@ namespace std_ivy{
   template<typename T> struct value_printout{};
   template<> struct value_printout<bool>{ static __HOST_DEVICE__ void print(bool const& x){ __PRINT_INFO__((x ? "true" : "false")); } };
   template<> struct value_printout<unsigned char>{ static __HOST_DEVICE__ void print(unsigned char const& x){ __PRINT_INFO__("%u", x); } };
-  template<> struct value_printout<char>{ static __HOST_DEVICE__ void print(char const& x){ __PRINT_INFO__("%c", x); } };
+  template<> struct value_printout<signed char>{ static __HOST_DEVICE__ void print(signed char const& x){ __PRINT_INFO__("%c", x); } };
   template<> struct value_printout<unsigned short>{ static __HOST_DEVICE__ void print(unsigned short const& x){ __PRINT_INFO__("%u", x); } };
   template<> struct value_printout<short>{ static __HOST_DEVICE__ void print(short const& x){ __PRINT_INFO__("%d", x); } };
   template<> struct value_printout<unsigned int>{ static __HOST_DEVICE__ void print(unsigned int const& x){ __PRINT_INFO__("%u", x); } };

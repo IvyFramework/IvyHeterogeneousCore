@@ -42,7 +42,7 @@ namespace IvyTypes{
 #define FLOAT_TYPE(TYPE) IvyTypes::convert_to_floating_point_t<TYPE>
 
   template<typename T, bool is_unsigned = false> struct convert_to_integral_precision{
-    using char_type = std_ttraits::conditional_t<is_unsigned, unsigned char, char>;
+    using char_type = std_ttraits::conditional_t<is_unsigned, unsigned char, signed char>;
     using short_type = std_ttraits::conditional_t<is_unsigned, unsigned short, short>;
     using int_type = std_ttraits::conditional_t<is_unsigned, unsigned int, int>;
 #ifndef __LONG_INT_FORBIDDEN__
@@ -107,7 +107,7 @@ namespace IvyTypes{
 #endif
     std_ttraits::is_same_v<T, int> ? 6 :
     std_ttraits::is_same_v<T, short> ? 7 :
-    std_ttraits::is_same_v<T, char> ? 8 :
+    std_ttraits::is_same_v<T, signed char> ? 8 :
     std_ttraits::is_same_v<T, unsigned long long int> ? 9 :
 #ifndef __LONG_INT_FORBIDDEN__
     std_ttraits::is_same_v<T, unsigned long int> ? 10 :

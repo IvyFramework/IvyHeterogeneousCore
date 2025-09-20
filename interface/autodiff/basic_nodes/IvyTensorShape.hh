@@ -13,9 +13,6 @@
 
 
 namespace IvyMath{
-  typedef unsigned short IvyTensorRank_t;
-  typedef IvyTypes::size_t IvyTensorDim_t;
-
   /*
   IvyTensorShape: This is a class to define the shape of any tensor.
   The 'rank_' variable is the programmer's definition of rank, i.e., number of axes of the tensor.

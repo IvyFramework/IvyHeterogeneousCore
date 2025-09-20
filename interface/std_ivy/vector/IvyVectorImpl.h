@@ -6,7 +6,9 @@
 
 
 namespace std_ivy{
-  template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(){}
+  template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(){
+    this->reset_iterator_builders();
+  }
   template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>::IvyVector(IvyVector const& v){
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.gpu_stream();
@@ -43,6 +45,7 @@ namespace std_ivy{
   }
 
   template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>& IvyVector<T, Allocator>::operator=(IvyVector<T, Allocator> const& v){
+    if (this == &v) return *this;
     constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto stream = v._data.gpu_stream();
     _data.reset();
@@ -58,6 +61,7 @@ namespace std_ivy{
     return *this;
   }
   template<typename T, typename Allocator> __HOST_DEVICE__ IvyVector<T, Allocator>& IvyVector<T, Allocator>::operator=(IvyVector<T, Allocator>&& v){
+    if (this == &v) return *this;
     _data = std_util::move(v._data);
     _iterator_builder = std_util::move(v._iterator_builder);
     _const_iterator_builder = std_util::move(v._const_iterator_builder);
