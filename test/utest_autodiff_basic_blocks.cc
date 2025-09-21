@@ -47,6 +47,11 @@ void utest(){
     )
   );
   print_value(t3dp);
+  __PRINT_INFO__(
+    "t3dp[0,1,2] clients %p ?= %p\n",
+    t3dp->at({ 0,1,2 })->get_clients()[0].get(),
+    t3dp.get()
+  );
 }
 
 

@@ -19,46 +19,30 @@ namespace IvyMath{
   template<typename T> class IvyTensor;
   template<typename T> struct IvyNodeSelfRelations<IvyTensor<T>>;
   template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>;
+  template<typename T, bool is_arithmetic = is_arithmetic_v<T>> struct tensor_data_client_updator;
 
-  template<typename T> struct IvyTensorBase : 
-    public IvyBaseNode,
-    public IvyBaseModifiable,
-    public IvyClientlessManager
-  {
-    __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientlessManager(){}
-    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientlessManager(other){}
-    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientlessManager(std_util::move(other)){}
-    __HOST_DEVICE__ ~IvyTensorBase() = default;
-    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
-      if (this == &other) return *this;
-      IvyClientlessManager::operator=(other);
-      return *this;
-    }
-    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
-      if (this == &other) return *this;
-      IvyClientlessManager::operator=(std_util::move(other));
-      return *this;
-    }
-  };
-  template<typename T> struct IvyTensorBase<IvyThreadSafePtr_t<T>> : 
+  template<typename T> class IvyTensorBase : 
     public IvyBaseNode,
     public IvyBaseModifiable,
     public IvyClientManager
   {
-    __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientManager(){}
-    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientManager(other){}
-    __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientManager(std_util::move(other)){}
-    __HOST_DEVICE__ ~IvyTensorBase() = default;
-    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
-      if (this == &other) return *this;
-      IvyClientManager::operator=(other);
-      return *this;
-    }
-    __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
-      if (this == &other) return *this;
-      IvyClientManager::operator=(std_util::move(other));
-      return *this;
-    }
+    public:
+      __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientManager(){}
+      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientManager(other){}
+      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientManager(std_util::move(other)){}
+      __HOST_DEVICE__ ~IvyTensorBase() = default;
+
+    protected:
+      __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
+        if (this == &other) return *this;
+        IvyClientManager::operator=(other);
+        return *this;
+      }
+      __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
+        if (this == &other) return *this;
+        IvyClientManager::operator=(std_util::move(other));
+        return *this;
+      }
   };
 
   template<typename T> class IvyTensor :
@@ -113,13 +97,8 @@ namespace IvyMath{
     //__HOST_DEVICE__ data_container& get_data_container(){ return data_; }
 
   protected:
-    __HOST_DEVICE__ void track_clients(){
-      //for (IvyTensorDim_t i=0; i<this->num_elements(); ++i) this->add_client(data_[i]);
-      this->set_modified(true);
-    }
     template<typename... Args> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void build_data(Args&&... args){
       data_ = std_mem::make_unique<dtype_t>(this->num_elements(), this->get_memory_type(), this->gpu_stream(), args...);
-      track_clients();
     }
     __HOST_DEVICE__ void copy_data(IvyTensor const& other){
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -226,6 +205,7 @@ namespace IvyMath{
     // friend classes
     friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>>;
     friend struct IvyNodeSelfRelations<IvyTensor<T>>;
+    friend struct tensor_data_client_updator<T>;
   };
 
   template<typename T> struct IvyNodeSelfRelations<IvyTensor<T>>{
@@ -287,7 +267,29 @@ namespace IvyMath{
 
   template<typename T> using IvyTensorPtr_t = IvyThreadSafePtr_t< IvyTensor<T> >;
 
-  template<typename T, typename... Args> __HOST_DEVICE__ IvyTensorPtr_t<T> Tensor(Args&&... args){ return make_IvyThreadSafePtr< IvyTensor<T> >(args...); }
+  template<typename T, bool is_arithmetic>
+  struct tensor_data_client_updator{
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void update(IvyTensorPtr_t<T>& tensor){
+      for (IvyTensorDim_t i=0; i<tensor->num_elements(); ++i) tensor->data_[i].add_client(tensor);
+    }
+  };
+  template<typename T>
+  struct tensor_data_client_updator<IvyThreadSafePtr_t<T>, false>{
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void update(IvyTensorPtr_t<IvyThreadSafePtr_t<T>>& tensor){
+      for (IvyTensorDim_t i=0; i<tensor->num_elements(); ++i) tensor->data_[i]->add_client(tensor);
+    }
+  };
+  template<typename T>
+  struct tensor_data_client_updator<T, true>{
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void update(IvyTensorPtr_t<T>& tensor){}
+  };
+
+
+  template<typename T, typename... Args> __HOST_DEVICE__ IvyTensorPtr_t<T> Tensor(Args&&... args){
+    auto res = make_IvyThreadSafePtr< IvyTensor<T> >(args...);
+    tensor_data_client_updator<T>::update(res);
+    return res;
+  }
 }
 namespace std_ivy{
   template<typename T> struct value_printout<IvyMath::IvyTensor<T>>{

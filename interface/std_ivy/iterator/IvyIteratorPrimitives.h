@@ -30,6 +30,23 @@ namespace std_ivy{
   template<typename T, typename = void> struct stashing_iterator : std_ttraits::false_type{};
   template<typename T> struct stashing_iterator<T, std_ttraits::void_t<typename T::stashing_iterator_tag>> : std_ttraits::true_type{};
   template<typename T> inline constexpr bool stashing_iterator_v = stashing_iterator<T>::value;
+
+  // Way to check contiguous iterators
+  namespace _iterator_details{
+    DEFINE_HAS_TRAIT(iterator_category);
+  }
+  template<typename T, typename = void> struct is_contiguous_iterator : std_ttraits::false_type{};
+  template<typename T> struct is_contiguous_iterator<
+    T,
+    std_ttraits::enable_if_t<
+      _iterator_details::has_iterator_category_v<T>
+      &&
+      std_ttraits::is_base_of_v<contiguous_iterator_tag, typename T::iterator_category>
+    >
+  > : std_ttraits::true_type{};
+  template<typename T> inline constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<T>::value;
+
+  
 }
 
 

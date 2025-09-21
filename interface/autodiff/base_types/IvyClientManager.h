@@ -42,6 +42,8 @@ namespace IvyMath{
       __HOST_DEVICE__ void update_clients_modified() const{
         for (auto const& client : clients_) client->set_modified(true);
       }
+
+      __HOST_DEVICE__ data_container const& get_clients() const{ return clients_; }
   };
 
   class IvyClientlessManager{

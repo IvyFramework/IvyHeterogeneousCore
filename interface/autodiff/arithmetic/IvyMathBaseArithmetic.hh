@@ -794,7 +794,15 @@ namespace IvyMath{
   template<typename T, typename U> using IvySubtract = IvyRegularFunction_2D<T, U, SubtractFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>>;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t Subtract(T const& x, U const& y);
-  template<typename T, typename U, ENABLE_IF_BOOL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<
+    typename T, typename U, ENABLE_IF_BOOL(
+      !(is_arithmetic_v<T> && is_arithmetic_v<U>)
+      &&
+      !is_pointer_v<T> && !is_pointer_v<U>
+      &&
+      !std_iter::is_contiguous_iterator_v<T> && !std_iter::is_contiguous_iterator_v<U>
+    )
+  >
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t operator-(T const& x, U const& y);
   template<typename T, typename U, ENABLE_IF_BOOL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> Subtract(T const& x, U const& y);
