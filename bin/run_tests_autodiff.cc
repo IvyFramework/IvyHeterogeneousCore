@@ -185,10 +185,20 @@ int main(){
   auto fcn_pow_cubed = Pow(cplx, Constant<int>(IvyMemoryType::Host, nullptr, 3));
   __PRINT_INFO__("fcn_pow_cubed = ");
   print_value(fcn_pow_cubed);
+  __PRINT_INFO__("fcn_pow_cubed addr. = %p\n", fcn_pow_cubed.get());
   auto grad_fcn_pow_cubed = fcn_pow_cubed->gradient(cplx);
   __PRINT_INFO__("grad_fcn_pow_cubed(%s) = ", typeid(grad_fcn_pow_cubed).name());
   print_value(grad_fcn_pow_cubed->value());
-
+  bool found_cli = std_algo::find(
+    cplx->get_clients().begin(), cplx->get_clients().end(),
+    fcn_pow_cubed
+  ) != cplx->get_clients().end();
+  __PRINT_INFO__("Found fcn_pow_cubed in cplx clients: %s ?= true\n", (found_cli ? "true" : "false"));
+  found_cli = std_algo::find(
+    cplx->get_clients().begin(), cplx->get_clients().end(),
+    grad_fcn_pow_cubed
+  ) != cplx->get_clients().end();
+  __PRINT_INFO__("Found grad_fcn_pow_cubed in cplx clients: %s ?= false\n", (found_cli ? "true" : "false"));
 
   auto pow_cplx_cplx = Pow(cplx, cplx);
   __PRINT_INFO__("pow_cplx_cplx = ");
