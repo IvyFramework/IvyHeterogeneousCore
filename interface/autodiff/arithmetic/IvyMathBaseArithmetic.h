@@ -74,7 +74,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> Negate(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyNegate<typename T::element_type>>(def_mem_type, nullptr, IvyNegate(x));
+    auto res = make_IvyThreadSafePtr<IvyNegate<typename T::element_type>>(def_mem_type, nullptr, IvyNegate(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> operator-(T const& x){
@@ -107,7 +109,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultInverse<typename T::element_type>::base_t> MultInverse(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyMultInverse<typename T::element_type>>(def_mem_type, nullptr, IvyMultInverse(x));
+    auto res = make_IvyThreadSafePtr<IvyMultInverse<typename T::element_type>>(def_mem_type, nullptr, IvyMultInverse(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // SQUARE ROOT
@@ -137,7 +141,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySqrt<typename T::element_type>::base_t> Sqrt(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvySqrt<typename T::element_type>>(def_mem_type, nullptr, IvySqrt(x));
+    auto res = make_IvyThreadSafePtr<IvySqrt<typename T::element_type>>(def_mem_type, nullptr, IvySqrt(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // ABSOLUTE VALUE
@@ -151,19 +157,34 @@ namespace IvyMath{
   __HOST_DEVICE__ AbsFcnal<T, complex_domain_tag>::value_t AbsFcnal<T, complex_domain_tag>::eval(T const& x){
     return value_t(unpack_function_input_reduced<T>::get(x).norm());
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename AbsFcnal<T>::value_t Abs(T const& x){ return AbsFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename AbsFcnal<T>::value_t Abs(T const& x){
+    return AbsFcnal<T>::eval(x);
+  }
 
   // COMPLEX PHASE
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ constexpr PhaseFcnal<T, domain_tag>::value_t PhaseFcnal<T, domain_tag>::eval(T const& x){ return value_t(Zero<dtype_t>); }
+  __HOST_DEVICE__ constexpr PhaseFcnal<T, domain_tag>::value_t PhaseFcnal<T, domain_tag>::eval(T const& x){
+    return value_t(Zero<dtype_t>);
+  }
   template<typename T>
-  __HOST_DEVICE__ PhaseFcnal<T, complex_domain_tag>::value_t PhaseFcnal<T, complex_domain_tag>::eval(T const& x){ return value_t(unpack_function_input_reduced<T>::get(x).phase()); }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename PhaseFcnal<T>::value_t Phase(T const& x){ return PhaseFcnal<T>::eval(x); }
+  __HOST_DEVICE__ PhaseFcnal<T, complex_domain_tag>::value_t PhaseFcnal<T, complex_domain_tag>::eval(T const& x){
+    return value_t(unpack_function_input_reduced<T>::get(x).phase());
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename PhaseFcnal<T>::value_t Phase(T const& x){
+    return PhaseFcnal<T>::eval(x);
+  }
 
   // CONJUGATION
   template<typename T, typename domain_tag>
-  __HOST_DEVICE__ ConjugateFcnal<T, domain_tag>::value_t ConjugateFcnal<T, domain_tag>::eval(T const& x){ value_t res(unpack_function_input_reduced<T>::get(x)); conjugate(res); return res; }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ConjugateFcnal<T>::value_t Conjugate(T const& x){ return ConjugateFcnal<T>::eval(x); }
+  __HOST_DEVICE__ ConjugateFcnal<T, domain_tag>::value_t ConjugateFcnal<T, domain_tag>::eval(T const& x){
+    value_t res(unpack_function_input_reduced<T>::get(x));
+    conjugate(res);
+    return res;
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)>
+  __HOST_DEVICE__ typename ConjugateFcnal<T>::value_t Conjugate(T const& x){
+    return ConjugateFcnal<T>::eval(x);
+  }
 
   // EXPONENTIAL
   template<typename T, typename domain_tag>
@@ -188,7 +209,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyExp<typename T::element_type>::base_t> Exp(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyExp<typename T::element_type>>(def_mem_type, nullptr, IvyExp(x));
+    auto res = make_IvyThreadSafePtr<IvyExp<typename T::element_type>>(def_mem_type, nullptr, IvyExp(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // LOG (NATURAL LOG)
@@ -214,7 +237,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLog<typename T::element_type>::base_t> Log(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyLog<typename T::element_type>>(def_mem_type, nullptr, IvyLog(x));
+    auto res = make_IvyThreadSafePtr<IvyLog<typename T::element_type>>(def_mem_type, nullptr, IvyLog(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // LOG10 (BASE=10 LOG)
@@ -239,7 +264,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLog10<typename T::element_type>::base_t> Log10(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyLog10<typename T::element_type>>(def_mem_type, nullptr, IvyLog10(x));
+    auto res = make_IvyThreadSafePtr<IvyLog10<typename T::element_type>>(def_mem_type, nullptr, IvyLog10(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // SINE
@@ -263,7 +290,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySin<typename T::element_type>::base_t> Sin(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvySin<typename T::element_type>>(def_mem_type, nullptr, IvySin(x));
+    auto res = make_IvyThreadSafePtr<IvySin<typename T::element_type>>(def_mem_type, nullptr, IvySin(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // COSINE
@@ -287,7 +316,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCos<typename T::element_type>::base_t> Cos(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyCos<typename T::element_type>>(def_mem_type, nullptr, IvyCos(x));
+    auto res = make_IvyThreadSafePtr<IvyCos<typename T::element_type>>(def_mem_type, nullptr, IvyCos(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // TANGENT
@@ -299,7 +330,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyTan<typename T::element_type>::base_t> Tan(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyTan<typename T::element_type>>(def_mem_type, nullptr, IvyTan(x));
+    auto res = make_IvyThreadSafePtr<IvyTan<typename T::element_type>>(def_mem_type, nullptr, IvyTan(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // SECANT
@@ -311,7 +344,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySec<typename T::element_type>::base_t> Sec(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvySec<typename T::element_type>>(def_mem_type, nullptr, IvySec(x));
+    auto res = make_IvyThreadSafePtr<IvySec<typename T::element_type>>(def_mem_type, nullptr, IvySec(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // COSECANT
@@ -323,7 +358,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCsc<typename T::element_type>::base_t> Csc(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyCsc<typename T::element_type>>(def_mem_type, nullptr, IvyCsc(x));
+    auto res = make_IvyThreadSafePtr<IvyCsc<typename T::element_type>>(def_mem_type, nullptr, IvyCsc(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // COTANGENT
@@ -335,7 +372,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCot<typename T::element_type>::base_t> Cot(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyCot<typename T::element_type>>(def_mem_type, nullptr, IvyCot(x));
+    auto res = make_IvyThreadSafePtr<IvyCot<typename T::element_type>>(def_mem_type, nullptr, IvyCot(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // SINH
@@ -364,7 +403,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySinH<typename T::element_type>::base_t> SinH(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvySinH<typename T::element_type>>(def_mem_type, nullptr, IvySinH(x));
+    auto res = make_IvyThreadSafePtr<IvySinH<typename T::element_type>>(def_mem_type, nullptr, IvySinH(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // COSH
@@ -395,7 +436,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCosH<typename T::element_type>::base_t> CosH(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyCosH<typename T::element_type>>(def_mem_type, nullptr, IvyCosH(x));
+    auto res = make_IvyThreadSafePtr<IvyCosH<typename T::element_type>>(def_mem_type, nullptr, IvyCosH(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // ERF
@@ -423,7 +466,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErf<typename T::element_type>::base_t> Erf(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyErf<typename T::element_type>>(def_mem_type, nullptr, IvyErf(x));
+    auto res = make_IvyThreadSafePtr<IvyErf<typename T::element_type>>(def_mem_type, nullptr, IvyErf(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // ERFC
@@ -451,7 +496,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyErfc<typename T::element_type>>(def_mem_type, nullptr, IvyErfc(x));
+    auto res = make_IvyThreadSafePtr<IvyErfc<typename T::element_type>>(def_mem_type, nullptr, IvyErfc(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // FADDEEVA
@@ -483,7 +530,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeeva<typename T::element_type>::base_t> Faddeeva(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyFaddeeva<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeeva(x));
+    auto res = make_IvyThreadSafePtr<IvyFaddeeva<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeeva(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // ERF-FAST
@@ -511,7 +560,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfFast<typename T::element_type>::base_t> ErfFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyErfFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfFast(x));
+    auto res = make_IvyThreadSafePtr<IvyErfFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfFast(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // ERFC-FAST
@@ -539,7 +590,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfcFast<typename T::element_type>::base_t> ErfcFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyErfcFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfcFast(x));
+    auto res = make_IvyThreadSafePtr<IvyErfcFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfcFast(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
   // FADDEEVA-FAST
@@ -571,7 +624,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeevaFast<typename T::element_type>::base_t> FaddeevaFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyFaddeevaFast<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeevaFast(x));
+    auto res = make_IvyThreadSafePtr<IvyFaddeevaFast<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeevaFast(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
 
@@ -657,7 +712,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> Add(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyAdd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAdd(x, y));
+    auto res = make_IvyThreadSafePtr<IvyAdd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAdd(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> operator+(T const& x, U const& y){
@@ -750,7 +808,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> Subtract(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvySubtract<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvySubtract(x, y));
+    auto res = make_IvyThreadSafePtr<IvySubtract<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvySubtract(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> operator-(T const& x, U const& y){
@@ -855,7 +916,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> Multiply(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyMultiply<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyMultiply(x, y));
+    auto res = make_IvyThreadSafePtr<IvyMultiply<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyMultiply(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> operator*(T const& x, U const& y){
@@ -948,7 +1012,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> Divide(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyDivide<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyDivide(x, y));
+    auto res = make_IvyThreadSafePtr<IvyDivide<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyDivide(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> operator/(T const& x, U const& y){
@@ -1064,7 +1131,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyPow<typename T::element_type, typename U::element_type>::base_t> Pow(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyPow<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyPow(x, y));
+    auto res = make_IvyThreadSafePtr<IvyPow<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyPow(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
 
 
@@ -1081,7 +1151,9 @@ namespace IvyMath{
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNot<typename T::element_type>::base_t> Not(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyNot<typename T::element_type>>(def_mem_type, nullptr, IvyNot(x));
+    auto res = make_IvyThreadSafePtr<IvyNot<typename T::element_type>>(def_mem_type, nullptr, IvyNot(x));
+    add_fcn_to_clients(res, x);
+    return res;
   }
 
 
@@ -1129,7 +1201,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
+    auto res = make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
 
   // OR
@@ -1152,7 +1227,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyOr<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyOr(x, y));
+    auto res = make_IvyThreadSafePtr<IvyOr<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyOr(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
 
   // XOR
@@ -1175,7 +1253,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
+    auto res = make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U> __HOST_DEVICE__ auto XOr(T const& x, U const& y) -> decltype(Xor(x, y)){ return Xor(x, y); }
 
@@ -1199,7 +1280,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyAnd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAnd(x, y));
+    auto res = make_IvyThreadSafePtr<IvyAnd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAnd(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
 
   // GREATER THAN
@@ -1242,7 +1326,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
+    auto res = make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U> __HOST_DEVICE__ auto GT(T const& x, U const& y) -> decltype(GreaterThan(x, y)){ return GreaterThan(x, y); }
 
@@ -1286,7 +1373,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
+    auto res = make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U> __HOST_DEVICE__ auto LT(T const& x, U const& y) -> decltype(LessThan(x, y)){ return LessThan(x, y); }
 
@@ -1330,7 +1420,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
+    auto res = make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U> __HOST_DEVICE__ auto GE(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
   template<typename T, typename U> __HOST_DEVICE__ auto GEQ(T const& x, U const& y) -> decltype(GreaterOrEqual(x, y)){ return GreaterOrEqual(x, y); }
@@ -1375,7 +1468,10 @@ namespace IvyMath{
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-    return make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));
+    auto res = make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));
+    add_fcn_to_clients(res, x);
+    add_fcn_to_clients(res, y);
+    return res;
   }
   template<typename T, typename U> __HOST_DEVICE__ auto LE(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }
   template<typename T, typename U> __HOST_DEVICE__ auto LEQ(T const& x, U const& y) -> decltype(LessOrEqual(x, y)){ return LessOrEqual(x, y); }

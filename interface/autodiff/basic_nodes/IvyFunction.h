@@ -43,6 +43,7 @@ namespace IvyMath{
   class IvyFunction<precision_type, Domain, Domain> :
     public IvyBaseNode,
     public IvyBaseModifiable,
+    public IvyClientManager,
     public Domain,
     public function_value_tag
   {
@@ -65,20 +66,27 @@ namespace IvyMath{
 
   public:
     __HOST__ IvyFunction(IvyFunction const& other) :
-      IvyBaseModifiable()
+      IvyBaseModifiable(),
+      IvyClientManager(other)
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
-    __HOST__ IvyFunction(IvyFunction&& other) : IvyBaseModifiable(), output(std_util::move(other.output)){}
+    __HOST__ IvyFunction(IvyFunction&& other) :
+      IvyBaseModifiable(),
+      IvyClientManager(std_util::move(other.output)),
+      output(std_util::move(other.output))
+    {}
     template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args) :
-      IvyBaseModifiable()
+      IvyBaseModifiable(),
+      IvyClientManager()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
     __HOST__ IvyFunction() :
-      IvyBaseModifiable()
+      IvyBaseModifiable(),
+      IvyClientManager()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
@@ -101,10 +109,12 @@ namespace IvyMath{
     }
   };
 
+  // Specialization with no gradients
   template<typename precision_type, typename Domain>
   class IvyFunction<precision_type, Domain, undefined_domain_tag> :
     public IvyBaseNode,
     public IvyBaseModifiable,
+    public IvyClientManager,
     public Domain,
     public function_value_tag
   {
@@ -124,16 +134,29 @@ namespace IvyMath{
     std_mem::unique_ptr<value_t> output;
 
   public:
-    __HOST__ IvyFunction(IvyFunction const& other){
+    __HOST__ IvyFunction(IvyFunction const& other) :
+      IvyBaseModifiable(),
+      IvyClientManager(other)
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
-    __HOST__ IvyFunction(IvyFunction&& other) : output(std_util::move(other.output)){}
-    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args){
+    __HOST__ IvyFunction(IvyFunction&& other) :
+      IvyBaseModifiable(),
+      IvyClientManager(std_util::move(other.output)),
+      output(std_util::move(other.output))
+    {}
+    template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args) :
+      IvyBaseModifiable(),
+      IvyClientManager()
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
-    __HOST__ IvyFunction(){
+    __HOST__ IvyFunction() :
+      IvyBaseModifiable(),
+      IvyClientManager()
+    {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
     }

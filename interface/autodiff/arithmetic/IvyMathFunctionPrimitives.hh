@@ -7,6 +7,20 @@
 
 
 namespace IvyMath{
+  template<
+    typename F,
+    typename T,
+    std_ttraits::enable_if_t<is_function_v<F> && std_ttraits::is_base_of_v<IvyClientManager, T>, bool> = true
+  > struct function_data_client_updator{
+    static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void update(IvyThreadSafePtr_t<F> const& fcn, IvyThreadSafePtr_t<T> const& dep){
+      dep->add_client(fcn);
+    }
+  };
+  template<typename F, typename T>
+  __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void add_fcn_to_clients(IvyThreadSafePtr_t<F> const& fcn, IvyThreadSafePtr_t<T> const& dep){
+    function_data_client_updator<F, T>::update(fcn, dep);
+  }
+
   /*
   IvyRegularFunction_1D:
   This is a master class for regular 1D functions.
