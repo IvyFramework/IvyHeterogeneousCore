@@ -214,8 +214,7 @@ namespace IvyMath{
     //__INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t& value(){ return *this; }
 
     // Numpy-like functions
-    template<typename... Args>
-    __HOST_DEVICE__ void reshape(Args&&... args){
+    template<typename... Args> __HOST_DEVICE__ void reshape(Args&&... args){
       shape_.reshape(std_util::forward<Args>(args)...);
       // Reshaping does not require recomputation, so there is no need to set the modified flag.
     }
