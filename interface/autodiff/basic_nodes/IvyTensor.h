@@ -20,27 +20,34 @@ namespace IvyMath{
   template<typename T> struct IvyNodeSelfRelations<IvyTensor<T>>;
   template<typename T, typename U> struct IvyNodeBinaryRelations<IvyTensor<T>, U>;
   template<typename T, bool is_arithmetic = is_arithmetic_v<T>> struct tensor_data_client_updator;
-
-  template<typename T> class IvyTensorBase : 
+}
+namespace std_ivy{
+  using namespace IvyMath;
+  template<typename T> class transfer_memory_primitive<IvyTensor<T>> : public transfer_memory_primitive_with_internal_memory<IvyTensor<T>, IvyTensor<T>>{};
+}
+namespace IvyMath{
+  template<typename T> class IvyTensorBase :
     public IvyBaseNode,
     public IvyBaseModifiable,
-    public IvyClientManager
+    public IvyClientManager<IvyTensor<T>>
   {
     public:
-      __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), IvyClientManager(){}
-      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), IvyClientManager(other){}
-      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), IvyClientManager(std_util::move(other)){}
+      using clientmgr_t = IvyClientManager<IvyTensor<T>>;
+
+      __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), clientmgr_t(){}
+      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), clientmgr_t(other){}
+      __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), clientmgr_t(std_util::move(other)){}
       __HOST_DEVICE__ ~IvyTensorBase() = default;
 
     protected:
       __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){
         if (this == &other) return *this;
-        IvyClientManager::operator=(other);
+        clientmgr_t::operator=(other);
         return *this;
       }
       __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase&& other){
         if (this == &other) return *this;
-        IvyClientManager::operator=(std_util::move(other));
+        clientmgr_t::operator=(std_util::move(other));
         return *this;
       }
   };
@@ -64,7 +71,7 @@ namespace IvyMath{
     data_container data_;
 
     __HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
-      bool res = true;
+      bool res = IvyClientManager<IvyTensor<T>>::transfer_internal_memory(new_mem_type, release_old);
       constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       auto stream = this->gpu_stream();
       operate_with_GPU_stream_from_pointer(
@@ -203,7 +210,7 @@ namespace IvyMath{
     //__INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t& value(){ return *this; }
 
     // friend classes
-    friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>>;
+    friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>, IvyTensor<T>>;
     friend struct IvyNodeSelfRelations<IvyTensor<T>>;
     friend struct tensor_data_client_updator<T>;
   };

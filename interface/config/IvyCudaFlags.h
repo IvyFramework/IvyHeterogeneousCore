@@ -7,14 +7,20 @@
 
 #ifdef __USE_CUDA__
 
+#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#define __CUDA_DEVICE_CODE__
+#endif
+
 #define __HOST__ __host__
 #define __DEVICE__ __device__
 #define __CUDA_GLOBAL__ __global__
 #define __HOST_DEVICE__ __host__ __device__
 #define __DEVICE_HOST__ __device__ __host__
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
-#define __CUDA_DEVICE_CODE__
+#if defined(__CUDA_DEVICE_CODE__)
+#define __HOST_OR_DEVICE__ __DEVICE__
+#else
+#define __HOST_OR_DEVICE__ __HOST__
 #endif
 
 #define GlobalCudaStreamRaw cudaStreamLegacy

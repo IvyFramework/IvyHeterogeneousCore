@@ -12,16 +12,24 @@
 namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyVariable;
   template<typename T> struct IvyNodeSelfRelations<IvyVariable<T>>;
-
+}
+namespace std_ivy{
+  using namespace IvyMath;
+  template<typename T> class transfer_memory_primitive<IvyVariable<T>> : public transfer_memory_primitive_with_internal_memory<IvyVariable<T>, IvyVariable<T>>{};
+}
+namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> class IvyVariable final :
     public IvyBaseNode,
-    public IvyClientManager,
+    public IvyClientManager<IvyVariable<T>>,
     public real_domain_tag,
     public variable_value_tag
   {
   public:
+    using clientmgr_t = IvyClientManager<IvyVariable<T>>;
     using dtype_t = T;
     using value_t = T;
+
+    friend class std_mem::kernel_generic_transfer_internal_memory<IvyVariable<T>, IvyVariable<T>>;
 
   protected:
     value_t value_;
@@ -29,18 +37,18 @@ namespace IvyMath{
 
   public:
     // Empty default constructor
-    __HOST_DEVICE__ IvyVariable() : IvyClientManager(), value_(0), infinitesimal_(0){}
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable(U const& value) : IvyClientManager(), value_(__STATIC_CAST__(T, value)), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T const& value) : IvyClientManager(), value_(value), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T&& value) : IvyClientManager(), value_(std_util::move(value)), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : IvyClientManager(), value_(value), infinitesimal_(infinitesimal){}
-    __HOST_DEVICE__ IvyVariable(T&& value, T&& infinitesimal) : IvyClientManager(), value_(std_util::move(value)), infinitesimal_(std_util::move(infinitesimal)){}
-    template<typename U> __HOST_DEVICE__ IvyVariable(IvyVariable<U> const& other) : IvyClientManager(), value_(__STATIC_CAST__(T, other.value())), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyVariable<T> const& other) : IvyClientManager(), value_(other.value_), infinitesimal_(other.infinitesimal_){}
-    __HOST_DEVICE__ IvyVariable(IvyVariable<T>&& other) : IvyClientManager(), value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
-    template<typename U> __HOST_DEVICE__ IvyVariable(IvyConstant<U> const& value) : IvyClientManager(), value_(__STATIC_CAST__(T, value.value())), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyConstant<T> const& value) : IvyClientManager(), value_(value.value()), infinitesimal_(0){}
-    __HOST_DEVICE__ IvyVariable(IvyConstant<T>&& value) : IvyClientManager(), value_(value.value()), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable() : clientmgr_t(), value_(0), infinitesimal_(0){}
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyVariable(U const& value) : clientmgr_t(), value_(__STATIC_CAST__(T, value)), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T const& value) : clientmgr_t(), value_(value), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T&& value) : clientmgr_t(), value_(std_util::move(value)), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(T const& value, T const& infinitesimal) : clientmgr_t(), value_(value), infinitesimal_(infinitesimal){}
+    __HOST_DEVICE__ IvyVariable(T&& value, T&& infinitesimal) : clientmgr_t(), value_(std_util::move(value)), infinitesimal_(std_util::move(infinitesimal)){}
+    template<typename U> __HOST_DEVICE__ IvyVariable(IvyVariable<U> const& other) : clientmgr_t(), value_(__STATIC_CAST__(T, other.value())), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyVariable<T> const& other) : clientmgr_t(), value_(other.value_), infinitesimal_(other.infinitesimal_){}
+    __HOST_DEVICE__ IvyVariable(IvyVariable<T>&& other) : clientmgr_t(), value_(std_util::move(other.value_)), infinitesimal_(std_util::move(other.infinitesimal_)){}
+    template<typename U> __HOST_DEVICE__ IvyVariable(IvyConstant<U> const& value) : clientmgr_t(), value_(__STATIC_CAST__(T, value.value())), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyConstant<T> const& value) : clientmgr_t(), value_(value.value()), infinitesimal_(0){}
+    __HOST_DEVICE__ IvyVariable(IvyConstant<T>&& value) : clientmgr_t(), value_(value.value()), infinitesimal_(0){}
     __HOST_DEVICE__ ~IvyVariable(){}
 
     // Assignment operators

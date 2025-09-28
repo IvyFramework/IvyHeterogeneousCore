@@ -19,10 +19,12 @@
 #endif
 
 // Define shorthands for common type trait checks
+#define ENABLE_IF_TYPE_IMPL(TYPE, ...) std_ttraits::enable_if_t<__VA_ARGS__, TYPE>
 #define ENABLE_IF_BOOL_IMPL(...) std_ttraits::enable_if_t<__VA_ARGS__, bool>
 #define ENABLE_IF_BOOL(...) ENABLE_IF_BOOL_IMPL(__VA_ARGS__) = true
 #define IS_BASE_OF(BASE, DERIVED) std_ttraits::is_base_of_v<BASE, DERIVED>
 #define IS_SAME(A, B) std_ttraits::is_same_v<A, B>
+#define ENABLE_IF_TYPED_BASE_OF_IMPL(TYPE, BASE, DERIVED) ENABLE_IF_TYPE_IMPL(TYPE, IS_BASE_OF(BASE, DERIVED))
 #define ENABLE_IF_BASE_OF_IMPL(BASE, DERIVED) ENABLE_IF_BOOL_IMPL(IS_BASE_OF(BASE, DERIVED))
 #define ENABLE_IF_BASE_OF(BASE, DERIVED) ENABLE_IF_BOOL(IS_BASE_OF(BASE, DERIVED))
 #define ENABLE_IF_NOT_BASE_OF_IMPL(BASE, DERIVED) ENABLE_IF_BOOL_IMPL(!IS_BASE_OF(BASE, DERIVED))

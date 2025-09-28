@@ -48,10 +48,43 @@ void utest(){
   );
   print_value(t3dp);
   __PRINT_INFO__(
+    "Addrs: t3dp[0,1,2] = %p, t3dp[0,0,0] = %p\n",
+    t3dp->at({ 0,1,2 }).get(),
+    t3dp->at({ 0,0,0 }).get()
+  );
+  __PRINT_INFO__(
     "t3dp[0,1,2] clients %p ?= %p\n",
     t3dp->at({ 0,1,2 })->get_clients()[0].get(),
     t3dp.get()
   );
+
+  IvyGPUStream* stream = IvyStreamUtils::make_global_gpu_stream();
+  using t3dp_allocator = std_mem::allocator<decltype(t3dp)>;
+  using t3dp_allocator_traits = std_mem::allocator_traits<t3dp_allocator>;
+  IvyMath::IvyTensorPtr_t<IvyMath::IvyConstantPtr_t<double>>* t3dpn = t3dp_allocator_traits::allocate(1, IvyMemoryType::Host, *stream);
+  t3dp_allocator_traits::transfer(t3dpn, &t3dp, 1, IvyMemoryType::Host, IvyMemoryType::Host, *stream);
+  __PRINT_INFO__("t3dpn transfer complete!\n");
+  print_value(*t3dpn);
+  __PRINT_INFO__(
+    "Number of clients of t3dpn[0,1,2] = %llu\n",
+    (*t3dpn)->at({ 0,1,2 })->get_clients().size()
+  );
+  __PRINT_INFO__(
+    "Number of clients of t3dp[0,1,2] = %llu\n",
+    t3dp->at({ 0,1,2 })->get_clients().size()
+  );
+  __PRINT_INFO__(
+    "t3dp[0,1,2] clients reprint %p ?= %p\n",
+    t3dp->at({ 0,1,2 })->get_clients()[0].get(),
+    t3dp.get()
+  );
+  //__PRINT_INFO__(
+  //  "t3dpn[0,1,2] clients %p ?= %p\n",
+  //  (*t3dpn)->at({ 0,1,2 })->get_clients()[0].get(),
+  //  (*t3dpn).get()
+  //);
+  t3dp_allocator_traits::destroy(t3dpn, 1, IvyMemoryType::Host, *stream);
+  IvyStreamUtils::destroy_stream(stream);
 }
 
 

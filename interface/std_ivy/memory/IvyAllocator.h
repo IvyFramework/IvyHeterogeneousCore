@@ -115,9 +115,9 @@ namespace std_ivy{
   We hold the convention to codfy all classes with internal data using a public or protected
   'bool transfer_internal_memory(IvyMemoryType const& new_mem_type)' member function.
   */
-  template<typename T> class kernel_generic_transfer_internal_memory;
+  template<typename T, typename = void> class kernel_generic_transfer_internal_memory;
   template<typename T> class transfer_memory_primitive_without_internal_memory;
-  template<typename T> class transfer_memory_primitive_with_internal_memory;
+  template<typename T, typename = void> class transfer_memory_primitive_with_internal_memory;
   template<typename T> class transfer_memory_primitive;
   /*
     transfer_memory_primitive<std_util::pair<T, U>>:
@@ -126,7 +126,7 @@ namespace std_ivy{
   */
   template<typename T, typename U> class transfer_memory_primitive<std_util::pair<T, U>>;
 
-  template<typename T> class kernel_generic_transfer_internal_memory final : public kernel_base_noprep_nofin{
+  template<typename T, typename Enabler> class kernel_generic_transfer_internal_memory final : public kernel_base_noprep_nofin{
   protected:
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_internal_memory(T* const& ptr, IvyMemoryType const& mem_type, bool release_old){
       return ptr->transfer_internal_memory(mem_type, release_old);
@@ -140,7 +140,7 @@ namespace std_ivy{
       if (kernel_check_dims<kernel_generic_transfer_internal_memory<T>>::check_dims(i, n)) transfer_internal_memory(ptr+i, mem_type, release_old);
     }
 
-    friend class transfer_memory_primitive_with_internal_memory<T>;
+    friend class transfer_memory_primitive_with_internal_memory<T, Enabler>;
   };
 
   template<typename T> class transfer_memory_primitive_without_internal_memory{
@@ -161,13 +161,13 @@ namespace std_ivy{
       return IvyMemoryHelpers::transfer_memory(tgt, src, n, type_tgt, type_src, stream);
     }
   };
-  template<typename T> class transfer_memory_primitive_with_internal_memory{
+  template<typename T, typename Enabler> class transfer_memory_primitive_with_internal_memory{
   public:
     using base_t = allocation_type_properties<T>;
     using value_type = typename base_t::value_type;
     using pointer = typename base_t::pointer;
     using size_type = typename base_t::size_type;
-    using kernel_type = kernel_generic_transfer_internal_memory<value_type>;
+    using kernel_type = kernel_generic_transfer_internal_memory<value_type, Enabler>;
 
     static __HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
       bool res = true;
@@ -178,7 +178,19 @@ namespace std_ivy{
         }
       }
       else{
+        #define _CMD \
         for (size_type i=0; i<n; ++i) res &= kernel_type::transfer_internal_memory(ptr+i, mem_type, release_old);
+#if defined(OPENMP_ENABLED)
+        if (n>=NUM_CPU_THREADS_THRESHOLD){
+          #pragma omp parallel for schedule(static)
+          _CMD
+        }
+        else
+#endif
+        {
+          _CMD
+        }
+        #undef _CMD
       }
       return res;
     }

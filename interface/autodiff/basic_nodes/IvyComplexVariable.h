@@ -14,16 +14,24 @@
 namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC(T)> class IvyComplexVariable;
   template<typename T> struct IvyNodeSelfRelations<IvyComplexVariable<T>>;
-
+}
+namespace std_ivy{
+  using namespace IvyMath;
+  template<typename T> class transfer_memory_primitive<IvyComplexVariable<T>> : public transfer_memory_primitive_with_internal_memory<IvyComplexVariable<T>, IvyComplexVariable<T>>{};
+}
+namespace IvyMath{
   template<typename T, ENABLE_IF_ARITHMETIC_IMPL(T)> class IvyComplexVariable final :
     public IvyBaseNode,
-    public IvyClientManager,
+    public IvyClientManager<IvyComplexVariable<T>>,
     public complex_domain_tag,
     public variable_value_tag
   {
   public:
+    using clientmgr_t = IvyClientManager<IvyComplexVariable<T>>;
     using dtype_t = T;
     using value_t = IvyComplexVariable<T>;
+
+    friend class std_mem::kernel_generic_transfer_internal_memory<IvyComplexVariable<T>, IvyComplexVariable<T>>;
 
   protected:
     dtype_t re;
@@ -31,21 +39,21 @@ namespace IvyMath{
 
   public:
     // Constructors
-    __HOST_DEVICE__ IvyComplexVariable() : IvyClientManager(), re(0), im(0){}
-    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyComplexVariable(U const& re_) : IvyClientManager(), re(__STATIC_CAST__(T, re_)), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(T const& re_) : IvyClientManager(), re(re_), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(T const& re_, T const& im_) : IvyClientManager(), re(re_), im(im_){}
-    __HOST_DEVICE__ IvyComplexVariable(T&& re_) : IvyClientManager(), re(std_util::move(re_)), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(T&& re_, T&& im_) : IvyClientManager(), re(std_util::move(re_)), im(std_util::move(im_)){}
-    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<U> const& other) : IvyClientManager(), re(__STATIC_CAST__(T, other.re)), im(__STATIC_CAST__(T, other.im)){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<T> const& other) : IvyClientManager(), re(other.re), im(other.im){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<T>&& other) : IvyClientManager(), re(std_util::move(other.re)), im(std_util::move(other.im)){}
-    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyVariable<U> const& other) : IvyClientManager(), re(__STATIC_CAST__(T, other.value())), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyVariable<T> const& other) : IvyClientManager(), re(other.value()), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyVariable<T>&& other) : IvyClientManager(), re(std_util::move(other.value())), im(0){}
-    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyConstant<U> const& other) : IvyClientManager(), re(__STATIC_CAST__(T, other.value())), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyConstant<T> const& other) : IvyClientManager(), re(other.value()), im(0){}
-    __HOST_DEVICE__ IvyComplexVariable(IvyConstant<T>&& other) : IvyClientManager(), re(std_util::move(other.value())), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable() : clientmgr_t(), re(0), im(0){}
+    template<typename U, ENABLE_IF_ARITHMETIC(U)> __HOST_DEVICE__ IvyComplexVariable(U const& re_) : clientmgr_t(), re(__STATIC_CAST__(T, re_)), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(T const& re_) : clientmgr_t(), re(re_), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(T const& re_, T const& im_) : clientmgr_t(), re(re_), im(im_){}
+    __HOST_DEVICE__ IvyComplexVariable(T&& re_) : clientmgr_t(), re(std_util::move(re_)), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(T&& re_, T&& im_) : clientmgr_t(), re(std_util::move(re_)), im(std_util::move(im_)){}
+    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<U> const& other) : clientmgr_t(), re(__STATIC_CAST__(T, other.re)), im(__STATIC_CAST__(T, other.im)){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<T> const& other) : clientmgr_t(), re(other.re), im(other.im){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyComplexVariable<T>&& other) : clientmgr_t(), re(std_util::move(other.re)), im(std_util::move(other.im)){}
+    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyVariable<U> const& other) : clientmgr_t(), re(__STATIC_CAST__(T, other.value())), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyVariable<T> const& other) : clientmgr_t(), re(other.value()), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyVariable<T>&& other) : clientmgr_t(), re(std_util::move(other.value())), im(0){}
+    template<typename U> __HOST_DEVICE__ IvyComplexVariable(IvyConstant<U> const& other) : clientmgr_t(), re(__STATIC_CAST__(T, other.value())), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyConstant<T> const& other) : clientmgr_t(), re(other.value()), im(0){}
+    __HOST_DEVICE__ IvyComplexVariable(IvyConstant<T>&& other) : clientmgr_t(), re(std_util::move(other.value())), im(0){}
 
     // Empty destructor
     __HOST_DEVICE__ ~IvyComplexVariable(){}

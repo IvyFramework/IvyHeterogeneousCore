@@ -10,7 +10,7 @@ namespace IvyMath{
   template<
     typename F,
     typename T,
-    std_ttraits::enable_if_t<is_function_v<F> && std_ttraits::is_base_of_v<IvyClientManager, T>, bool> = true
+    std_ttraits::enable_if_t<is_function_v<F> && std_ttraits::is_base_of_v<IvyClientManager<T>, T>, bool> = true
   > struct function_data_client_updator{
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ void update(IvyThreadSafePtr_t<F> const& fcn, IvyThreadSafePtr_t<T> const& dep){
       dep->add_client(fcn);

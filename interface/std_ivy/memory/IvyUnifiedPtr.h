@@ -474,7 +474,7 @@ namespace std_ivy{
           #pragma omp section
           {
             res &= mem_type_allocator_traits::build(new_mem_type_, 1, misc_mem_type, ref_stream, new_mem_type);
-          } 
+          }
         }
         destroy_GPU_stream_reference_from_pointer(stream_);
 #else

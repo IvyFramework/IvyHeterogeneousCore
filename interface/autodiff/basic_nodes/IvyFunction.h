@@ -43,11 +43,13 @@ namespace IvyMath{
   class IvyFunction<precision_type, Domain, Domain> :
     public IvyBaseNode,
     public IvyBaseModifiable,
-    public IvyClientManager,
+    public IvyClientManager<IvyFunction<precision_type, Domain, Domain>>,
     public Domain,
     public function_value_tag
   {
   public:
+    // Type of the client manager
+    using clientmgr_t = IvyClientManager<IvyFunction<precision_type, Domain, Domain>>;
     // Domain tag of the function
     using domain_tag = Domain;
     // Type of the output
@@ -67,26 +69,26 @@ namespace IvyMath{
   public:
     __HOST__ IvyFunction(IvyFunction const& other) :
       IvyBaseModifiable(),
-      IvyClientManager(other)
+      clientmgr_t(other)
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
     __HOST__ IvyFunction(IvyFunction&& other) :
       IvyBaseModifiable(),
-      IvyClientManager(std_util::move(other.output)),
+      clientmgr_t(std_util::move(other.output)),
       output(std_util::move(other.output))
     {}
     template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args) :
       IvyBaseModifiable(),
-      IvyClientManager()
+      clientmgr_t()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
     __HOST__ IvyFunction() :
       IvyBaseModifiable(),
-      IvyClientManager()
+      clientmgr_t()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
@@ -114,11 +116,13 @@ namespace IvyMath{
   class IvyFunction<precision_type, Domain, undefined_domain_tag> :
     public IvyBaseNode,
     public IvyBaseModifiable,
-    public IvyClientManager,
+    public IvyClientManager<IvyFunction<precision_type, Domain, undefined_domain_tag>>,
     public Domain,
     public function_value_tag
   {
   public:
+    // Type of the client manager
+    using clientmgr_t = IvyClientManager<IvyFunction<precision_type, Domain, undefined_domain_tag>>;
     // Domain tag of the function
     using domain_tag = Domain;
     // Type of the output
@@ -136,26 +140,26 @@ namespace IvyMath{
   public:
     __HOST__ IvyFunction(IvyFunction const& other) :
       IvyBaseModifiable(),
-      IvyClientManager(other)
+      clientmgr_t(other)
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, *(other.output));
     }
     __HOST__ IvyFunction(IvyFunction&& other) :
       IvyBaseModifiable(),
-      IvyClientManager(std_util::move(other.output)),
+      clientmgr_t(std_util::move(other.output)),
       output(std_util::move(other.output))
     {}
     template<typename... Args> __HOST__ IvyFunction(Args&&... default_value_args) :
       IvyBaseModifiable(),
-      IvyClientManager()
+      clientmgr_t()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr, default_value_args...);
     }
     __HOST__ IvyFunction() :
       IvyBaseModifiable(),
-      IvyClientManager()
+      clientmgr_t()
     {
       constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       output = std_mem::make_unique<value_t>(def_mem_type, nullptr);
@@ -171,7 +175,8 @@ namespace IvyMath{
     __HOST__ value_t const& value() const{ this->eval(); return *output; }
   };
 
-  template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>> struct function_gradient{
+  template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>>
+  struct function_gradient{
     using value_t = unpack_if_function_t<T>;
     static __HOST__ IvyThreadSafePtr_t<value_t> get(
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
@@ -204,7 +209,8 @@ namespace IvyMath{
       return fcn.gradient(var);
     }
   };
-  template<typename T, std_mem::IvyPointerType IPT> struct function_gradient<std_mem::IvyUnifiedPtr<T, IPT>>{
+  template<typename T, std_mem::IvyPointerType IPT>
+  struct function_gradient<std_mem::IvyUnifiedPtr<T, IPT>>{
     static __HOST__ auto get(
       std_mem::IvyUnifiedPtr<T, IPT> const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
