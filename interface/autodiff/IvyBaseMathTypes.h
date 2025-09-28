@@ -11,6 +11,7 @@
 namespace IvyMath{
   typedef unsigned short IvyTensorRank_t;
   typedef IvyTypes::size_t IvyTensorDim_t;
+  typedef IvyTypes::signed_size_t IvyTensorSignedDim_t;
 }
 
 namespace _fcn_eval{

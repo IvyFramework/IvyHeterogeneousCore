@@ -8,6 +8,7 @@
 
 namespace IvyTypes{
   typedef unsigned long long int size_t;
+  typedef long long int signed_size_t;
   typedef long long int ptrdiff_t;
 
   template<typename T> struct convert_to_floating_point{

@@ -3,7 +3,6 @@
 
 
 #include "autodiff/IvyBaseMathTypes.h"
-//#include "autodiff/basic_nodes/IvyFunction.h"
 
 
 namespace IvyMath{

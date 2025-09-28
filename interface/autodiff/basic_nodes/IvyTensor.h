@@ -172,7 +172,8 @@ namespace IvyMath{
     __HOST_DEVICE__ T* const& data(){ return data_.get(); }
 
     // Access operator (for nonconst tensor)
-    __HOST_DEVICE__ T& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices){
+    template<typename U, std_ttraits::enable_if_t<std_ttraits::is_integral_v<U>, bool> = true>
+    __HOST_DEVICE__ T& operator[](std_ilist::initializer_list<U> const& indices){
       this->set_modified(true);
       return data_[shape_.get_abs_index(indices)];
     }
@@ -184,7 +185,8 @@ namespace IvyMath{
       this->set_modified(true);
       return data_[idx];
     }
-    __HOST_DEVICE__ T& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices){
+    template<typename U, std_ttraits::enable_if_t<std_ttraits::is_integral_v<U>, bool> = true>
+    __HOST_DEVICE__ T& at(std_ilist::initializer_list<U> const& indices){
       this->set_modified(true);
       return data_[shape_.get_abs_index(indices)];
     }
@@ -198,10 +200,12 @@ namespace IvyMath{
     }
 
     // Access operator (for const tensor)
-    __HOST_DEVICE__ T const& operator[](std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+    template<typename U, std_ttraits::enable_if_t<std_ttraits::is_integral_v<U>, bool> = true>
+    __HOST_DEVICE__ T const& operator[](std_ilist::initializer_list<U> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
     __HOST_DEVICE__ T const& operator[](std_vec::vector<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ T const& operator[](IvyTensorDim_t const& idx) const{ return data_[idx]; }
-    __HOST_DEVICE__ T const& at(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
+    template<typename U, std_ttraits::enable_if_t<std_ttraits::is_integral_v<U>, bool> = true>
+    __HOST_DEVICE__ T const& at(std_ilist::initializer_list<U> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
     __HOST_DEVICE__ T const& at(std_vec::vector<IvyTensorDim_t> const& indices) const{ return data_[shape_.get_abs_index(indices)]; }
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ T const& at(IvyTensorDim_t const& idx) const{ return data_[idx]; }
 

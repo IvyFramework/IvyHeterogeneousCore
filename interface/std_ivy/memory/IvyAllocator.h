@@ -448,7 +448,6 @@ namespace IvyMemoryHelpers{
   - n_tgt_init: Number of elements in the target array before the copy. If the target array is not null, it is freed.
   - n_tgt: Number of elements in the target array after the copy.
   - n_src: Number of elements in the source array before the copy. It has to satisfy the constraint (n_src==n_tgt || n_src==1).
-  When using CUDA, the following additional arguments are required:
   - type_tgt: Location of the target data in memory.
   - type_src: Location of the source data in memory.
   - stream: CUDA stream to use for the copy.
@@ -527,20 +526,23 @@ namespace IvyMemoryHelpers{
     }
     if (res){
 #ifdef __USE_CUDA__
-      U* d_source = (src_on_device ? source : nullptr);
-      if (!src_on_device){
-        res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, IvyMemoryType::GPU, stream);
-        res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, IvyMemoryType::GPU, type_src, stream);
+      if (!src_on_device && !tgt_on_device) res = false;
+      else{
+        U* d_source = (src_on_device ? source : nullptr);
+        if (!src_on_device){
+          res &= std_ivy::allocator_primitive<U>::allocate(d_source, n_src, IvyMemoryType::GPU, stream);
+          res &= std_ivy::transfer_memory_primitive<U>::transfer(d_source, source, n_src, IvyMemoryType::GPU, type_src, stream);
+        }
+        T* d_target = nullptr;
+        if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
+        else d_target = target;
+        res &= run_kernel<copy_data_kernel<T, U>>(0, stream).parallel_1D(n_tgt, n_src, d_target, d_source);
+        if (!tgt_on_device){
+          res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, IvyMemoryType::GPU, stream);
+          res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
+        }
+        if (!src_on_device) res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, IvyMemoryType::GPU, stream);
       }
-      T* d_target = nullptr;
-      if (!tgt_on_device) res &= std_ivy::allocator_primitive<T>::allocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
-      else d_target = target;
-      res &= run_kernel<copy_data_kernel<T, U>>(0, stream).parallel_1D(n_tgt, n_src, d_target, d_source);
-      if (!tgt_on_device){
-        res &= std_ivy::transfer_memory_primitive<T>::transfer(target, d_target, n_tgt, type_tgt, IvyMemoryType::GPU, stream);
-        res &= std_ivy::deallocator_primitive<T>::deallocate(d_target, n_tgt, IvyMemoryType::GPU, stream);
-      }
-      if (!src_on_device) res &= std_ivy::deallocator_primitive<U>::deallocate(d_source, n_src, IvyMemoryType::GPU, stream);
       if (!res){
         if (tgt_on_device!=src_on_device){
           __PRINT_ERROR__("IvyMemoryHelpers::copy_data: Failed to copy data between host and device.\n");
@@ -549,7 +551,20 @@ namespace IvyMemoryHelpers{
 #else
       {
 #endif
+        #define _CMD \
         for (size_t i=0; i<n_tgt; ++i) target[i] = source[(n_src==1 ? 0 : i)];
+#if defined(OPENMP_ENABLED)
+        if (n_tgt>=NUM_CPU_THREADS_THRESHOLD){
+          #pragma omp parallel for schedule(static)
+          _CMD
+        }
+        else
+#endif
+        {
+          _CMD
+        }
+        #undef _CMD
+        res = true;
       }
     }
     return res;

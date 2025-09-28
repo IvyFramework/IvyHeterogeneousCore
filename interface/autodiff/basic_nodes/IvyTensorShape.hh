@@ -27,11 +27,15 @@ namespace IvyMath{
     typedef std_vec::vector<IvyTensorDim_t> data_container;
     typedef std_mem::allocator<data_container> allocator_data_container;
     typedef std_mem::allocator_traits<allocator_data_container> allocator_data_container_traits;
+    typedef std_vec::vector<IvyTensorSignedDim_t> signed_data_container;
+    typedef std_mem::allocator<signed_data_container> allocator_signed_data_container;
+    typedef std_mem::allocator_traits<allocator_signed_data_container> allocator_signed_data_container_traits;
     typedef std_vec::vector<IvyTensorRank_t> rank_container;
     typedef std_mem::allocator<rank_container> allocator_rank_container;
     typedef std_mem::allocator_traits<allocator_rank_container> allocator_rank_container_traits;
 
   protected:
+    // The order here matters! dims should not come after nel.
     IvyTensorRank_t rank_; // Number of dimension indices per dimension
     data_container dims; // Range of indices per dimension
     IvyTensorDim_t nel; // Cached number of elements
@@ -71,7 +75,14 @@ namespace IvyMath{
 
     // Get absolute index given an ordered set of indices for each axis
     __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const;
-    __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_ilist::initializer_list<IvyTensorDim_t> const& indices) const;
+    // Python-style indexing: allow negative indices to count from the back
+    __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_vec::vector<IvyTensorSignedDim_t> const& indices) const;
+    template<typename T, std_ttraits::enable_if_t<std_ttraits::is_integral_v<T>, bool> = true>
+    __HOST_DEVICE__ IvyTensorDim_t get_abs_index(std_ilist::initializer_list<T> const& indices) const;
+
+    // Numpy-style functions
+    template<typename T, std_ttraits::enable_if_t<std_ttraits::is_integral_v<T>, bool> = true>
+    __HOST_DEVICE__ void reshape(std_ilist::initializer_list<T> const& new_dims) const;
 
     // Get map of indices after reordering axes
     __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const;
