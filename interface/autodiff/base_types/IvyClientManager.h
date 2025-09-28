@@ -71,7 +71,7 @@ namespace IvyMath{
 
       __HOST_DEVICE__ data_container* clone_clients_and_release(){
         data_container* tgt_bkp = nullptr;
-        data_container* ptr_clients_ = &clients_;
+        data_container* ptr_clients_ = std_mem::addressof(clients_);
         constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
         auto stream = clients_.gpu_stream();
         operate_with_GPU_stream_from_pointer(
@@ -89,7 +89,7 @@ namespace IvyMath{
 
       __HOST_DEVICE__ void restore_clients_and_reabsorb(data_container*& clients_bkp){
         if (!clients_bkp) return;
-        data_container* ptr_clients_ = &clients_;
+        data_container* ptr_clients_ = std_mem::addressof(clients_);
         constexpr auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
         auto stream = clients_.gpu_stream();
         operate_with_GPU_stream_from_pointer(
