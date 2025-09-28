@@ -82,7 +82,8 @@ namespace IvyMath{
 
     // Numpy-style functions
     template<typename T, std_ttraits::enable_if_t<std_ttraits::is_integral_v<T>, bool> = true>
-    __HOST_DEVICE__ void reshape(std_ilist::initializer_list<T> const& new_dims) const;
+    __HOST_DEVICE__ void reshape(std_ilist::initializer_list<T> const& new_dims);
+    __HOST_DEVICE__ void reshape(IvyTensorShape const& new_shape);
 
     // Get map of indices after reordering axes
     __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const;

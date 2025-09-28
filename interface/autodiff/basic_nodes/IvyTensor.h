@@ -213,6 +213,13 @@ namespace IvyMath{
     __INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t const& value() const{ return *this; }
     //__INLINE_FCN_FORCE__ __HOST_DEVICE__ value_t& value(){ return *this; }
 
+    // Numpy-like functions
+    template<typename... Args>
+    __HOST_DEVICE__ void reshape(Args&&... args){
+      shape_.reshape(std_util::forward<Args>(args)...);
+      // Reshaping does not require recomputation, so there is no need to set the modified flag.
+    }
+
     // friend classes
     friend class std_mem::kernel_generic_transfer_internal_memory<IvyTensor<T>, IvyTensor<T>>;
     friend struct IvyNodeSelfRelations<IvyTensor<T>>;

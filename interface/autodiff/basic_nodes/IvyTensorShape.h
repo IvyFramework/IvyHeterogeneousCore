@@ -170,7 +170,7 @@ namespace IvyMath{
   }
 
   template<typename T, std_ttraits::enable_if_t<std_ttraits::is_integral_v<T>, bool>>
-  __HOST_DEVICE__ void IvyTensorShape::reshape(std_ilist::initializer_list<T> const& new_dims) const{
+  __HOST_DEVICE__ void IvyTensorShape::reshape(std_ilist::initializer_list<T> const& new_dims){
     data_container vdims; vdims.reserve(new_dims.size());
     IvyTensorDim_t nel_new = 1;
     bool has_neg1 = false;
@@ -212,6 +212,14 @@ namespace IvyMath{
     );
     this->rank_ = vdims.size();
     this->dims = vdims;
+  }
+  __HOST_DEVICE__ void IvyTensorShape::reshape(IvyTensorShape const& new_shape){
+    if (new_shape.nel != this->nel) __PRINT_ERROR__(
+      "IvyTensorShape::reshape: Total number of elements after reshape %llu does not match original number of elements %llu.\n",
+      new_shape.nel, this->nel
+    );
+    this->rank_ = new_shape.rank_;
+    this->dims = new_shape.dims;
   }
 
   __HOST_DEVICE__ std_vec::vector<IvyTensorDim_t> IvyTensorShape::get_reordered_index_map(std_vec::vector<IvyTensorRank_t> const& reord_ax) const{
