@@ -277,21 +277,13 @@ namespace IvyMath{
 
     build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-    data_container ref_dims = dims;
-    if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&ref_dims, 1, def_mem_type, def_mem_type, ref_stream, true);
-
-    rank_container* h_reord_ax = nullptr;
-    if (reord_ax.get_memory_type()!=def_mem_type){
-      allocator_rank_container_traits::allocate(h_reord_ax, 1, def_mem_type, ref_stream);
-      auto tmp_reord_ax = reord_ax;
-      allocator_rank_container_traits::transfer(h_reord_ax, &tmp_reord_ax, 1, def_mem_type, def_mem_type, ref_stream);
-    }
-    auto const& ref_reord_ax = (h_reord_ax ? *h_reord_ax : reord_ax);
+    auto ref_dims = this->view_dims();
+    auto ref_reord_ax = std_mem::view(reord_ax);
 
     std_vec::vector<IvyTensorDim_t> res; res.reserve(nel, def_mem_type, stream);
     {
       std_vec::vector<IvyTensorDim_t> dims_reord; dims_reord.reserve(rank_, def_mem_type, stream);
-      for (auto const& iax:ref_reord_ax) dims_reord.emplace_back(ref_dims.at(iax));
+      for (auto const& iax:*ref_reord_ax) dims_reord.emplace_back(ref_dims->at(iax));
       std_vec::vector<IvyTensorDim_t> nels_axs; nels_axs.reserve(rank_, def_mem_type, stream);
       for (IvyTensorRank_t iax=0; iax<rank_; ++iax){
         if (iax==0) nels_axs.push_back(nel/dims_reord.at(iax));
@@ -301,7 +293,7 @@ namespace IvyMath{
         std_vec::vector<IvyTensorDim_t> idxs(rank_, def_mem_type, stream, 0);
         #define _CMD \
         for (IvyTensorRank_t iax=0; iax<rank_; ++iax){ \
-          auto const& iax_revord = ref_reord_ax.at(iax); \
+          auto const& iax_revord = ref_reord_ax->at(iax); \
           idxs.at(iax_revord) = (i/nels_axs.at(iax)) % dims_reord.at(iax); \
         }
 #if defined(OPENMP_ENABLED)
@@ -320,7 +312,6 @@ namespace IvyMath{
     }
 
     if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&res, 1, def_mem_type, mem_type, ref_stream, true);
-    if (h_reord_ax) allocator_rank_container_traits::destroy(h_reord_ax, 1, def_mem_type, ref_stream);
 
     destroy_GPU_stream_reference_from_pointer(stream);
 
@@ -335,30 +326,21 @@ namespace IvyMath{
 
     build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-    data_container ref_dims = dims;
-    if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&ref_dims, 1, def_mem_type, def_mem_type, ref_stream, true);
+    auto ref_dims = this->view_dims();
+    auto ref_axes = std_mem::view(axes);
 
-    rank_container* h_axes = nullptr;
-    if (axes.get_memory_type()!=def_mem_type){
-      allocator_rank_container_traits::allocate(h_axes, 1, def_mem_type, ref_stream);
-      auto tmp_axes = axes;
-      allocator_rank_container_traits::transfer(h_axes, &tmp_axes, 1, def_mem_type, def_mem_type, ref_stream);
-    }
-    auto const& ref_axes = (h_axes ? *h_axes : axes);
-
-    for (auto const& ax:ref_axes){
+    for (auto const& ax:*ref_axes){
       if (ax>=rank_) __PRINT_ERROR__("Axis index = %hu exceeds rank %hu.\n", ax, rank_);
     }
 
-    std_vec::vector<IvyTensorDim_t> dims_new; dims_new.reserve(ref_dims.size(), def_mem_type, stream);
-    auto it_dims = std_iter::begin(ref_dims);
+    std_vec::vector<IvyTensorDim_t> dims_new; dims_new.reserve(ref_dims->size(), def_mem_type, stream);
+    auto it_dims = std_iter::begin(*ref_dims);
     for (IvyTensorRank_t iaxis=0; iaxis<rank_; ++iaxis){
-      if (std_algo::find(std_iter::begin(ref_axes), std_iter::end(ref_axes), iaxis)==std_iter::end(ref_axes)) dims_new.emplace_back(*it_dims);
+      if (std_algo::find(std_iter::begin(*ref_axes), std_iter::end(*ref_axes), iaxis)==std_iter::end(*ref_axes)) dims_new.emplace_back(*it_dims);
       ++it_dims;
     }
 
     if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&dims_new, 1, def_mem_type, mem_type, ref_stream, true);
-    if (h_axes) allocator_rank_container_traits::destroy(h_axes, 1, def_mem_type, ref_stream);
 
     destroy_GPU_stream_reference_from_pointer(stream);
 
@@ -371,15 +353,14 @@ namespace IvyMath{
 
     build_GPU_stream_reference_from_pointer(stream, ref_stream);
 
-    data_container ref_dims = dims;
-    if (mem_type!=def_mem_type) allocator_data_container::transfer_internal_memory(&ref_dims, 1, def_mem_type, def_mem_type, ref_stream, true);
+    auto ref_dims = this->view_dims();
 
     for (auto const& ax:axes){
       if (ax>=rank_) __PRINT_ERROR__("Axis index = %hu exceeds rank %hu.\n", ax, rank_);
     }
 
-    std_vec::vector<IvyTensorDim_t> dims_new; dims_new.reserve(ref_dims.size(), def_mem_type, stream);
-    auto it_dims = std_iter::begin(ref_dims);
+    std_vec::vector<IvyTensorDim_t> dims_new; dims_new.reserve(ref_dims->size(), def_mem_type, stream);
+    auto it_dims = std_iter::begin(*ref_dims);
     for (IvyTensorRank_t iaxis=0; iaxis<rank_; ++iaxis){
       if (std_algo::find(std_iter::begin(axes), std_iter::end(axes), iaxis)==std_iter::end(axes)) dims_new.emplace_back(*it_dims);
       ++it_dims;
