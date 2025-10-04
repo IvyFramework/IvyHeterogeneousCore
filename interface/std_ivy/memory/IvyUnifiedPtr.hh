@@ -73,8 +73,8 @@ namespace std_ivy{
     __HOST_DEVICE__ bool transfer_impl(IvyMemoryType const& new_mem_type, bool transfer_all, bool copy_ptr, bool release_old);
 
   public:
-    __HOST_DEVICE__ IvyUnifiedPtr();
-    __HOST_DEVICE__ IvyUnifiedPtr(std_cstddef::nullptr_t);
+    __HOST_DEVICE__ IvyUnifiedPtr(IvyGPUStream* stream=nullptr);
+    __HOST_DEVICE__ IvyUnifiedPtr(std_cstddef::nullptr_t, IvyGPUStream* stream=nullptr);
     explicit __HOST_DEVICE__ IvyUnifiedPtr(T* ptr, IvyMemoryType mem_type, IvyGPUStream* stream);
     explicit __HOST_DEVICE__ IvyUnifiedPtr(T* ptr, size_type n, IvyMemoryType mem_type, IvyGPUStream* stream);
     explicit __HOST_DEVICE__ IvyUnifiedPtr(T* ptr, size_type n_size, size_type n_capacity, IvyMemoryType mem_type, IvyGPUStream* stream);
@@ -175,7 +175,15 @@ namespace std_ivy{
 
   template<typename T> using shared_ptr = IvyUnifiedPtr<T, IvyPointerType::shared>;
   template<typename T> using unique_ptr = IvyUnifiedPtr<T, IvyPointerType::unique>;
+  template<typename T, IvyPointerType IPT> using unifiedptr_view = std_ivy::memview<IvyUnifiedPtr<T, IPT>>;
 
+  // memview viewer
+  template<typename T> using sharedptr_view = unifiedptr_view<T, IvyPointerType::shared>;
+  template<typename T> using uniqueptr_view = unifiedptr_view<T, IvyPointerType::unique>;
+  template<typename T, IvyPointerType IPT>
+  __HOST_DEVICE__ unifiedptr_view<T, IPT> view(IvyUnifiedPtr<T, IPT> const& ptr);
+
+  // Non-member helper functions
   template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __HOST_DEVICE__ bool operator==(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) __NOEXCEPT__;
   template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU> __HOST_DEVICE__ bool operator!=(IvyUnifiedPtr<T, IPT> const& a, IvyUnifiedPtr<U, IPU> const& b) __NOEXCEPT__;
 

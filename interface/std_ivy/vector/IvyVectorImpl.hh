@@ -136,6 +136,11 @@ namespace std_ivy{
 namespace std_util{
   template<typename T, typename Allocator> __HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b);
 }
+namespace std_mem{
+  template<typename T, typename Allocator=std_mem::allocator<T>> using vector_view = std_mem::memview<std_ivy::IvyVector<T, Allocator>>;
+  template<typename T, typename Allocator=std_mem::allocator<T>>
+  __HOST_DEVICE__ vector_view<T, Allocator> view(std_ivy::IvyVector<T, Allocator> const& vec);
+}
 
 
 #endif

@@ -494,6 +494,19 @@ namespace std_ivy{
 namespace std_util{
   template<typename T, typename Allocator> __HOST_DEVICE__ void swap(std_ivy::IvyVector<T, Allocator>& a, std_ivy::IvyVector<T, Allocator>& b){ a.swap(b); }
 }
+namespace std_mem{
+  template<typename T, typename Allocator>
+  __HOST_DEVICE__ vector_view<T, Allocator> view(std_ivy::IvyVector<T, Allocator> const& vec){
+    using vtype = std_ivy::IvyVector<T, Allocator>;
+    auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    auto mem_type = vec.get_memory_type();
+    return vector_view<T, Allocator>(
+      __CONST_CAST__(vtype*, std_mem::addressof(vec)),
+      def_mem_type, vec.gpu_stream(), true,
+      (mem_type!=def_mem_type)
+    );
+  }
+}
 
 
 #endif

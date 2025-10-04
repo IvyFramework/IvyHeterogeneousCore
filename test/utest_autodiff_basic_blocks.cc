@@ -47,6 +47,9 @@ void utest(){
     )
   );
   print_value(t3dp);
+  auto t3dp_reshaped = IvyMath::reshape(t3dp, std_ilist::initializer_list<int>{ 6, 4 });
+  __PRINT_INFO__("t3dp reshaped:\n");
+  print_value(t3dp_reshaped);
   __PRINT_INFO__(
     "Addrs: t3dp[0,1,2] = %p, t3dp[0,0,0] = %p\n",
     t3dp->at({ 0,1,2 }).get(),
@@ -78,6 +81,7 @@ void utest(){
     t3dp->at({ 0,1,2 })->get_clients()[0].get(),
     t3dp.get()
   );
+
   //__PRINT_INFO__(
   //  "t3dpn[0,1,2] clients %p ?= %p\n",
   //  (*t3dpn)->at({ 0,1,2 })->get_clients()[0].get(),

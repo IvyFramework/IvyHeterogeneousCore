@@ -13,22 +13,83 @@
 
 
 namespace IvyMath{
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape() : rank_(0), nel(0){}
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) :
+      rank_(dims_.size()),
+      dims(dims_),
+      nel(this->calc_num_elements()),
+      el_map(dims_.gpu_stream())
+    {}
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) :
+      rank_(dims_.size()),
+      dims(dims_, mem_type, stream),
+      nel(this->calc_num_elements()),
+      el_map(stream)
+    {}
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) :
+      rank_(dims_.size()),
+      dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr),
+      nel(this->calc_num_elements())
+    {}
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape(IvyTensorShape const& other) :
+      rank_(other.rank_), dims(other.dims), nel(other.nel)
+    {
+      constexpr IvyMemoryHelpers::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+      auto stream = other.gpu_stream();
+      el_map_t* ptr_map = std_mem::addressof(el_map);
+      el_map_t* ptr_other_map = __CONST_CAST__(el_map_t*, std_mem::addressof(other.el_map));
+      operate_with_GPU_stream_from_pointer(
+        stream, ref_stream,
+        __ENCAPSULATE__(
+          allocator_el_map_traits::transfer(ptr_map, ptr_other_map, 1, def_mem_type, def_mem_type, ref_stream);
+        )
+      );
+    }
+    __HOST_DEVICE__ IvyTensorShape::IvyTensorShape(IvyTensorShape&& other) :
+      rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)),
+      nel(std_util::move(other.nel)), el_map(std_util::move(other.el_map))
+    {}
+    __HOST_DEVICE__ IvyTensorShape::~IvyTensorShape(){}
+
   __HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape const& other){
     this->rank_ = other.rank_;
     this->dims = other.dims;
     this->nel = other.nel;
+
+    constexpr IvyMemoryHelpers::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    auto stream = other.gpu_stream();
+    el_map.reset();
+    el_map_t* ptr_map = std_mem::addressof(el_map);
+    el_map_t* ptr_other_map = __CONST_CAST__(el_map_t*, std_mem::addressof(other.el_map));
+    operate_with_GPU_stream_from_pointer(
+      stream, ref_stream,
+      __ENCAPSULATE__(
+        allocator_el_map_traits::transfer(ptr_map, ptr_other_map, 1, def_mem_type, def_mem_type, ref_stream);
+      )
+    );
+
     return *this;
   }
   __HOST_DEVICE__ IvyTensorShape& IvyTensorShape::operator=(IvyTensorShape&& other){
+    if (this == &other) return *this;
     this->rank_ = std_util::move(other.rank_);
     this->dims = std_util::move(other.dims);
     this->nel = std_util::move(other.nel);
+    this->el_map = std_util::move(other.el_map);
     return *this;
   }
   __HOST_DEVICE__ void IvyTensorShape::swap(IvyTensorShape& other){
     std_util::swap(this->rank_, other.rank_);
     std_util::swap(this->dims, other.dims);
     std_util::swap(this->nel, other.nel);
+    std_util::swap(this->el_map, other.el_map);
+  }
+
+  __INLINE_FCN_RELAXED__ __HOST_DEVICE__ std_mem::memview<IvyTensorShape::data_container> IvyTensorShape::view_dims() const{
+    return std_mem::view(dims);
+  }
+  __INLINE_FCN_RELAXED__ __HOST_DEVICE__ std_mem::memview<IvyTensorShape::el_map_t> IvyTensorShape::view_el_map() const{
+    return std_mem::view(el_map);
   }
 
   __HOST_DEVICE__ bool IvyTensorShape::transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old){
@@ -39,11 +100,11 @@ namespace IvyMath{
       stream, ref_stream,
       __ENCAPSULATE__(
         res &= allocator_data_container::transfer_internal_memory(&dims, 1, def_mem_type, new_mem_type, ref_stream, release_old);
+        res &= allocator_el_map::transfer_internal_memory(&el_map, 1, def_mem_type, new_mem_type, ref_stream, release_old);
       )
     );
     return res;
   }
-
 
   __HOST_DEVICE__ IvyTensorDim_t const& IvyTensorShape::get_dimension(IvyTensorRank_t const& iaxis) const{
     if (iaxis>=rank_) __PRINT_ERROR__("IvyTensorShape::get_dimension: Axis index %hu exceeds rank = %hu.\n", iaxis, rank_);
@@ -86,14 +147,8 @@ namespace IvyMath{
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const{
     if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
 
-    std_mem::memview<data_container> ref_dims(
-      __CONST_CAST__(data_container*, std_mem::addressof(dims)),
-      this->get_memory_type(), this->gpu_stream(), true
-    );
-    std_mem::memview<data_container> ref_indices(
-      __CONST_CAST__(data_container*, std_mem::addressof(indices)),
-      indices.get_memory_type(), indices.gpu_stream(), true
-    );
+    auto ref_dims = this->view_dims();
+    auto ref_indices = std_mem::view(indices);
 
     IvyTensorDim_t res = 0;
     IvyTensorRank_t iaxis = 0;
@@ -115,14 +170,8 @@ namespace IvyMath{
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorSignedDim_t> const& indices) const{
     if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
 
-    std_mem::memview<data_container> ref_dims(
-      __CONST_CAST__(data_container*, std_mem::addressof(dims)),
-      this->get_memory_type(), this->gpu_stream(), true
-    );
-    std_mem::memview<signed_data_container> ref_indices(
-      __CONST_CAST__(signed_data_container*, std_mem::addressof(indices)),
-      indices.get_memory_type(), indices.gpu_stream(), true
-    );
+    auto ref_dims = this->view_dims();
+    auto ref_indices = std_mem::view(indices);
 
     data_container idxs; idxs.reserve(ref_indices->size());
 
@@ -142,10 +191,7 @@ namespace IvyMath{
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_ilist::initializer_list<T> const& indices) const{
     if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
 
-    std_mem::memview<data_container> ref_dims(
-      __CONST_CAST__(data_container*, std_mem::addressof(dims)),
-      this->get_memory_type(), this->gpu_stream(), true
-    );
+    auto ref_dims = this->view_dims();
 
     IvyTensorDim_t res = 0;
     IvyTensorRank_t iaxis = 0;

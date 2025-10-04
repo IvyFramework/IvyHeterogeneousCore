@@ -8,23 +8,23 @@
 
 
 namespace std_ivy{
-  template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr() :
+  template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyGPUStream* stream) :
     ptr_(nullptr),
     mem_type_(nullptr),
     size_(nullptr),
     capacity_(nullptr),
     ref_count_(nullptr),
-    stream_(nullptr),
+    stream_(stream),
     exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
     progenitor_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {}
-  template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(std_cstddef::nullptr_t) :
+  template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(std_cstddef::nullptr_t, IvyGPUStream* stream) :
     ptr_(nullptr),
     mem_type_(nullptr),
     size_(nullptr),
     capacity_(nullptr),
     ref_count_(nullptr),
-    stream_(nullptr),
+    stream_(stream),
     exec_mem_type_(IvyMemoryHelpers::get_execution_default_memory()),
     progenitor_mem_type_(IvyMemoryHelpers::get_execution_default_memory())
   {}
@@ -95,7 +95,9 @@ namespace std_ivy{
       if (ref_count_) this->inc_dec_counter(true);
     }
     // We should reset the other pointer if it is unique and its progenitor memory type is the same as that of the current context.
-    if (IPU==IvyPointerType::unique && other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
+    if constexpr (IPU==IvyPointerType::unique){
+      if (other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
+    }
   }
   template<typename T, IvyPointerType IPT> __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<T, IPT> const& other) :
     ptr_(other.ptr_),
@@ -109,7 +111,9 @@ namespace std_ivy{
   {
     if (ref_count_) this->inc_dec_counter(true);
     // We should reset the other pointer if it is unique and its progenitor memory type is the same as that of the current context.
-    if (IPT==IvyPointerType::unique && other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
+    if constexpr (IPT==IvyPointerType::unique){
+      if (other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
+    }
   }
   template<typename T, IvyPointerType IPT> template<typename U, IvyPointerType IPU, ENABLE_IF_BOOL_IMPL((IPU==IPT || IPU==IvyPointerType::unique) && (IS_BASE_OF(T, U) || IS_BASE_OF(U, T)))>
   __HOST_DEVICE__ IvyUnifiedPtr<T, IPT>::IvyUnifiedPtr(IvyUnifiedPtr<U, IPU>&& other) :
@@ -159,7 +163,9 @@ namespace std_ivy{
       stream_ = other.gpu_stream();
       if (ref_count_) this->inc_dec_counter(true);
       // We should reset the other pointer if it is unique and its progenitor memory type is the same as that of the current context.
-      if (IPU==IvyPointerType::unique && other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
+      if constexpr (IPU==IvyPointerType::unique){
+        if (other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<U, IPU>&), other).reset();
+      }
     }
     return *this;
   }
@@ -176,7 +182,9 @@ namespace std_ivy{
       stream_ = other.gpu_stream();
       if (ref_count_) this->inc_dec_counter(true);
       // We should reset the other pointer if it is unique and its progenitor memory type is the same as that of the current context.
-      if (IPT==IvyPointerType::unique && other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
+      if constexpr (IPT==IvyPointerType::unique){
+        if (other.check_write_access()) __CONST_CAST__(__ENCAPSULATE__(IvyUnifiedPtr<T, IPT>&), other).reset();
+      }
     }
     return *this;
   }
@@ -946,6 +954,18 @@ namespace std_ivy{
     }
   }
 
+  // memview view
+  template<typename T, IvyPointerType IPT>
+  __HOST_DEVICE__ unifiedptr_view<T, IPT> view(IvyUnifiedPtr<T, IPT> const& ptr){
+    using type_t = IvyUnifiedPtr<T, IPT>;
+    auto def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    auto mem_type = ptr.get_memory_type();
+    return unifiedptr_view<T, IPT>(
+      __CONST_CAST__(type_t*, std_ivy::addressof(ptr)),
+      def_mem_type, ptr.gpu_stream(), true,
+      (mem_type!=def_mem_type)
+    );
+  }
 
   // Non-member helper functions
   template<typename T, typename U, IvyPointerType IPT, IvyPointerType IPU>

@@ -33,12 +33,20 @@ namespace IvyMath{
     typedef std_vec::vector<IvyTensorRank_t> rank_container;
     typedef std_mem::allocator<rank_container> allocator_rank_container;
     typedef std_mem::allocator_traits<allocator_rank_container> allocator_rank_container_traits;
+    typedef std_mem::unique_ptr<IvyTensorDim_t> el_map_t;
+    typedef std_mem::allocator<el_map_t> allocator_el_map;
+    typedef std_mem::allocator_traits<allocator_el_map> allocator_el_map_traits;
 
   protected:
     // The order here matters! dims should not come after nel.
     IvyTensorRank_t rank_; // Number of dimension indices per dimension
     data_container dims; // Range of indices per dimension
     IvyTensorDim_t nel; // Cached number of elements
+    el_map_t el_map; // Element map, N->nel.
+
+    // memviews to handle memory management
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ std_mem::memview<data_container> view_dims() const;
+    __INLINE_FCN_RELAXED__ __HOST_DEVICE__ std_mem::memview<el_map_t> view_el_map() const;
 
     // Calculate the number of elements
     __HOST_DEVICE__ IvyTensorDim_t calc_num_elements() const;
@@ -46,13 +54,13 @@ namespace IvyMath{
     __HOST_DEVICE__ bool transfer_internal_memory(std_ivy::IvyMemoryType const& new_mem_type, bool release_old);
 
   public:
-    __HOST_DEVICE__ IvyTensorShape() : rank_(0), nel(0){}
-    __HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_), nel(this->calc_num_elements()){}
-    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream) : rank_(dims_.size()), dims(dims_, mem_type, stream), nel(this->calc_num_elements()){}
-    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_) : rank_(dims_.size()), dims(dims_, IvyMemoryHelpers::get_execution_default_memory(), nullptr), nel(this->calc_num_elements()){}
-    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other) : rank_(other.rank_), dims(other.dims), nel(other.nel){}
-    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape&& other) : rank_(std_util::move(other.rank_)), dims(std_util::move(other.dims)), nel(std_util::move(other.nel)){}
-    __HOST_DEVICE__ ~IvyTensorShape(){}
+    __HOST_DEVICE__ IvyTensorShape();
+    __HOST_DEVICE__ IvyTensorShape(std_vec::vector<IvyTensorDim_t> const& dims_);
+    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_, std_ivy::IvyMemoryType mem_type, IvyGPUStream* stream);
+    __HOST_DEVICE__ IvyTensorShape(std_ilist::initializer_list<IvyTensorDim_t> const& dims_);
+    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape const& other);
+    __HOST_DEVICE__ IvyTensorShape(IvyTensorShape&& other);
+    __HOST_DEVICE__ ~IvyTensorShape();
 
     // Assignment operator
     __HOST_DEVICE__ IvyTensorShape& operator=(IvyTensorShape const& other);

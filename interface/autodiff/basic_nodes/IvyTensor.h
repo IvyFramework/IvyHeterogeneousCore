@@ -318,6 +318,19 @@ namespace std_ivy{
     }
   };
 }
+// Numpy-like functions
+namespace IvyMath{
+  template<typename T, typename... Args> __HOST_DEVICE__ IvyTensor<T> reshape(IvyTensor<T> const& x, Args&&... args){
+    IvyTensor<T> res(x);
+    res.reshape(std_util::forward<Args>(args)...);
+    return res;
+  }
+  template<typename T, typename... Args> __HOST_DEVICE__ IvyTensorPtr_t<T> reshape(IvyTensorPtr_t<T> const& x, Args&&... args){
+    auto res = Tensor<T>(x.get_memory_type(), x.gpu_stream(), *x);
+    res->reshape(std_util::forward<Args>(args)...);
+    return res;
+  }
+}
 
 
 #endif

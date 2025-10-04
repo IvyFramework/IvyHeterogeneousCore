@@ -37,12 +37,28 @@ namespace std_ivy{
     bool recursive;
     bool do_own;
 
+    __HOST_DEVICE__ void destroy(){
+      if (do_own && data){
+        constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+        build_GPU_stream_reference_from_pointer(stream, ref_stream);
+        if (!recursive) IvyMemoryHelpers::free_memory(data, n, def_mem_type, ref_stream);
+        else{
+          if (s==n) allocator_traits_t::destroy(data, n, def_mem_type, ref_stream);
+          else{
+            allocator_traits_t::destruct(data, s, def_mem_type, ref_stream);
+            allocator_traits_t::deallocate(data, n, def_mem_type, ref_stream);
+          }
+        }
+        destroy_GPU_stream_reference_from_pointer(stream);
+      }
+    }
+
   public:
-    __HOST_DEVICE__ memview(pointer const& ptr, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_, bool force_transfer_=false) :
       data(nullptr), s(1), n(1), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      do_own = (def_mem_type != owning_mem_type_);
+      do_own = (def_mem_type != owning_mem_type_ || force_transfer_);
       if (!do_own){
         data = ptr;
         return;
@@ -63,11 +79,11 @@ namespace std_ivy{
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
-    __HOST_DEVICE__ memview(reference ref, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(reference ref, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_, bool force_transfer_=false) :
       data(nullptr), s(1), n(1), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      do_own = (def_mem_type != owning_mem_type_);
+      do_own = (def_mem_type != owning_mem_type_ || force_transfer_);
       if (!do_own){
         data = addressof(ref);
         return;
@@ -89,11 +105,11 @@ namespace std_ivy{
       destroy_GPU_stream_reference_from_pointer(stream);
     }
 
-    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_, bool force_transfer_=false) :
       data(nullptr), s(n_), n(n_), stream(stream_), recursive(recursive_)
     {
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      do_own = (def_mem_type != owning_mem_type_);
+      do_own = (def_mem_type != owning_mem_type_ || force_transfer_);
       if (!do_own){
         data = ptr;
         return;
@@ -114,12 +130,12 @@ namespace std_ivy{
       }
       destroy_GPU_stream_reference_from_pointer(stream);
     }
-    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& s_, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_) :
+    __HOST_DEVICE__ memview(pointer const& ptr, size_type const& s_, size_type const& n_, IvyMemoryType owning_mem_type_, IvyGPUStream* stream_, bool recursive_, bool force_transfer_=false) :
       data(nullptr), s(s_), n(n_), stream(stream_), recursive(recursive_)
     {
       assert(s<=n);
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-      do_own = (def_mem_type != owning_mem_type_);
+      do_own = (def_mem_type != owning_mem_type_ || force_transfer_);
       if (!do_own){
         data = ptr;
         return;
@@ -142,25 +158,38 @@ namespace std_ivy{
     }
 
     memview(memview const&) = delete;
-    memview(memview&&) = delete;
-    memview& operator=(memview const&) = delete;
-    memview& operator=(memview&&) = delete;
-
-    __HOST_DEVICE__ ~memview(){
-      if (do_own){
-        constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
-        build_GPU_stream_reference_from_pointer(stream, ref_stream);
-        if (!recursive) IvyMemoryHelpers::free_memory(data, n, def_mem_type, ref_stream);
-        else{
-          if (s==n) allocator_traits_t::destroy(data, n, def_mem_type, ref_stream);
-          else{
-            allocator_traits_t::destruct(data, s, def_mem_type, ref_stream);
-            allocator_traits_t::deallocate(data, n, def_mem_type, ref_stream);
-          }
-        }
-        destroy_GPU_stream_reference_from_pointer(stream);
-      }
+    __HOST_DEVICE__ memview(memview&& other) :
+      data(std_util::move(other.data)),
+      s(std_util::move(other.s)),
+      n(std_util::move(other.n)),
+      stream(std_util::move(other.stream)),
+      recursive(std_util::move(other.recursive)),
+      do_own(std_util::move(other.do_own))
+    {
+      other.data = nullptr;
+      other.stream = nullptr;
+      other.do_own = other.recursive = false;
     }
+    memview& operator=(memview const&) = delete;
+    __HOST_DEVICE__ memview& operator=(memview&& other){
+      if (this != &other){
+        this->destroy();
+
+        data = std_util::move(other.data);
+        s = std_util::move(other.s);
+        n = std_util::move(other.n);
+        stream = std_util::move(other.stream);
+        recursive = std_util::move(other.recursive);
+        do_own = std_util::move(other.do_own);
+
+        other.data = nullptr;
+        other.stream = nullptr;
+        other.do_own = other.recursive = false;
+      }
+      return *this;
+    }
+
+    __HOST_DEVICE__ ~memview(){ destroy(); }
 
     __HOST_DEVICE__ pointer const& get() const{ return data; }
     __HOST_DEVICE__ size_type const& size() const{ return n; }
