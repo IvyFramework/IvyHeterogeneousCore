@@ -1,0 +1,7 @@
+<map id="IvyBlankStream" name="IvyBlankStream">
+<area shape="rect" id="Node000001" title=" " alt="" coords="47,183,174,208"/>
+<area shape="rect" id="Node000002" href="$d2/dbe/classIvyBaseStream.html" title=" " alt="" coords="9,93,212,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,147,113,182,108,182,108,147"/>
+<area shape="rect" id="Node000003" href="$de/d62/structIvyStreamUtils_1_1BlankStream.html" title="Marker raw stream type for blank stream backend." alt="" coords="5,5,216,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,44,113,93,108,93,108,44"/>
+</map>

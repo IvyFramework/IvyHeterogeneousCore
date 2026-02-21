@@ -1,0 +1,7 @@
+<map id="std_ivy::memview::memview" name="std_ivy::memview::memview">
+<area shape="rect" id="Node000001" title="Construct a view with logical size s_ and storage size n_." alt="" coords="5,45,219,70"/>
+<area shape="rect" id="Node000002" href="$d1/d9a/classstd__ivy_1_1allocator__traits.html#a6466d24e6edc33a3f9b3664930f63d76" title="Allocate through allocator instance interface." alt="" coords="303,5,437,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,42,289,33,290,38,215,47"/>
+<area shape="rect" id="Node000003" href="$d2/d12/namespaceIvyMemoryHelpers.html#a725e8fe9b15c51e1897f47a12820a6b8" title="Return default memory domain associated with the current compilation/execution context." alt="" coords="267,69,473,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,67,253,72,253,77,214,73"/>
+</map>

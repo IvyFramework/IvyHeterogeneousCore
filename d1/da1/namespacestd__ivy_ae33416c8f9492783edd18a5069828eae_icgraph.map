@@ -1,0 +1,9 @@
+<map id="std_ivy::minmax_element" name="std_ivy::minmax_element">
+<area shape="rect" id="Node000001" title="Find iterators to the minimum and maximum elements in a range." alt="" coords="244,55,435,80"/>
+<area shape="rect" id="Node000002" href="$d1/da1/namespacestd__ivy.html#a0928d33e786722e861141a0974aa350d" title="Compute minimum and maximum values from an initializer list." alt="" coords="35,5,166,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,54,162,33,164,28,265,49"/>
+<area shape="rect" id="Node000003" href="$d1/da1/namespacestd__ivy.html#ad29a9904d82089d367fe42b288821710" title="Compute minimum and maximum values from an initializer list using a custom comparator." alt="" coords="35,55,166,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,70,166,70,166,65,230,65"/>
+<area shape="rect" id="Node000004" href="$d1/da1/namespacestd__ivy.html#abe320210484ff4973c5d8c7923a54052" title="Find iterators to minimum and maximum elements using default less&#45;than ordering." alt="" coords="5,104,196,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="265,85,164,107,162,101,264,80"/>
+</map>

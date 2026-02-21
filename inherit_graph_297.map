@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$da/d8b/classstd__ivy_1_1allocation__type__properties.html" title=" " alt="" coords="265,5,434,45"/>
+<area shape="rect" id="Node000001" href="$d5/d3d/classstd__ivy_1_1allocator.html" title=" " alt="" coords="492,109,663,134"/>
+<area shape="poly" id="edge42_Node000000_Node000001" title=" " alt="" coords="427,48,445,55,553,106,551,111,443,60,425,53"/>
+<area shape="rect" id="Node000002" href="$d2/d58/classstd__ivy_1_1allocator__primitive.html" title=" " alt="" coords="283,69,416,109"/>
+<area shape="poly" id="edge43_Node000002_Node000001" title=" " alt="" coords="430,98,492,107,491,112,430,103"/>
+<area shape="rect" id="Node000003" href="$df/d44/classstd__ivy_1_1deallocator__primitive.html" title=" " alt="" coords="275,133,424,173"/>
+<area shape="poly" id="edge44_Node000003_Node000001" title=" " alt="" coords="437,138,492,131,492,136,438,144"/>
+<area shape="rect" id="Node000005" href="$d3/de4/classstd__ivy_1_1transfer__memory__primitive__without__internal__memory.html" title=" " alt="" coords="5,190,207,245"/>
+<area shape="rect" id="Node000004" href="$df/d3a/classstd__ivy_1_1transfer__memory__primitive.html" title=" " alt="" coords="255,197,444,237"/>
+<area shape="poly" id="edge45_Node000005_Node000004" title=" " alt="" coords="220,215,255,215,255,220,220,220"/>
+<area shape="poly" id="edge46_Node000004_Node000001" title=" " alt="" coords="425,190,443,183,551,132,553,136,445,188,427,195"/>
+</map>

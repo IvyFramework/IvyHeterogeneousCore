@@ -1,0 +1,7 @@
+<map id="std_ivy::minmax_element" name="std_ivy::minmax_element">
+<area shape="rect" id="Node000001" title="Find iterators to the minimum and maximum elements in a range." alt="" coords="5,31,196,56"/>
+<area shape="rect" id="Node000002" href="$d1/da1/namespacestd__ivy.html#ab1f559bbbe4834fdae00122f2b19a1c3" title="Return the larger of two values using operator&gt;." alt="" coords="244,5,349,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,28,230,24,231,29,197,34"/>
+<area shape="rect" id="Node000003" href="$d1/da1/namespacestd__ivy.html#a28909df03c27f80108904e184bfaba4c" title="Return the smaller of two values using operator&gt;." alt="" coords="246,55,347,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,52,232,57,232,62,196,58"/>
+</map>

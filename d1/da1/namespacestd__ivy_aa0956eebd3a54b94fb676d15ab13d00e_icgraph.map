@@ -1,0 +1,15 @@
+<map id="std_ivy::addressof" name="std_ivy::addressof">
+<area shape="rect" id="Node000001" title="Obtain the true object address using compiler builtin support." alt="" coords="267,181,407,206"/>
+<area shape="rect" id="Node000002" href="$da/d8b/classstd__ivy_1_1allocation__type__properties.html#a72b7691df436d6c5fe9ccec2f8de9708" title="Get the address of a const reference." alt="" coords="17,5,207,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="318,170,277,114,249,85,217,60,195,48,197,43,220,55,253,81,281,111,323,167"/>
+<area shape="rect" id="Node000003" href="$da/d8b/classstd__ivy_1_1allocation__type__properties.html#a6e188302a5a60b390cf421866bb4cad8" title="Get the address of a mutable reference." alt="" coords="17,69,207,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="306,175,265,149,218,124,187,112,189,107,220,119,267,144,308,171"/>
+<area shape="rect" id="Node000004" href="$d9/d43/classstd__ivy_1_1allocation__type__properties_3_01T_01const_01_4.html#ab1b12d8d58f7452b85a6d5dc16559d46" title="Get the address of a const reference." alt="" coords="35,134,189,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="253,184,189,175,190,170,253,179"/>
+<area shape="rect" id="Node000005" href="$d1/d86/classstd__ivy_1_1memview.html#ae770eccd7247e395ae4b876ae129bc7e" title="Construct a single&#45;element view from a reference source." alt="" coords="5,213,219,238"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="253,208,202,215,201,210,253,203"/>
+<area shape="rect" id="Node000006" href="$d0/d24/classstd__ivy_1_1pointer__traits_3_01T_01_5_01_4.html#ad10da1026f1a1e75b8aa65a9535f7004" title="Return the address of x as a raw pointer." alt="" coords="31,263,193,303"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="300,215,220,252,183,265,181,260,218,247,298,210"/>
+<area shape="rect" id="Node000007" href="$d1/da1/namespacestd__ivy.html#ad14c2924fbb1b3faaf13ed72f618d991" title="Create a memview over an IvyUnifiedPtr instance." alt="" coords="59,327,165,353"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="321,219,279,269,251,295,220,317,193,329,166,336,165,331,192,324,217,312,248,291,275,265,317,216"/>
+</map>

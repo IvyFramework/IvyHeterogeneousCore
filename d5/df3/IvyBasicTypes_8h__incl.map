@@ -1,0 +1,11 @@
+<map id="IvyBasicTypes.h" name="IvyBasicTypes.h">
+<area shape="rect" id="Node000001" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="118,5,245,31"/>
+<area shape="rect" id="Node000002" href="$d8/daa/IvyTypeTraits_8h.html" title="Type&#45;trait wrapper and macro helpers for SFINAE and compile&#45;time reflection checks." alt="" coords="5,79,176,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,33,118,72,115,68,165,29"/>
+<area shape="rect" id="Node000004" href="$d3/df2/IvyLimits_8h.html" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="201,79,346,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,29,249,68,246,72,194,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="45,152,137,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,104,93,138,88,138,88,104"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="244,152,303,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="276,104,276,138,271,138,271,104"/>
+</map>

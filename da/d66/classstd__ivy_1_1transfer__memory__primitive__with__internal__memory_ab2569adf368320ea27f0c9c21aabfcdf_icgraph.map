@@ -1,0 +1,5 @@
+<map id="std_ivy::transfer_memory_primitive_with_internal_memory::transfer_internal_memory" name="std_ivy::transfer_memory_primitive_with_internal_memory::transfer_internal_memory">
+<area shape="rect" id="Node000001" title="Transfer nested/internal allocations for each element." alt="" coords="243,5,504,60"/>
+<area shape="rect" id="Node000002" href="$da/d66/classstd__ivy_1_1transfer__memory__primitive__with__internal__memory.html#ad572612af1fe3a17209cf0fe7e09c9a4" title="Transfer element storage and then reconcile nested/internal allocations." alt="" coords="5,5,195,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,35,195,35,195,30,229,30"/>
+</map>

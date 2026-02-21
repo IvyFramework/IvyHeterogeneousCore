@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['base_5ft_0',['base_t',['../d2/d58/classstd__ivy_1_1allocator__primitive.html#afb33ac1f88a6af3e0a541dd74951cce3',1,'std_ivy::allocator_primitive::base_t'],['../df/d44/classstd__ivy_1_1deallocator__primitive.html#a8a2bfddf17f3b5a6381a09bedb1098ec',1,'std_ivy::deallocator_primitive::base_t'],['../d3/de4/classstd__ivy_1_1transfer__memory__primitive__without__internal__memory.html#ab990d9f1fccb54533d849732cbc74939',1,'std_ivy::transfer_memory_primitive_without_internal_memory::base_t'],['../da/d66/classstd__ivy_1_1transfer__memory__primitive__with__internal__memory.html#af1c93a60c9fcddd54f7cba4a1ca927c6',1,'std_ivy::transfer_memory_primitive_with_internal_memory::base_t'],['../de/d1f/classstd__ivy_1_1transfer__memory__primitive_3_01std__util_1_1pair_3_01T_00_01U_01_4_01_4.html#abf4dc7281208d1c12d45e2b9ecec4754',1,'std_ivy::transfer_memory_primitive&lt; std_util::pair&lt; T, U &gt; &gt;::base_t'],['../d5/d3d/classstd__ivy_1_1allocator.html#a647cd2096379c77842120fe7686f9c41',1,'std_ivy::allocator::base_t']]],
+  ['binary_5fpredicate_1',['binary_predicate',['../d9/dc0/structstd__ivy_1_1IvyKeyEqualBinaryEval.html#a9ca764079f3abe714543b2110ca43edc',1,'std_ivy::IvyKeyEqualBinaryEval']]],
+  ['bucket_5fdata_5ftype_2',['bucket_data_type',['../d0/d3c/classstd__ivy_1_1IvyUnorderedMap.html#a46d7c1589152743638c23076e95241cf',1,'std_ivy::IvyUnorderedMap']]],
+  ['bucket_5felement_3',['bucket_element',['../d0/d3c/classstd__ivy_1_1IvyUnorderedMap.html#a35a3946ff747bb7e08234533557beb98',1,'std_ivy::IvyUnorderedMap']]]
+];

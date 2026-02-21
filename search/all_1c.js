@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['undefined_5fdomain_5ftag_0',['undefined_domain_tag',['../dc/d61/structIvyMath_1_1undefined__domain__tag.html',1,'IvyMath']]],
+  ['unified_20dispatch_20model_20for_20kernels_1',['2) Unified dispatch model for kernels',['../index.html#autotoc_md22',1,'']]],
+  ['unified_20pointer_20model_2',['Unified pointer model',['../index.html#autotoc_md48',1,'']]],
+  ['unifiedptr_5fview_3',['unifiedptr_view',['../d1/da1/namespacestd__ivy.html#a52c729886f9722b54db32349343deab5',1,'std_ivy']]],
+  ['unique_4',['unique',['../df/d8d/classstd__ivy_1_1IvyUnifiedPtr.html#a5086c6c3ae6f852dd5ab09378dea1a64',1,'std_ivy::IvyUnifiedPtr::unique()'],['../d1/da1/namespacestd__ivy.html#a3269bb1ce5daa3b9d08b063f6c0a6d4ca673eb027e9c056f57140322807351dd5',1,'std_ivy::unique']]],
+  ['unique_5fptr_5',['unique_ptr',['../d1/da1/namespacestd__ivy.html#a551a25ac8b1958933135d79e15980337',1,'std_ivy']]],
+  ['uniqueptr_5fview_6',['uniqueptr_view',['../d1/da1/namespacestd__ivy.html#a197b0c413657afee917d2053e3281cf9',1,'std_ivy']]],
+  ['unordered_5fmap_7',['unordered_map',['../d1/da1/namespacestd__ivy.html#abde39cd2cdd78196cf14554ab04a57e1',1,'std_ivy']]],
+  ['unpack_5ffunction_5finput_8',['unpack_function_input',['../d0/daa/structIvyMath_1_1unpack__function__input.html',1,'IvyMath']]],
+  ['unpack_5ffunction_5finput_3c_20t_2c_20function_5fvalue_5ftag_20_3e_9',['unpack_function_input&lt; T, function_value_tag &gt;',['../d7/d02/structIvyMath_1_1unpack__function__input_3_01T_00_01function__value__tag_01_4.html',1,'IvyMath']]],
+  ['unpack_5ffunction_5finput_5freduced_10',['unpack_function_input_reduced',['../db/d4e/structIvyMath_1_1unpack__function__input__reduced.html',1,'IvyMath']]],
+  ['unpack_5ffunction_5finput_5freduced_3c_20t_2c_20arithmetic_5fdomain_5ftag_20_3e_11',['unpack_function_input_reduced&lt; T, arithmetic_domain_tag &gt;',['../d9/d66/structIvyMath_1_1unpack__function__input__reduced_3_01T_00_01arithmetic__domain__tag_01_4.html',1,'IvyMath']]],
+  ['unpack_5fif_5ffunction_5ftype_12',['unpack_if_function_type',['../d7/d8d/structIvyMath_1_1unpack__if__function__type.html',1,'IvyMath']]],
+  ['unpacked_5freduced_5fvalue_5ftype_13',['unpacked_reduced_value_type',['../db/d64/structIvyMath_1_1unpacked__reduced__value__type.html',1,'IvyMath']]],
+  ['usage_20approval_14',['License and Usage Approval',['../index.html#autotoc_md61',1,'']]],
+  ['use_15',['3. Authorized Use',['../da/d19/md_LICENSE.html#autotoc_md5',1,'']]],
+  ['use_20in_20your_20code_16',['How to Use in Your Code',['../index.html#autotoc_md41',1,'']]],
+  ['use_20tt_20std_5fivy_3a_3avector_20tt_17',['Example: use &lt;tt&gt;std_ivy::vector&lt;/tt&gt;',['../index.html#autotoc_md43',1,'']]],
+  ['use_5fcount_18',['use_count',['../df/d8d/classstd__ivy_1_1IvyUnifiedPtr.html#ab886414e830e4da548f4206c7319493d',1,'std_ivy::IvyUnifiedPtr']]],
+  ['use_5fdevice_5facc_19',['use_device_acc',['../d2/d12/namespaceIvyMemoryHelpers.html#af7f504c8e6240385fdf2c47448a20965',1,'IvyMemoryHelpers']]],
+  ['use_5fdevice_5fgpu_20',['use_device_GPU',['../d2/d12/namespaceIvyMemoryHelpers.html#a325d02345e7a58363de443d83056e5df',1,'IvyMemoryHelpers']]],
+  ['use_5fdevice_5fhost_21',['use_device_host',['../d2/d12/namespaceIvyMemoryHelpers.html#a267a2ac7e1e887a5b18e5cc801825204',1,'IvyMemoryHelpers']]],
+  ['used_22',['OpenMP not being used',['../index.html#autotoc_md58',1,'']]]
+];

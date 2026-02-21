@@ -1,0 +1,5 @@
+<map id="cuda_check_and_warn" name="cuda_check_and_warn">
+<area shape="rect" id="Node000001" title="Execute a backend call and print contextual diagnostics on failure." alt="" coords="204,5,372,31"/>
+<area shape="rect" id="Node000002" href="$d5/d91/IvyCudaException_8h.html#ab7783adcc1276c8af73c8b53698c376d" title="Execute a backend call, warn on failure, and assert in debug flows." alt="" coords="5,5,156,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,21,157,21,157,15,190,15"/>
+</map>

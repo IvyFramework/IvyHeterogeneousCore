@@ -1,0 +1,5 @@
+<map id="std_ivy::allocator_primitive::allocate" name="std_ivy::allocator_primitive::allocate">
+<area shape="rect" id="Node000001" title="Allocate storage for n elements into tgt." alt="" coords="239,5,387,45"/>
+<area shape="rect" id="Node000002" href="$db/dd1/structIvyMemoryHelpers_1_1copy__data__fcnal.html#ad55468d34dfcce299bde2f07104f60ae" title="Copy source values into target storage with allocation/transfer semantics." alt="" coords="5,5,191,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,28,191,28,191,23,225,23"/>
+</map>

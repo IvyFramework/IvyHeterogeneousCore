@@ -1,0 +1,15 @@
+<map id="IvyNumeric.h" name="IvyNumeric.h">
+<area shape="rect" id="Node000001" title="Numeric umbrella header exposing std_ivy numeric utilities." alt="" coords="147,5,256,31"/>
+<area shape="rect" id="Node000002" href="$d1/d9c/IvyAccumulate_8h.html" title="Accumulation utilities analogous to std::accumulate for std_ivy iterators." alt="" coords="82,79,321,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,31,204,65,199,65,199,31"/>
+<area shape="rect" id="Node000003" href="$db/d00/IvyCompilerConfig_8h.html" title="Compile&#45;time execution&#45;context selectors for host vs device builds." alt="" coords="5,152,203,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="187,106,133,146,130,141,184,102"/>
+<area shape="rect" id="Node000006" href="$da/d42/IvyUtility_8h.html" title="Backend&#45;selecting utility wrapper for pair and move&#45;related utilities." alt="" coords="227,152,370,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="219,102,273,141,270,146,215,106"/>
+<area shape="rect" id="Node000004" href="$dd/dca/IvyCudaFlags_8h.html" title="Host/device qualifier and portability macros for CUDA&#45;aware builds." alt="" coords="21,225,187,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,178,107,212,101,212,101,178"/>
+<area shape="rect" id="Node000005" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="9,299,199,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="107,251,107,285,101,285,101,251"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="269,225,329,251"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="301,178,301,212,296,212,296,178"/>
+</map>

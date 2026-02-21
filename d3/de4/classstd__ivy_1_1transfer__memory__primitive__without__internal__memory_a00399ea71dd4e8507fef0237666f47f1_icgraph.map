@@ -1,0 +1,7 @@
+<map id="std_ivy::transfer_memory_primitive_without_internal_memory::transfer_internal_memory" name="std_ivy::transfer_memory_primitive_without_internal_memory::transfer_internal_memory">
+<area shape="rect" id="Node000001" title="No&#45;op internal&#45;memory transfer for trivially external objects." alt="" coords="252,45,513,100"/>
+<area shape="rect" id="Node000002" href="$d9/dd1/classstd__ivy_1_1kernel__generic__transfer__internal__memory.html#aa7311454bb11d186c894e2f3e2e06cc3" title="Kernel entry point for internal&#45;memory transfer over an index range." alt="" coords="5,5,204,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,55,204,50,204,44,239,49"/>
+<area shape="rect" id="Node000003" href="$de/d1f/classstd__ivy_1_1transfer__memory__primitive_3_01std__util_1_1pair_3_01T_00_01U_01_4_01_4.html#a97c4d7092eee1ee53433e9c97020afc9" title="Transfer pair storage and then pair&#45;member internal allocations." alt="" coords="10,84,199,139"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,95,200,101,199,96,238,90"/>
+</map>

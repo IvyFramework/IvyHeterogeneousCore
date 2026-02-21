@@ -1,0 +1,57 @@
+<map id="IvyAtomic.h" name="IvyAtomic.h">
+<area shape="rect" id="Node000001" title="Backend&#45;selecting atomic wrapper that aliases CUDA or standard atomic facilities." alt="" coords="250,5,350,31"/>
+<area shape="rect" id="Node000002" href="$d0/da6/IvyBaseModifiable_8h_source.html" title=" " alt="" coords="223,79,377,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="303,44,303,79,297,79,297,44"/>
+<area shape="rect" id="Node000003" href="$d6/db3/IvyBaseMathTypes_8h_source.html" title=" " alt="" coords="281,152,437,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="320,113,351,150,347,154,316,116"/>
+<area shape="rect" id="Node000009" href="$de/d03/IvyFunction_8h_source.html" title=" " alt="" coords="252,592,361,617"/>
+<area shape="poly" id="edge35_Node000002_Node000009" title=" " alt="" coords="209,102,141,116,107,126,76,140,49,158,27,180,13,206,8,237,8,386,15,428,35,465,64,497,101,524,141,547,183,565,258,589,256,595,181,570,139,551,98,529,61,501,30,468,10,430,3,386,3,236,8,204,23,177,45,154,73,136,106,121,140,110,208,97"/>
+<area shape="rect" id="Node000018" href="$d8/d66/IvyTensor_8h_source.html" title=" " alt="" coords="211,225,306,251"/>
+<area shape="poly" id="edge36_Node000002_Node000018" title=" " alt="" coords="288,117,272,153,264,192,262,225,256,225,259,191,267,151,283,115"/>
+<area shape="rect" id="Node000019" href="$da/d90/IvyClientManager_8h_source.html" title=" " alt="" coords="541,152,689,177"/>
+<area shape="poly" id="edge31_Node000002_Node000019" title=" " alt="" coords="364,104,564,149,563,154,363,110"/>
+<area shape="rect" id="Node000004" href="$da/d34/IvyBaseFunctionRun_8h_source.html" title=" " alt="" coords="382,225,549,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="388,183,449,223,446,227,386,187"/>
+<area shape="rect" id="Node000005" href="$d1/d44/IvyComplexVariable_8h_source.html" title=" " alt="" coords="504,372,669,397"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="451,169,481,176,511,187,539,202,563,224,576,241,585,261,593,303,594,343,591,372,586,371,589,343,588,304,579,263,571,244,559,227,536,207,509,192,479,181,449,174"/>
+<area shape="poly" id="edge25_Node000003_Node000009" title=" " alt="" coords="269,182,231,200,215,212,202,227,200,237,203,250,208,383,208,459,210,480,217,501,240,538,267,568,293,590,289,594,264,572,235,541,212,503,205,482,203,459,203,383,197,251,195,237,198,224,212,208,228,195,266,177"/>
+<area shape="rect" id="Node000015" href="$df/d7d/IvyConstant_8h_source.html" title=" " alt="" coords="624,225,736,251"/>
+<area shape="poly" id="edge18_Node000003_Node000015" title=" " alt="" coords="424,178,629,223,627,228,423,183"/>
+<area shape="rect" id="Node000016" href="$d3/d1f/IvyVariable_8h_source.html" title=" " alt="" coords="293,299,400,324"/>
+<area shape="poly" id="edge30_Node000003_Node000016" title=" " alt="" coords="359,192,350,299,345,298,354,191"/>
+<area shape="rect" id="Node000017" href="$d5/dd3/IvyMathTypes_8h_source.html" title=" " alt="" coords="43,299,167,324"/>
+<area shape="poly" id="edge26_Node000003_Node000017" title=" " alt="" coords="268,180,210,197,182,211,156,227,140,244,127,263,111,299,107,297,123,261,136,241,153,223,179,206,208,193,267,175"/>
+<area shape="poly" id="edge28_Node000003_Node000018" title=" " alt="" coords="333,187,277,227,273,223,330,183"/>
+<area shape="rect" id="Node000006" href="$d6/d76/IvyCerf_8hh_source.html" title=" " alt="" coords="728,445,816,471"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="630,400,743,443,741,448,628,405"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="553,406,486,447,430,495,378,546,322,594,319,590,374,542,427,491,482,443,550,401"/>
+<area shape="rect" id="Node000012" href="$db/de2/IvyMathBaseArithmetic_8hh_source.html" title=" " alt="" coords="557,812,752,837"/>
+<area shape="poly" id="edge13_Node000005_Node000012" title=" " alt="" coords="622,402,646,421,668,444,689,484,693,530,693,679,690,718,681,756,662,812,657,811,676,755,685,717,688,679,688,530,684,486,663,447,643,424,619,407"/>
+<area shape="rect" id="Node000013" href="$de/dca/IvyMathConstOps_8hh_source.html" title=" " alt="" coords="496,445,653,471"/>
+<area shape="poly" id="edge14_Node000005_Node000013" title=" " alt="" coords="585,412,579,446,574,445,580,411"/>
+<area shape="rect" id="Node000007" href="$dc/dfe/IvyCerf_8h_source.html" title=" " alt="" coords="735,592,815,617"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="775,485,777,592,772,592,770,485"/>
+<area shape="rect" id="Node000008" href="$de/d54/IvyMathBaseArithmetic_8h_source.html" title=" " alt="" coords="628,885,815,911"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="781,631,784,672,785,724,780,782,766,838,752,866,735,887,731,883,748,863,762,836,775,781,780,724,779,672,775,631"/>
+<area shape="rect" id="Node000010" href="$db/d03/IvyMathFunctionPrimitives_8hh_source.html" title=" " alt="" coords="199,665,415,691"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="309,631,309,665,304,665,304,631"/>
+<area shape="rect" id="Node000011" href="$d8/da0/IvyMathFunctionPrimitives_8h_source.html" title=" " alt="" coords="209,739,417,764"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="312,704,315,738,310,739,306,705"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="382,764,600,809,599,815,381,769"/>
+<area shape="poly" id="edge12_Node000012_Node000008" title=" " alt="" coords="677,846,712,883,709,887,673,850"/>
+<area shape="rect" id="Node000014" href="$d5/d01/IvyMathConstOps_8h_source.html" title=" " alt="" coords="500,519,649,544"/>
+<area shape="poly" id="edge15_Node000013_Node000014" title=" " alt="" coords="577,484,577,519,572,519,572,484"/>
+<area shape="poly" id="edge16_Node000014_Node000009" title=" " alt="" coords="519,550,351,594,349,589,517,545"/>
+<area shape="poly" id="edge17_Node000014_Node000012" title=" " alt="" coords="584,556,654,811,649,812,579,558"/>
+<area shape="poly" id="edge19_Node000015_Node000009" title=" " alt="" coords="650,260,576,308,534,340,494,374,436,435,384,498,316,593,312,590,380,495,432,431,490,370,530,336,573,304,647,256"/>
+<area shape="poly" id="edge20_Node000015_Node000012" title=" " alt="" coords="729,253,771,273,812,301,829,318,843,337,853,359,856,383,856,606,851,644,836,679,814,711,787,739,729,785,679,814,676,810,726,780,783,735,810,708,831,676,845,643,851,606,851,384,847,361,839,340,825,321,808,305,768,277,727,258"/>
+<area shape="poly" id="edge21_Node000015_Node000016" title=" " alt="" coords="614,256,401,301,400,296,613,251"/>
+<area shape="poly" id="edge22_Node000016_Node000005" title=" " alt="" coords="399,325,549,369,547,374,398,330"/>
+<area shape="poly" id="edge23_Node000016_Node000009" title=" " alt="" coords="346,338,311,592,306,591,341,337"/>
+<area shape="poly" id="edge24_Node000016_Node000012" title=" " alt="" coords="365,334,393,382,425,447,452,523,460,563,463,603,463,679,467,705,478,727,494,747,515,765,564,792,611,809,610,814,562,797,512,769,491,751,473,730,462,706,457,680,457,603,454,564,447,524,421,449,389,384,360,337"/>
+<area shape="poly" id="edge27_Node000017_Node000010" title=" " alt="" coords="94,337,71,391,62,423,59,457,59,532,63,560,75,584,93,604,116,621,172,647,229,663,228,668,170,652,113,626,89,608,70,587,58,562,53,533,53,457,57,422,66,389,90,335"/>
+<area shape="poly" id="edge29_Node000018_Node000009" title=" " alt="" coords="261,264,259,383,259,459,263,498,275,535,302,591,297,593,270,537,258,499,253,459,253,383,255,264"/>
+<area shape="poly" id="edge32_Node000019_Node000005" title=" " alt="" coords="684,179,714,190,739,206,753,226,754,239,750,252,722,294,685,329,646,355,613,374,610,369,643,351,682,324,718,290,746,250,749,238,748,228,735,210,711,195,682,184"/>
+<area shape="poly" id="edge33_Node000019_Node000015" title=" " alt="" coords="637,186,671,223,667,227,633,189"/>
+<area shape="poly" id="edge34_Node000019_Node000018" title=" " alt="" coords="545,183,307,230,306,225,544,177"/>
+</map>

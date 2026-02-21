@@ -1,0 +1,9 @@
+<map id="std_ivy::memview::memview" name="std_ivy::memview::memview">
+<area shape="rect" id="Node000001" title="Construct a single&#45;element view from a reference source." alt="" coords="5,63,219,88"/>
+<area shape="rect" id="Node000002" href="$d1/da1/namespacestd__ivy.html#aa0956eebd3a54b94fb676d15ab13d00e" title="Obtain the true object address using compiler builtin support." alt="" coords="300,5,440,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,60,298,31,299,36,171,65"/>
+<area shape="rect" id="Node000003" href="$d1/d9a/classstd__ivy_1_1allocator__traits.html#a6466d24e6edc33a3f9b3664930f63d76" title="Allocate through allocator instance interface." alt="" coords="303,55,437,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,73,290,73,290,78,219,78"/>
+<area shape="rect" id="Node000004" href="$d2/d12/namespaceIvyMemoryHelpers.html#a725e8fe9b15c51e1897f47a12820a6b8" title="Return default memory domain associated with the current compilation/execution context." alt="" coords="267,119,473,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,86,276,113,275,119,164,91"/>
+</map>

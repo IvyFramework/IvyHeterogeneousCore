@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['secfcnal_0',['SecFcnal',['../d8/d3d/structIvyMath_1_1SecFcnal.html',1,'IvyMath']]],
+  ['sinfcnal_1',['SinFcnal',['../dc/d23/structIvyMath_1_1SinFcnal.html',1,'IvyMath']]],
+  ['sinfcnal_3c_20t_2c_20complex_5fdomain_5ftag_20_3e_2',['SinFcnal&lt; T, complex_domain_tag &gt;',['../d3/d75/structIvyMath_1_1SinFcnal_3_01T_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['sinfcnal_3c_20t_2c_20real_5fdomain_5ftag_20_3e_3',['SinFcnal&lt; T, real_domain_tag &gt;',['../d7/d14/structIvyMath_1_1SinFcnal_3_01T_00_01real__domain__tag_01_4.html',1,'IvyMath']]],
+  ['sinhfcnal_4',['SinHFcnal',['../df/db2/structIvyMath_1_1SinHFcnal.html',1,'IvyMath']]],
+  ['sinhfcnal_3c_20t_2c_20complex_5fdomain_5ftag_20_3e_5',['SinHFcnal&lt; T, complex_domain_tag &gt;',['../db/d12/structIvyMath_1_1SinHFcnal_3_01T_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['sinhfcnal_3c_20t_2c_20real_5fdomain_5ftag_20_3e_6',['SinHFcnal&lt; T, real_domain_tag &gt;',['../da/df1/structIvyMath_1_1SinHFcnal_3_01T_00_01real__domain__tag_01_4.html',1,'IvyMath']]],
+  ['sqrtfcnal_7',['SqrtFcnal',['../df/d9a/structIvyMath_1_1SqrtFcnal.html',1,'IvyMath']]],
+  ['sqrtfcnal_3c_20t_2c_20complex_5fdomain_5ftag_20_3e_8',['SqrtFcnal&lt; T, complex_domain_tag &gt;',['../df/da8/structIvyMath_1_1SqrtFcnal_3_01T_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['sqrtfcnal_3c_20t_2c_20real_5fdomain_5ftag_20_3e_9',['SqrtFcnal&lt; T, real_domain_tag &gt;',['../d2/d93/structIvyMath_1_1SqrtFcnal_3_01T_00_01real__domain__tag_01_4.html',1,'IvyMath']]],
+  ['stashing_5fiterator_10',['stashing_iterator',['../de/d0d/structstd__ivy_1_1stashing__iterator.html',1,'std_ivy']]],
+  ['stashing_5fiterator_3c_20t_2c_20std_5fttraits_3a_3avoid_5ft_3c_20typename_20t_3a_3astashing_5fiterator_5ftag_20_3e_20_3e_11',['stashing_iterator&lt; T, std_ttraits::void_t&lt; typename T::stashing_iterator_tag &gt; &gt;',['../dd/ddb/structstd__ivy_1_1stashing__iterator_3_01T_00_01std__ttraits_1_1void__t_3_01typename_01T_1_1stashing__iterator__tag_01_4_01_4.html',1,'std_ivy']]],
+  ['streamevent_12',['StreamEvent',['../d7/d8b/structIvyStreamUtils_1_1StreamEvent.html',1,'IvyStreamUtils']]],
+  ['streamevent_3c_20blankstream_20_3e_13',['StreamEvent&lt; BlankStream &gt;',['../da/d6d/structIvyStreamUtils_1_1StreamEvent_3_01BlankStream_01_4.html',1,'IvyStreamUtils']]],
+  ['subtractfcnal_14',['SubtractFcnal',['../d3/d63/structIvyMath_1_1SubtractFcnal.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20arithmetic_5fdomain_5ftag_2c_20complex_5fdomain_5ftag_20_3e_15',['SubtractFcnal&lt; T, U, arithmetic_domain_tag, complex_domain_tag &gt;',['../dd/de9/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01arithmetic__domain__tag_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20arithmetic_5fdomain_5ftag_2c_20real_5fdomain_5ftag_20_3e_16',['SubtractFcnal&lt; T, U, arithmetic_domain_tag, real_domain_tag &gt;',['../d2/daf/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01arithmetic__domain__tag_00_01real__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20complex_5fdomain_5ftag_2c_20arithmetic_5fdomain_5ftag_20_3e_17',['SubtractFcnal&lt; T, U, complex_domain_tag, arithmetic_domain_tag &gt;',['../d5/dd0/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01complex__domain__tag_00_01arithmetic__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20complex_5fdomain_5ftag_2c_20complex_5fdomain_5ftag_20_3e_18',['SubtractFcnal&lt; T, U, complex_domain_tag, complex_domain_tag &gt;',['../df/d81/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01complex__domain__tag_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20complex_5fdomain_5ftag_2c_20real_5fdomain_5ftag_20_3e_19',['SubtractFcnal&lt; T, U, complex_domain_tag, real_domain_tag &gt;',['../da/da9/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01complex__domain__tag_00_01real__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20real_5fdomain_5ftag_2c_20arithmetic_5fdomain_5ftag_20_3e_20',['SubtractFcnal&lt; T, U, real_domain_tag, arithmetic_domain_tag &gt;',['../db/dff/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01real__domain__tag_00_01arithmetic__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20real_5fdomain_5ftag_2c_20complex_5fdomain_5ftag_20_3e_21',['SubtractFcnal&lt; T, U, real_domain_tag, complex_domain_tag &gt;',['../d2/d68/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01real__domain__tag_00_01complex__domain__tag_01_4.html',1,'IvyMath']]],
+  ['subtractfcnal_3c_20t_2c_20u_2c_20real_5fdomain_5ftag_2c_20real_5fdomain_5ftag_20_3e_22',['SubtractFcnal&lt; T, U, real_domain_tag, real_domain_tag &gt;',['../de/dc5/structIvyMath_1_1SubtractFcnal_3_01T_00_01U_00_01real__domain__tag_00_01real__domain__tag_01_4.html',1,'IvyMath']]]
+];

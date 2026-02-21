@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d3/d72/structkernel__base__noprep__nofin.html" title=" " alt="" coords="5,133,157,173"/>
+<area shape="rect" id="Node000001" href="$d4/da7/structIvyMemoryHelpers_1_1construct__data__kernel.html" title=" " alt="" coords="205,5,420,45"/>
+<area shape="poly" id="edge36_Node000000_Node000001" title=" " alt="" coords="112,122,154,87,204,55,232,43,234,48,207,60,157,91,115,126"/>
+<area shape="rect" id="Node000002" href="$dc/db2/structIvyMemoryHelpers_1_1copy__data__kernel.html" title=" " alt="" coords="220,69,405,109"/>
+<area shape="poly" id="edge37_Node000000_Node000002" title=" " alt="" coords="167,127,239,107,241,112,168,132"/>
+<area shape="rect" id="Node000003" href="$d5/d94/structIvyMemoryHelpers_1_1destruct__data__kernel.html" title=" " alt="" coords="209,133,416,173"/>
+<area shape="poly" id="edge38_Node000000_Node000003" title=" " alt="" coords="171,151,209,151,209,156,171,156"/>
+<area shape="rect" id="Node000004" href="$d9/dd1/classstd__ivy_1_1kernel__generic__transfer__internal__memory.html" title=" " alt="" coords="213,198,412,253"/>
+<area shape="poly" id="edge39_Node000000_Node000004" title=" " alt="" coords="160,175,225,195,224,201,158,180"/>
+<area shape="rect" id="Node000005" href="$dd/dc6/structstd__ivy_1_1kernel__op__parallel.html" title="Kernel wrapper that applies a reduction&#45;like operation in grouped serial chunks." alt="" coords="243,277,382,317"/>
+<area shape="poly" id="edge40_Node000000_Node000005" title=" " alt="" coords="111,181,153,223,207,262,244,278,242,283,204,266,150,227,107,185"/>
+</map>

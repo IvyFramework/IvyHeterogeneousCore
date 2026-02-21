@@ -1,0 +1,27 @@
+<map id="IvyFunctional.h" name="IvyFunctional.h">
+<area shape="rect" id="Node000001" title="Functional umbrella header exposing std_ivy extensions and backend functional aliases." alt="" coords="217,5,339,31"/>
+<area shape="rect" id="Node000002" href="$d6/de1/IvyHash_8h.html" title="Hash functors and helpers implemented under std_ivy." alt="" coords="209,79,347,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="281,31,281,65,275,65,275,31"/>
+<area shape="rect" id="Node000011" href="$d1/dc1/IvyMultiplies_8h.html" title="Multiplication functor utilities in the std_ivy namespace." alt="" coords="46,79,185,119"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="255,33,168,75,166,70,253,28"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="372,86,459,111"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="300,29,385,77,382,81,297,33"/>
+<area shape="rect" id="Node000003" href="$db/d00/IvyCompilerConfig_8h.html" title="Compile&#45;time execution&#45;context selectors for host vs device builds." alt="" coords="17,167,214,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="240,121,153,163,151,158,238,116"/>
+<area shape="rect" id="Node000006" href="$d8/daa/IvyTypeTraits_8h.html" title="Type&#45;trait wrapper and macro helpers for SFINAE and compile&#45;time reflection checks." alt="" coords="207,240,378,265"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="283,119,293,226,288,227,277,119"/>
+<area shape="rect" id="Node000008" href="$d1/db3/IvyBasicTypes_8h.html" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="316,167,443,192"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="304,117,355,156,352,160,301,121"/>
+<area shape="rect" id="Node000004" href="$dd/dca/IvyCudaFlags_8h.html" title="Host/device qualifier and portability macros for CUDA&#45;aware builds." alt="" coords="18,240,183,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="116,193,108,227,103,226,110,192"/>
+<area shape="rect" id="Node000005" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="5,313,196,339"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="103,266,103,300,98,300,98,266"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="247,313,339,339"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="295,266,295,300,290,300,290,266"/>
+<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="367,194,319,233,316,229,364,190"/>
+<area shape="rect" id="Node000009" href="$d3/df2/IvyLimits_8h.html" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="403,240,548,265"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="396,190,450,229,447,234,393,194"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="446,313,505,339"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="478,266,478,300,473,300,473,266"/>
+<area shape="poly" id="edge12_Node000011_Node000003" title=" " alt="" coords="118,119,118,153,113,153,113,119"/>
+</map>

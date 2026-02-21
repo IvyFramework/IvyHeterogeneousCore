@@ -1,0 +1,17 @@
+<map id="IvyIteratorTraits.h" name="IvyIteratorTraits.h">
+<area shape="rect" id="Node000001" title="Iterator trait helpers and aliases for std_ivy iterator categories." alt="" coords="124,5,261,31"/>
+<area shape="rect" id="Node000002" href="$d1/db3/IvyBasicTypes_8h.html" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="79,167,205,192"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,33,168,54,154,80,145,117,144,153,138,153,140,117,149,78,163,51,180,29"/>
+<area shape="rect" id="Node000007" href="$d8/d88/IvyIteratorPrimitives_8h.html" title="Primitive iterator tags and base category types used by std_ivy iterators." alt="" coords="164,79,357,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="205,29,237,66,233,70,201,33"/>
+<area shape="rect" id="Node000003" href="$d8/daa/IvyTypeTraits_8h.html" title="Type&#45;trait wrapper and macro helpers for SFINAE and compile&#45;time reflection checks." alt="" coords="175,240,346,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="162,190,231,230,228,235,160,194"/>
+<area shape="rect" id="Node000005" href="$d3/df2/IvyLimits_8h.html" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="5,240,151,265"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="133,194,99,232,95,228,129,191"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="215,313,307,339"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="263,266,263,300,258,300,258,266"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="49,313,107,339"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="81,266,81,300,75,300,75,266"/>
+<area shape="poly" id="edge7_Node000007_Node000002" title=" " alt="" coords="233,121,172,161,169,157,230,117"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="263,119,263,226,258,226,258,119"/>
+</map>

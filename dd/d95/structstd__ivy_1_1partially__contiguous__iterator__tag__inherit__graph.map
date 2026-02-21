@@ -1,0 +1,13 @@
+<map id="std_ivy::partially_contiguous_iterator_tag" name="std_ivy::partially_contiguous_iterator_tag">
+<area shape="rect" id="Node000001" title="Partially contiguous iterator category tag." alt="" coords="19,328,201,368"/>
+<area shape="rect" id="Node000006" href="$d2/d8b/structstd__ivy_1_1contiguous__iterator__tag.html" title="Fully contiguous iterator category tag." alt="" coords="37,416,183,456"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="113,382,113,416,107,416,107,382"/>
+<area shape="rect" id="Node000002" href="$d2/d48/structstd__ivy_1_1random__access__iterator__tag.html" title="Random&#45;access&#45;iterator category tag." alt="" coords="21,240,199,280"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,294,113,328,107,328,107,294"/>
+<area shape="rect" id="Node000003" href="$d0/d00/structstd__ivy_1_1bidirectional__iterator__tag.html" title="Bidirectional&#45;iterator category tag." alt="" coords="31,152,189,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,206,113,240,107,240,107,206"/>
+<area shape="rect" id="Node000004" href="$d1/d97/structstd__ivy_1_1forward__iterator__tag.html" title="Forward&#45;iterator category tag." alt="" coords="5,79,215,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="113,118,113,152,107,152,107,118"/>
+<area shape="rect" id="Node000005" href="$df/dba/structstd__ivy_1_1input__iterator__tag.html" title="Input&#45;iterator category tag." alt="" coords="14,5,206,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="113,44,113,79,107,79,107,44"/>
+</map>

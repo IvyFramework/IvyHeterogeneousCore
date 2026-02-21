@@ -1,0 +1,7 @@
+<map id="IvyMemoryHelpers::build" name="IvyMemoryHelpers::build">
+<area shape="rect" id="Node000001" title=" " alt="" coords="187,45,373,70"/>
+<area shape="rect" id="Node000002" href="$d2/d58/classstd__ivy_1_1allocator__primitive.html#a7a258c54c7448e5c776d5a0226b28b28" title="Allocate and construct values into tgt." alt="" coords="5,5,139,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,45,139,38,139,33,184,40"/>
+<area shape="rect" id="Node000003" href="$d2/d58/classstd__ivy_1_1allocator__primitive.html#a544610df1ce46d1350daf5c3da75ac81" title="Allocate and construct values, returning the new pointer." alt="" coords="5,69,139,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,75,139,82,139,76,183,69"/>
+</map>

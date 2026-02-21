@@ -1,0 +1,21 @@
+<map id="IvyPrintout.h" name="IvyPrintout.h">
+<area shape="rect" id="Node000001" title="Type&#45;aware lightweight print helpers for host/device builds." alt="" coords="331,5,437,31"/>
+<area shape="rect" id="Node000002" href="$db/d00/IvyCompilerConfig_8h.html" title="Compile&#45;time execution&#45;context selectors for host vs device builds." alt="" coords="5,79,203,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="340,33,163,78,162,73,338,28"/>
+<area shape="rect" id="Node000005" href="$d0/db6/IvyCstdio_8h.html" title="C stdio wrapper defining common print macros for host and device contexts." alt="" coords="227,79,373,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="372,33,326,72,323,67,369,29"/>
+<area shape="rect" id="Node000007" href="$da/d42/IvyUtility_8h.html" title="Backend&#45;selecting utility wrapper for pair and move&#45;related utilities." alt="" coords="398,79,541,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="399,29,447,68,443,72,396,33"/>
+<area shape="rect" id="Node000009" href="$d5/d64/IvyInitializerList_8h.html" title="Wrapper around std::initializer_list with a local namespace alias." alt="" coords="565,79,755,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="429,28,603,73,601,78,428,33"/>
+<area shape="rect" id="Node000003" href="$dd/dca/IvyCudaFlags_8h.html" title="Host/device qualifier and portability macros for CUDA&#45;aware builds." alt="" coords="21,152,187,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,104,107,138,101,138,101,104"/>
+<area shape="rect" id="Node000004" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="9,225,199,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,178,107,212,101,212,101,178"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="269,152,331,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="303,104,303,138,297,138,297,104"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="439,152,499,177"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="472,104,472,138,467,138,467,104"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="605,152,715,177"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="663,104,663,138,657,138,657,104"/>
+</map>

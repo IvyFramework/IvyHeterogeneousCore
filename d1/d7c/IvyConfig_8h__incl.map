@@ -1,0 +1,32 @@
+<map id="IvyConfig.h" name="IvyConfig.h">
+<area shape="rect" id="Node000001" title="Umbrella include for compiler, CUDA, exception, and OpenMP configuration." alt="" coords="367,5,462,31"/>
+<area shape="rect" id="Node000002" href="$db/d00/IvyCompilerConfig_8h.html" title="Compile&#45;time execution&#45;context selectors for host vs device builds." alt="" coords="5,79,203,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="368,33,168,78,167,73,367,28"/>
+<area shape="rect" id="Node000005" href="$d0/d49/IvyCudaConfig_8h.html" title="CUDA runtime capability helpers and launch&#45;dimension planning utilities." alt="" coords="227,79,397,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="400,33,342,73,339,68,397,28"/>
+<area shape="rect" id="Node000006" href="$d5/d91/IvyCudaException_8h.html" title="CUDA&#45;style error&#45;checking macros and wrapper helpers." alt="" coords="637,79,832,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="463,27,671,73,670,78,462,32"/>
+<area shape="rect" id="Node000014" href="$d1/d4e/IvyOpenMPConfig_8h.html" title="OpenMP feature toggles for host&#45;side parallel fallbacks." alt="" coords="421,79,613,104"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="433,28,491,68,488,73,430,33"/>
+<area shape="rect" id="Node000003" href="$dd/dca/IvyCudaFlags_8h.html" title="Host/device qualifier and portability macros for CUDA&#45;aware builds." alt="" coords="261,152,427,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="143,101,293,145,291,151,142,107"/>
+<area shape="rect" id="Node000004" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="249,225,439,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="347,178,347,212,341,212,341,178"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="320,103,336,139,331,141,315,105"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="672,107,421,152,420,147,671,101"/>
+<area shape="rect" id="Node000007" href="$d6/ddb/IvyErrorTypes_8h.html" title="Error&#45;type aliases and helpers abstracting CUDA vs non&#45;CUDA builds." alt="" coords="511,152,633,177"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="710,106,612,149,610,144,707,102"/>
+<area shape="rect" id="Node000010" href="$d7/d2b/IvyCassert_8h.html" title="Backend&#45;selecting assertion wrapper for host and CUDA builds." alt="" coords="657,152,812,177"/>
+<area shape="poly" id="edge11_Node000006_Node000010" title=" " alt="" coords="737,104,737,138,732,138,732,104"/>
+<area shape="rect" id="Node000012" href="$d0/db6/IvyCstdio_8h.html" title="C stdio wrapper defining common print macros for host and device contexts." alt="" coords="836,152,983,177"/>
+<area shape="poly" id="edge13_Node000006_Node000012" title=" " alt="" coords="764,102,869,144,867,149,762,106"/>
+<area shape="rect" id="Node000008" href="$de/d4e/IvyCstring_8h.html" title="Conditional cstring include wrapper for non&#45;CUDA translation units." alt="" coords="497,225,647,251"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="575,178,575,212,569,212,569,178"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="539,299,605,324"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="575,251,575,285,569,285,569,251"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="700,225,769,251"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="737,178,737,212,732,212,732,178"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="879,225,940,251"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="912,178,912,212,907,212,907,178"/>
+<area shape="poly" id="edge16_Node000014_Node000003" title=" " alt="" coords="490,106,386,149,384,144,488,102"/>
+</map>

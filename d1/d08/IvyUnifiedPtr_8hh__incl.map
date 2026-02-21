@@ -1,0 +1,130 @@
+<map id="IvyUnifiedPtr.hh" name="IvyUnifiedPtr.hh">
+<area shape="rect" id="Node000001" title="IvyUnifiedPtr declarations, traits, and supporting types." alt="" coords="2164,5,2289,31"/>
+<area shape="rect" id="Node000002" href="$db/d00/IvyCompilerConfig_8h.html" title="Compile&#45;time execution&#45;context selectors for host vs device builds." alt="" coords="1933,533,2131,559"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2274,28,2323,46,2373,73,2396,91,2413,112,2425,136,2429,163,2429,401,2425,431,2412,453,2391,470,2364,488,2326,503,2271,517,2145,536,2144,531,2270,511,2324,498,2361,483,2388,466,2408,450,2420,429,2424,400,2424,164,2420,138,2409,115,2392,95,2371,78,2321,51,2272,33"/>
+<area shape="rect" id="Node000005" href="$dd/d10/IvyCstddef_8h.html" title="Backend&#45;selecting cstddef wrapper for size and pointer&#45;related utilities." alt="" coords="2464,79,2619,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="2278,28,2478,73,2477,78,2277,33"/>
+<area shape="rect" id="Node000007" href="$d8/daa/IvyTypeTraits_8h.html" title="Type&#45;trait wrapper and macro helpers for SFINAE and compile&#45;time reflection checks." alt="" coords="2008,387,2179,412"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="2218,33,2183,75,2134,142,2085,224,2065,269,2049,314,2047,326,2049,338,2059,358,2073,375,2069,378,2055,360,2044,340,2041,326,2044,313,2060,267,2081,222,2130,139,2178,72,2214,29"/>
+<area shape="rect" id="Node000009" href="$d0/d47/IvyAllocator_8h.html" title="Allocation, deallocation, and memory&#45;transfer primitives used by std_ivy containers." alt="" coords="1719,79,1940,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="2164,33,1907,79,1906,74,2163,28"/>
+<area shape="rect" id="Node000043" href="$de/d0f/IvyPointerTraits_8h.html" title="Pointer traits and detection helpers for custom pointer abstractions." alt="" coords="2127,225,2326,265"/>
+<area shape="poly" id="edge70_Node000001_Node000043" title=" " alt="" coords="2229,31,2229,211,2224,211,2224,31"/>
+<area shape="rect" id="Node000044" href="$d1/dd5/IvySecrets_8h.html" title="Internal helper hooks for friend&#45;like utility operations." alt="" coords="2275,152,2378,177"/>
+<area shape="poly" id="edge74_Node000001_Node000044" title=" " alt="" coords="2237,30,2313,139,2309,142,2233,33"/>
+<area shape="rect" id="Node000045" href="$d4/d3b/IvyPrintout_8h.html" title="Type&#45;aware lightweight print helpers for host/device builds." alt="" coords="139,460,245,485"/>
+<area shape="poly" id="edge76_Node000001_Node000045" title=" " alt="" coords="2164,23,1715,34,1060,59,740,78,469,102,363,116,283,131,231,148,219,156,215,164,215,327,210,392,200,447,195,446,204,392,209,327,209,163,215,152,229,143,281,126,362,111,469,97,739,73,1060,54,1715,29,2164,18"/>
+<area shape="rect" id="Node000003" href="$dd/dca/IvyCudaFlags_8h.html" title="Host/device qualifier and portability macros for CUDA&#45;aware builds." alt="" coords="1525,607,1691,632"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1964,561,1690,607,1689,602,1963,556"/>
+<area shape="rect" id="Node000004" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="1513,680,1703,705"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1611,632,1611,666,1605,666,1605,632"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="2506,152,2577,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="2544,104,2544,138,2539,138,2539,104"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="2047,460,2139,485"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="2096,412,2096,446,2091,446,2091,412"/>
+<area shape="poly" id="edge9_Node000009_Node000002" title=" " alt="" coords="1848,102,1907,150,1939,185,1965,224,1984,274,1990,316,1991,358,1999,411,2027,520,2022,521,1993,413,1986,359,1984,316,1979,275,1960,227,1935,188,1903,154,1845,106"/>
+<area shape="rect" id="Node000010" href="$d4/d78/IvyMemoryHelpers_8h.html" title="Allocation, construction, destruction, and transfer helpers across memory domains." alt="" coords="1275,152,1434,177"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="1753,107,1445,153,1444,147,1753,101"/>
+<area shape="rect" id="Node000012" href="$d3/df2/IvyLimits_8h.html" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="1723,387,1869,412"/>
+<area shape="poly" id="edge66_Node000009_Node000012" title=" " alt="" coords="1825,105,1785,190,1762,250,1745,314,1743,326,1745,338,1757,358,1772,375,1768,379,1752,361,1740,340,1738,326,1740,313,1757,249,1780,188,1821,103"/>
+<area shape="rect" id="Node000035" href="$da/d42/IvyUtility_8h.html" title="Backend&#45;selecting utility wrapper for pair and move&#45;related utilities." alt="" coords="237,607,379,632"/>
+<area shape="poly" id="edge65_Node000009_Node000035" title=" " alt="" coords="1718,95,1344,98,1108,104,868,116,644,135,545,147,458,162,386,179,331,198,297,220,288,232,285,244,285,474,292,539,304,593,298,594,286,540,280,474,280,244,283,230,293,217,329,194,384,174,457,157,544,142,643,130,867,111,1108,99,1344,92,1718,89"/>
+<area shape="rect" id="Node000042" href="$d3/dd7/IvyAddressof_8h.html" title="Address&#45;of helper utilities resilient to overloaded operator&amp;." alt="" coords="2059,313,2287,339"/>
+<area shape="poly" id="edge67_Node000009_Node000042" title=" " alt="" coords="1888,102,1948,120,2009,150,2044,176,2067,202,2088,230,2117,264,2154,301,2150,305,2113,267,2084,234,2063,206,2041,180,2007,154,1946,125,1886,107"/>
+<area shape="rect" id="Node000011" href="$d1/db3/IvyBasicTypes_8h.html" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="1755,313,1882,339"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="1434,166,1493,172,1559,183,1627,199,1693,223,1725,240,1754,261,1800,302,1797,306,1751,265,1722,245,1691,228,1626,204,1558,188,1492,178,1434,172"/>
+<area shape="rect" id="Node000014" href="$d9/dfc/IvyMemoryTypes_8h.html" title="Memory&#45;domain tags and constexpr query helpers." alt="" coords="1806,233,1951,258"/>
+<area shape="poly" id="edge15_Node000010_Node000014" title=" " alt="" coords="1434,173,1597,194,1787,223,1813,227,1812,233,1786,228,1597,199,1434,178"/>
+<area shape="rect" id="Node000015" href="$d9/dd2/IvyConfig_8h.html" title="Umbrella include for compiler, CUDA, exception, and OpenMP configuration." alt="" coords="1496,460,1635,485"/>
+<area shape="poly" id="edge17_Node000010_Node000015" title=" " alt="" coords="1348,179,1335,200,1324,226,1320,260,1327,286,1344,311,1370,337,1389,353,1406,363,1447,384,1540,449,1537,454,1444,389,1404,367,1386,357,1366,341,1340,314,1323,289,1315,260,1319,225,1330,198,1344,176"/>
+<area shape="rect" id="Node000021" href="$d7/d2b/IvyCassert_8h.html" title="Backend&#45;selecting assertion wrapper for host and CUDA builds." alt="" coords="717,607,872,632"/>
+<area shape="poly" id="edge58_Node000010_Node000021" title=" " alt="" coords="1275,175,1062,195,800,228,679,249,579,272,541,285,512,298,494,312,488,325,488,474,493,507,509,534,532,556,561,574,595,588,631,598,704,611,703,616,630,603,593,593,559,578,529,560,504,537,488,508,483,474,483,324,490,308,509,294,539,280,578,267,678,243,799,222,1061,190,1275,170"/>
+<area shape="rect" id="Node000023" href="$d0/db6/IvyCstdio_8h.html" title="C stdio wrapper defining common print macros for host and device contexts." alt="" coords="420,607,567,632"/>
+<area shape="poly" id="edge60_Node000010_Node000023" title=" " alt="" coords="1275,171,1118,176,925,187,740,204,664,215,607,228,545,242,490,254,468,264,452,277,441,297,437,325,437,474,442,508,452,540,480,594,475,596,447,542,436,509,432,474,432,324,436,295,448,274,465,259,488,249,544,237,606,223,663,209,739,198,925,181,1118,171,1275,165"/>
+<area shape="rect" id="Node000026" href="$d8/d36/IvyKernelRun_8h.html" title="Unified kernel dispatch layer with GPU&#45;first and CPU/OpenMP fallback execution." alt="" coords="1517,233,1680,258"/>
+<area shape="poly" id="edge32_Node000010_Node000026" title=" " alt="" coords="1391,175,1551,226,1549,231,1389,180"/>
+<area shape="rect" id="Node000027" href="$d8/d59/IvyStream_8h.html" title="Unified stream/event aliases bridging CUDA and non&#45;CUDA backends." alt="" coords="1154,313,1305,339"/>
+<area shape="poly" id="edge64_Node000010_Node000027" title=" " alt="" coords="1336,180,1307,200,1279,227,1256,265,1240,301,1235,299,1251,262,1275,224,1304,196,1333,175"/>
+<area shape="poly" id="edge59_Node000010_Node000035" title=" " alt="" coords="1275,168,1088,169,850,176,731,183,621,194,528,209,458,228,411,244,372,260,357,271,346,284,339,302,336,325,336,474,330,540,318,594,312,593,324,539,331,474,331,325,333,301,341,282,353,267,369,256,409,239,457,223,527,204,620,189,731,178,850,171,1088,163,1275,163"/>
+<area shape="rect" id="Node000040" href="$d8/d9d/IvyTypeInfo_8h.html" title="Type information wrapper providing a portable type&#45;name macro." alt="" coords="1333,233,1493,258"/>
+<area shape="poly" id="edge61_Node000010_Node000040" title=" " alt="" coords="1365,176,1399,220,1394,223,1361,179"/>
+<area shape="poly" id="edge12_Node000011_Node000007" title=" " alt="" coords="1863,336,2036,381,2035,386,1862,341"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="1817,340,1806,374,1801,373,1812,338"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="1767,460,1825,485"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="1799,412,1799,446,1793,446,1793,412"/>
+<area shape="poly" id="edge16_Node000014_Node000002" title=" " alt="" coords="1884,258,1913,373,1933,439,1954,484,1975,506,1999,524,1996,528,1972,510,1950,487,1928,441,1907,374,1879,259"/>
+<area shape="poly" id="edge18_Node000015_Node000002" title=" " alt="" coords="1635,482,1944,529,1943,534,1634,487"/>
+<area shape="rect" id="Node000016" href="$d0/d49/IvyCudaConfig_8h.html" title="CUDA runtime capability helpers and launch&#45;dimension planning utilities." alt="" coords="1523,533,1693,559"/>
+<area shape="poly" id="edge19_Node000015_Node000016" title=" " alt="" coords="1575,484,1596,520,1592,523,1570,487"/>
+<area shape="rect" id="Node000017" href="$d5/d91/IvyCudaException_8h.html" title="CUDA&#45;style error&#45;checking macros and wrapper helpers." alt="" coords="1077,533,1272,559"/>
+<area shape="poly" id="edge21_Node000015_Node000017" title=" " alt="" coords="1503,488,1252,533,1251,528,1502,483"/>
+<area shape="rect" id="Node000025" href="$d1/d4e/IvyOpenMPConfig_8h.html" title="OpenMP feature toggles for host&#45;side parallel fallbacks." alt="" coords="1717,533,1909,559"/>
+<area shape="poly" id="edge30_Node000015_Node000025" title=" " alt="" coords="1606,483,1761,527,1759,532,1604,488"/>
+<area shape="poly" id="edge20_Node000016_Node000003" title=" " alt="" coords="1611,559,1611,593,1605,593,1605,559"/>
+<area shape="poly" id="edge22_Node000017_Node000003" title=" " alt="" coords="1245,556,1525,602,1525,607,1244,561"/>
+<area shape="rect" id="Node000018" href="$d6/ddb/IvyErrorTypes_8h.html" title="Error&#45;type aliases and helpers abstracting CUDA vs non&#45;CUDA builds." alt="" coords="1113,607,1236,632"/>
+<area shape="poly" id="edge23_Node000017_Node000018" title=" " alt="" coords="1177,559,1177,593,1172,593,1172,559"/>
+<area shape="poly" id="edge26_Node000017_Node000021" title=" " alt="" coords="1114,561,870,607,869,601,1113,556"/>
+<area shape="poly" id="edge28_Node000017_Node000023" title=" " alt="" coords="1077,560,580,612,580,606,1077,555"/>
+<area shape="rect" id="Node000019" href="$de/d4e/IvyCstring_8h.html" title="Conditional cstring include wrapper for non&#45;CUDA translation units." alt="" coords="1099,680,1250,705"/>
+<area shape="poly" id="edge24_Node000018_Node000019" title=" " alt="" coords="1177,632,1177,666,1172,666,1172,632"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="1141,753,1208,779"/>
+<area shape="poly" id="edge25_Node000019_Node000020" title=" " alt="" coords="1177,706,1177,740,1172,740,1172,706"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="760,680,829,705"/>
+<area shape="poly" id="edge27_Node000021_Node000022" title=" " alt="" coords="797,632,797,666,792,666,792,632"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="463,680,524,705"/>
+<area shape="poly" id="edge29_Node000023_Node000024" title=" " alt="" coords="496,632,496,666,491,666,491,632"/>
+<area shape="poly" id="edge31_Node000025_Node000003" title=" " alt="" coords="1781,561,1655,605,1653,600,1779,556"/>
+<area shape="poly" id="edge35_Node000026_Node000007" title=" " alt="" coords="1614,256,1669,296,1705,318,1744,336,1807,357,1873,372,1995,389,1994,394,1872,377,1806,362,1742,341,1702,323,1666,300,1611,260"/>
+<area shape="poly" id="edge33_Node000026_Node000011" title=" " alt="" coords="1632,255,1774,306,1773,311,1630,261"/>
+<area shape="poly" id="edge34_Node000026_Node000015" title=" " alt="" coords="1600,259,1572,446,1566,446,1594,258"/>
+<area shape="poly" id="edge36_Node000026_Node000027" title=" " alt="" coords="1546,261,1297,313,1296,308,1544,255"/>
+<area shape="poly" id="edge45_Node000027_Node000003" title=" " alt="" coords="1270,336,1319,356,1370,384,1396,407,1415,428,1443,469,1470,511,1488,533,1512,557,1543,579,1574,598,1571,602,1540,584,1509,561,1484,537,1466,514,1439,472,1411,431,1392,410,1366,389,1317,360,1268,341"/>
+<area shape="rect" id="Node000028" href="$d3/d2f/IvyCudaStream_8h.html" title="CUDA&#45;stream wrapper implementation." alt="" coords="735,387,919,412"/>
+<area shape="poly" id="edge37_Node000027_Node000028" title=" " alt="" coords="1165,341,905,387,904,382,1164,336"/>
+<area shape="rect" id="Node000030" href="$dc/d3e/IvyCudaEvent_8h.html" title="CUDA&#45;event wrapper implementation." alt="" coords="739,460,914,485"/>
+<area shape="poly" id="edge44_Node000027_Node000030" title=" " alt="" coords="1198,341,872,458,871,453,1197,336"/>
+<area shape="rect" id="Node000032" href="$d0/df0/IvyBlankStream_8h.html" title="CPU/no&#45;op stream implementation used in non&#45;CUDA builds." alt="" coords="1169,387,1357,412"/>
+<area shape="poly" id="edge46_Node000027_Node000032" title=" " alt="" coords="1237,338,1254,373,1249,375,1232,340"/>
+<area shape="rect" id="Node000037" href="$db/d4c/IvyBlankStreamEvent_8h.html" title="CPU/no&#45;op stream&#45;event implementation used in non&#45;CUDA builds." alt="" coords="938,460,1163,485"/>
+<area shape="poly" id="edge57_Node000027_Node000037" title=" " alt="" coords="1216,341,1077,453,1074,449,1213,337"/>
+<area shape="rect" id="Node000029" href="$d5/d11/IvyCudaStream_8hh.html" title="Public CUDA&#45;stream wrapper interface." alt="" coords="523,460,715,485"/>
+<area shape="poly" id="edge38_Node000028_Node000029" title=" " alt="" coords="794,415,666,458,665,453,792,409"/>
+<area shape="poly" id="edge39_Node000028_Node000030" title=" " alt="" coords="829,412,829,446,824,446,824,412"/>
+<area shape="poly" id="edge40_Node000030_Node000017" title=" " alt="" coords="883,483,1105,528,1104,533,882,488"/>
+<area shape="poly" id="edge41_Node000030_Node000021" title=" " alt="" coords="827,486,803,594,798,593,821,485"/>
+<area shape="poly" id="edge42_Node000030_Node000023" title=" " alt="" coords="750,488,643,509,595,522,563,536,531,564,508,596,504,593,527,561,560,531,594,517,642,504,749,483"/>
+<area shape="rect" id="Node000031" href="$d9/d1a/IvyCudaEvent_8hh.html" title="Public CUDA&#45;event wrapper interface." alt="" coords="574,533,757,559"/>
+<area shape="poly" id="edge43_Node000030_Node000031" title=" " alt="" coords="802,488,705,530,703,525,800,483"/>
+<area shape="poly" id="edge47_Node000032_Node000017" title=" " alt="" coords="1306,410,1340,422,1371,439,1382,449,1389,461,1390,474,1383,487,1364,502,1335,514,1261,533,1260,528,1333,509,1362,497,1379,484,1385,473,1384,462,1378,453,1367,443,1338,427,1304,415"/>
+<area shape="rect" id="Node000033" href="$d5/dff/IvyBaseStream_8h.html" title="Base abstraction for backend stream wrappers." alt="" coords="1187,460,1370,485"/>
+<area shape="poly" id="edge48_Node000032_Node000033" title=" " alt="" coords="1268,412,1276,446,1271,447,1263,413"/>
+<area shape="poly" id="edge53_Node000032_Node000037" title=" " alt="" coords="1229,415,1099,458,1097,453,1228,409"/>
+<area shape="poly" id="edge49_Node000033_Node000002" title=" " alt="" coords="1370,480,1920,531,1919,536,1370,485"/>
+<area shape="rect" id="Node000034" href="$d1/db7/IvyBaseStreamEvent_8h.html" title="Base abstraction for backend stream&#45;event wrappers." alt="" coords="833,533,1053,559"/>
+<area shape="poly" id="edge50_Node000033_Node000034" title=" " alt="" coords="1225,488,1011,533,1010,528,1224,483"/>
+<area shape="poly" id="edge51_Node000034_Node000035" title=" " alt="" coords="840,561,408,609,393,611,393,606,408,604,839,556"/>
+<area shape="rect" id="Node000036" title=" " alt="" coords="278,680,338,705"/>
+<area shape="poly" id="edge52_Node000035_Node000036" title=" " alt="" coords="311,632,311,666,305,666,305,632"/>
+<area shape="poly" id="edge54_Node000037_Node000034" title=" " alt="" coords="1035,488,973,528,970,523,1032,483"/>
+<area shape="rect" id="Node000038" href="$da/d32/IvyChrono_8h.html" title="Backend&#45;selecting chrono wrapper with common namespace aliases." alt="" coords="1297,533,1447,559"/>
+<area shape="poly" id="edge55_Node000037_Node000038" title=" " alt="" coords="1103,483,1307,528,1306,533,1102,488"/>
+<area shape="rect" id="Node000039" title=" " alt="" coords="1339,607,1405,632"/>
+<area shape="poly" id="edge56_Node000038_Node000039" title=" " alt="" coords="1375,559,1375,593,1369,593,1369,559"/>
+<area shape="poly" id="edge62_Node000040_Node000002" title=" " alt="" coords="1428,256,1477,299,1554,361,1651,427,1703,457,1756,483,1838,511,1920,528,1919,534,1836,516,1754,488,1700,462,1648,431,1551,365,1473,303,1424,260"/>
+<area shape="rect" id="Node000041" title=" " alt="" coords="1381,313,1457,339"/>
+<area shape="poly" id="edge63_Node000040_Node000041" title=" " alt="" coords="1417,258,1420,299,1414,300,1411,258"/>
+<area shape="poly" id="edge68_Node000042_Node000002" title=" " alt="" coords="2180,338,2193,386,2195,417,2188,442,2174,464,2152,487,2118,513,2082,531,2079,526,2116,508,2149,483,2170,461,2184,440,2189,417,2188,387,2175,340"/>
+<area shape="poly" id="edge69_Node000042_Node000007" title=" " alt="" coords="2162,341,2118,380,2115,376,2159,337"/>
+<area shape="poly" id="edge71_Node000043_Node000002" title=" " alt="" coords="2259,263,2277,278,2293,296,2303,317,2301,339,2280,389,2257,425,2226,455,2183,488,2138,514,2091,532,2090,527,2136,509,2180,483,2222,451,2253,421,2276,387,2296,338,2297,318,2289,299,2274,282,2256,268"/>
+<area shape="poly" id="edge72_Node000043_Node000011" title=" " alt="" coords="2129,268,1892,313,1891,308,2128,263"/>
+<area shape="poly" id="edge73_Node000043_Node000042" title=" " alt="" coords="2216,267,2191,303,2187,300,2212,264"/>
+<area shape="poly" id="edge75_Node000044_Node000002" title=" " alt="" coords="2335,177,2362,238,2374,281,2379,325,2379,401,2373,437,2356,466,2331,490,2299,509,2263,523,2223,534,2145,545,2144,540,2222,529,2261,518,2297,504,2328,486,2352,463,2368,435,2373,400,2373,325,2369,282,2357,240,2330,179"/>
+<area shape="poly" id="edge77_Node000045_Node000002" title=" " alt="" coords="245,473,511,483,905,493,1214,499,1523,508,1920,531,1919,536,1523,514,1214,504,905,499,511,488,245,479"/>
+<area shape="poly" id="edge78_Node000045_Node000023" title=" " alt="" coords="217,483,458,598,456,603,215,488"/>
+<area shape="poly" id="edge79_Node000045_Node000035" title=" " alt="" coords="204,484,292,594,288,598,199,487"/>
+<area shape="rect" id="Node000046" href="$d5/d64/IvyInitializerList_8h.html" title="Wrapper around std::initializer_list with a local namespace alias." alt="" coords="5,533,195,559"/>
+<area shape="poly" id="edge80_Node000045_Node000046" title=" " alt="" coords="179,487,127,527,124,523,176,483"/>
+<area shape="rect" id="Node000047" title=" " alt="" coords="45,607,155,632"/>
+<area shape="poly" id="edge81_Node000046_Node000047" title=" " alt="" coords="103,559,103,593,97,593,97,559"/>
+</map>

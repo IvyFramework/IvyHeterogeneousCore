@@ -1,0 +1,19 @@
+<map id="IvyAccumulate.h" name="IvyAccumulate.h">
+<area shape="rect" id="Node000001" title="Accumulation utilities analogous to std::accumulate for std_ivy iterators." alt="" coords="48,5,179,31"/>
+<area shape="rect" id="Node000002" href="$d3/de0/IvyNumeric_8h.html" title="Numeric umbrella header exposing std_ivy numeric utilities." alt="" coords="59,79,168,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,44,116,79,111,79,111,44"/>
+<area shape="rect" id="Node000003" href="$dc/d1a/IvyTensorShape_8h_source.html" title=" " alt="" coords="45,152,181,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="116,118,116,152,111,152,111,118"/>
+<area shape="rect" id="Node000004" href="$d8/d66/IvyTensor_8h_source.html" title=" " alt="" coords="66,225,161,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="116,191,116,225,111,225,111,191"/>
+<area shape="rect" id="Node000005" href="$de/d03/IvyFunction_8h_source.html" title=" " alt="" coords="59,299,168,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="116,264,116,299,111,299,111,264"/>
+<area shape="rect" id="Node000006" href="$db/d03/IvyMathFunctionPrimitives_8hh_source.html" title=" " alt="" coords="5,372,221,397"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="116,338,116,372,111,372,111,338"/>
+<area shape="rect" id="Node000007" href="$d8/da0/IvyMathFunctionPrimitives_8h_source.html" title=" " alt="" coords="9,445,217,471"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="116,411,116,445,111,445,111,411"/>
+<area shape="rect" id="Node000008" href="$db/de2/IvyMathBaseArithmetic_8hh_source.html" title=" " alt="" coords="16,519,211,544"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="116,484,116,519,111,519,111,484"/>
+<area shape="rect" id="Node000009" href="$de/d54/IvyMathBaseArithmetic_8h_source.html" title=" " alt="" coords="20,592,207,617"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="116,558,116,592,111,592,111,558"/>
+</map>

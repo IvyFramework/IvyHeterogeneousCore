@@ -1,0 +1,7 @@
+<map id="IvyBaseStreamEvent.h" name="IvyBaseStreamEvent.h">
+<area shape="rect" id="Node000001" title="Base abstraction for backend stream&#45;event wrappers." alt="" coords="5,5,176,31"/>
+<area shape="rect" id="Node000002" href="$da/d42/IvyUtility_8h.html" title="Backend&#45;selecting utility wrapper for pair and move&#45;related utilities." alt="" coords="19,79,162,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,31,93,65,88,65,88,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="61,152,121,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,104,93,138,88,138,88,104"/>
+</map>

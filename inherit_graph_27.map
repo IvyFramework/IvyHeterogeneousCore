@@ -1,0 +1,59 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$db/de5/structIvyMath_1_1complex__domain__tag.html" title=" " alt="" coords="5,5,228,31"/>
+<area shape="rect" id="Node000001" href="$d8/dcf/classIvyMath_1_1IvyComplexVariable.html" title=" " alt="" coords="276,85,491,125"/>
+<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="195,31,229,41,338,82,336,87,227,46,193,36"/>
+<area shape="rect" id="Node000005" href="$df/d49/structIvyMath_1_1constant__value__tag.html" title=" " alt="" coords="11,169,222,195"/>
+<area shape="rect" id="Node000004" href="$d5/d0f/classIvyMath_1_1IvyConstant.html" title=" " alt="" coords="303,245,464,285"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="193,195,229,205,334,242,332,247,227,210,192,200"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="80,527,153,552"/>
+<area shape="rect" id="Node000011" href="$de/d91/classIvyMath_1_1IvyFunction_3_01precision__type_00_01Domain_00_01Domain_01_4.html" title=" " alt="" coords="286,483,481,537"/>
+<area shape="poly" id="edge6_Node000012_Node000011" title=" " alt="" coords="167,531,285,518,286,523,167,537"/>
+<area shape="rect" id="Node000013" href="$d3/d37/classIvyMath_1_1IvyFunction_3_01precision__type_00_01Domain_00_01undefined__domain__tag_01_4.html" title=" " alt="" coords="286,561,481,616"/>
+<area shape="poly" id="edge7_Node000012_Node000013" title=" " alt="" coords="168,546,286,568,285,573,167,551"/>
+<area shape="rect" id="Node000014" href="$d1/d5a/classIvyMath_1_1IvyRegularFunction__1D_3_01T_00_01Evaluator_00_01precision__type_00_01Domain_00_01undefined__domain__tag_01_4.html" title=" " alt="" coords="539,587,827,641"/>
+<area shape="poly" id="edge8_Node000013_Node000014" title=" " alt="" coords="495,595,539,599,538,604,494,601"/>
+<area shape="rect" id="Node000015" href="$db/dde/classIvyMath_1_1IvyRegularFunction__2D_3_01T_00_01U_00_01Evaluator_00_01precision__type_00_01Dom3799073305cad17d823b55c01eee0500.html" title=" " alt="" coords="539,508,827,563"/>
+<area shape="poly" id="edge9_Node000013_Node000015" title=" " alt="" coords="494,566,538,558,539,564,495,572"/>
+<area shape="rect" id="Node000016" href="$d1/d66/structIvyMath_1_1function__value__tag.html" title=" " alt="" coords="13,576,220,601"/>
+<area shape="poly" id="edge10_Node000016_Node000011" title=" " alt="" coords="195,570,227,562,310,535,312,540,229,567,197,576"/>
+<area shape="poly" id="edge11_Node000016_Node000013" title=" " alt="" coords="234,586,286,586,286,591,234,591"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="317,640,449,665"/>
+<area shape="rect" id="Node000019" href="$dd/db5/classIvyMath_1_1IvyTensor.html" title=" " alt="" coords="591,689,774,715"/>
+<area shape="poly" id="edge12_Node000020_Node000019" title=" " alt="" coords="463,663,605,687,604,692,462,668"/>
+<area shape="rect" id="Node000017" href="$d6/d3a/classIvyMath_1_1IvyBaseModifiable.html" title=" " alt="" coords="15,625,218,651"/>
+<area shape="poly" id="edge13_Node000017_Node000011" title=" " alt="" coords="216,618,226,612,242,597,250,582,259,565,274,548,294,535,297,540,278,552,263,568,255,584,246,601,230,616,219,622"/>
+<area shape="poly" id="edge14_Node000017_Node000013" title=" " alt="" coords="199,620,285,604,286,609,200,625"/>
+<area shape="rect" id="Node000018" href="$d1/d7d/classIvyMath_1_1IvyTensorBase.html" title=" " alt="" coords="276,739,491,764"/>
+<area shape="poly" id="edge15_Node000017_Node000018" title=" " alt="" coords="216,654,230,661,246,677,254,694,262,710,278,725,300,736,297,741,274,730,258,713,250,697,242,680,226,665,213,658"/>
+<area shape="poly" id="edge16_Node000018_Node000019" title=" " alt="" coords="474,734,604,712,605,717,475,739"/>
+<area shape="rect" id="Node000002" href="$de/d4e/structIvyBaseNode.html" title=" " alt="" coords="63,399,171,424"/>
+<area shape="poly" id="edge18_Node000002_Node000001" title=" " alt="" coords="183,405,206,397,226,384,242,367,250,350,256,314,259,276,264,254,274,231,316,170,359,123,363,127,320,174,278,234,269,256,264,277,262,315,255,351,246,370,230,388,209,402,185,410"/>
+<area shape="poly" id="edge19_Node000002_Node000004" title=" " alt="" coords="183,402,206,395,226,384,243,367,250,348,258,328,274,308,316,282,319,287,278,312,263,331,255,350,247,369,230,388,208,400,185,407"/>
+<area shape="poly" id="edge20_Node000002_Node000011" title=" " alt="" coords="185,421,229,434,283,456,333,480,330,485,281,461,227,439,183,427"/>
+<area shape="poly" id="edge21_Node000002_Node000013" title=" " alt="" coords="185,414,209,422,230,435,243,449,250,463,255,492,260,521,267,534,278,548,292,559,289,563,274,552,262,537,255,522,250,493,245,465,238,452,226,439,206,426,183,419"/>
+<area shape="poly" id="edge22_Node000002_Node000018" title=" " alt="" coords="185,411,209,420,230,435,255,472,263,509,262,546,255,583,248,619,246,655,254,690,264,708,278,725,292,736,288,741,274,729,259,711,249,692,241,655,242,618,249,582,256,545,258,509,250,474,226,439,207,424,183,416"/>
+<area shape="rect" id="Node000003" href="$de/d1f/classIvyBaseFunction.html" title=" " alt="" coords="319,399,448,424"/>
+<area shape="poly" id="edge17_Node000002_Node000003" title=" " alt="" coords="184,409,319,409,319,414,184,414"/>
+<area shape="rect" id="Node000008" href="$d5/db3/classIvyMath_1_1IvyVariable.html" title=" " alt="" coords="305,322,461,362"/>
+<area shape="poly" id="edge23_Node000002_Node000008" title=" " alt="" coords="183,394,227,383,314,359,315,365,229,389,184,399"/>
+<area shape="rect" id="Node000025" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="6,55,227,95"/>
+<area shape="poly" id="edge24_Node000025_Node000001" title=" " alt="" coords="241,86,276,90,275,95,241,92"/>
+<area shape="rect" id="Node000006" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="17,219,216,259"/>
+<area shape="poly" id="edge25_Node000006_Node000004" title=" " alt="" coords="230,247,303,254,302,260,230,253"/>
+<area shape="rect" id="Node000024" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="13,448,220,503"/>
+<area shape="poly" id="edge26_Node000024_Node000011" title=" " alt="" coords="234,488,286,495,285,500,233,493"/>
+<area shape="rect" id="Node000023" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="17,675,216,745"/>
+<area shape="poly" id="edge27_Node000023_Node000013" title=" " alt="" coords="216,667,227,661,250,644,275,626,301,614,303,619,277,631,253,648,229,666,219,671"/>
+<area shape="rect" id="Node000022" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="17,769,216,809"/>
+<area shape="poly" id="edge28_Node000022_Node000018" title=" " alt="" coords="230,770,292,761,293,767,230,775"/>
+<area shape="rect" id="Node000009" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="17,334,216,374"/>
+<area shape="poly" id="edge29_Node000009_Node000008" title=" " alt="" coords="230,346,305,343,305,348,230,352"/>
+<area shape="rect" id="Node000007" href="$db/dfa/structIvyMath_1_1real__domain__tag.html" title=" " alt="" coords="21,284,213,309"/>
+<area shape="poly" id="edge30_Node000007_Node000004" title=" " alt="" coords="226,281,302,272,303,277,227,286"/>
+<area shape="poly" id="edge31_Node000007_Node000008" title=" " alt="" coords="206,309,305,326,304,331,205,314"/>
+<area shape="rect" id="Node000021" href="$d6/ddf/structIvyMath_1_1tensor__domain__tag.html" title=" " alt="" coords="279,689,487,715"/>
+<area shape="poly" id="edge32_Node000021_Node000019" title=" " alt="" coords="501,699,591,699,591,705,501,705"/>
+<area shape="rect" id="Node000010" href="$dc/de3/structIvyMath_1_1variable__value__tag.html" title=" " alt="" coords="13,120,220,145"/>
+<area shape="poly" id="edge33_Node000010_Node000001" title=" " alt="" coords="233,118,276,113,276,119,234,123"/>
+<area shape="poly" id="edge34_Node000010_Node000008" title=" " alt="" coords="225,151,230,155,245,172,253,190,256,225,259,260,265,277,278,295,294,309,313,319,310,324,291,313,274,298,261,280,254,261,251,225,247,191,240,175,226,159,221,155"/>
+</map>

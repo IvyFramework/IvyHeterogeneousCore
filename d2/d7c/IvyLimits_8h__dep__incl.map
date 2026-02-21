@@ -1,0 +1,159 @@
+<map id="IvyLimits.h" name="IvyLimits.h">
+<area shape="rect" id="Node000001" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="1018,5,1113,31"/>
+<area shape="rect" id="Node000002" href="$d0/d47/IvyAllocator_8h.html" title="Allocation, deallocation, and memory&#45;transfer primitives used by std_ivy containers." alt="" coords="1363,299,1474,324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1127,25,1189,38,1260,62,1296,79,1330,98,1361,122,1389,150,1410,189,1420,231,1423,270,1422,299,1417,298,1418,270,1415,232,1405,190,1385,154,1358,126,1327,103,1294,83,1258,67,1188,43,1126,30"/>
+<area shape="rect" id="Node000040" href="$da/d34/IvyBaseFunctionRun_8h_source.html" title=" " alt="" coords="1175,1105,1342,1131"/>
+<area shape="poly" id="edge75_Node000001_Node000040" title=" " alt="" coords="1004,24,753,35,589,45,421,60,262,78,130,102,79,116,40,131,16,147,10,155,8,164,8,972,10,982,17,992,45,1010,90,1027,149,1042,302,1066,485,1084,682,1097,874,1106,1175,1113,1175,1119,874,1111,681,1103,485,1090,301,1072,148,1047,88,1032,43,1015,14,996,5,985,3,973,3,163,5,153,12,143,38,126,77,111,129,97,262,73,420,54,589,40,753,30,1004,18"/>
+<area shape="rect" id="Node000045" href="$d1/db3/IvyBasicTypes_8h.html" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="1002,79,1129,104"/>
+<area shape="poly" id="edge76_Node000001_Node000045" title=" " alt="" coords="1068,44,1068,79,1063,79,1063,44"/>
+<area shape="rect" id="Node000003" href="$dd/d4a/IvyMemory_8h.html" title="Umbrella header exposing memory traits, allocators, views, and unified pointer types." alt="" coords="1311,519,1417,544"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1488,325,1519,337,1546,352,1560,373,1561,385,1557,398,1542,422,1524,443,1481,477,1437,503,1397,521,1395,516,1434,499,1478,473,1520,439,1538,419,1552,396,1556,385,1555,375,1542,356,1517,341,1486,330"/>
+<area shape="rect" id="Node000042" href="$d6/d19/IvyMemoryView_8h.html" title="Non&#45;owning view types over contiguous memory with memory&#45;domain metadata." alt="" coords="1404,372,1543,397"/>
+<area shape="poly" id="edge70_Node000002_Node000042" title=" " alt="" coords="1438,333,1467,370,1462,374,1434,337"/>
+<area shape="rect" id="Node000043" href="$d3/d04/IvyUnifiedPtr_8hh.html" title="IvyUnifiedPtr declarations, traits, and supporting types." alt="" coords="1255,372,1380,397"/>
+<area shape="poly" id="edge72_Node000002_Node000043" title=" " alt="" coords="1393,334,1335,374,1332,370,1390,330"/>
+<area shape="rect" id="Node000004" href="$da/d90/IvyClientManager_8h_source.html" title=" " alt="" coords="1311,1032,1459,1057"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1388,552,1408,575,1428,605,1443,640,1449,676,1449,900,1443,940,1429,978,1396,1033,1392,1030,1424,975,1438,938,1444,899,1444,677,1438,641,1423,608,1403,579,1383,555"/>
+<area shape="rect" id="Node000017" href="$d8/d66/IvyTensor_8h_source.html" title=" " alt="" coords="1366,1105,1461,1131"/>
+<area shape="poly" id="edge47_Node000003_Node000017" title=" " alt="" coords="1401,549,1433,570,1465,599,1490,635,1497,655,1500,677,1500,973,1494,1018,1473,1059,1452,1086,1430,1107,1426,1103,1448,1082,1468,1056,1489,1016,1495,972,1495,677,1492,656,1485,637,1461,603,1430,575,1398,553"/>
+<area shape="rect" id="Node000018" href="$d5/d39/IvyContiguousIterator_8h.html" title="Contiguous iterator adapters and traits for pointer&#45;like traversal." alt="" coords="573,665,747,691"/>
+<area shape="poly" id="edge22_Node000003_Node000018" title=" " alt="" coords="1343,556,1300,590,1272,607,1244,620,1202,631,1148,642,1015,658,748,676,747,670,1014,652,1147,636,1201,626,1242,615,1270,602,1297,585,1340,551"/>
+<area shape="rect" id="Node000024" href="$d8/d98/IvyUnorderedMapImpl_8hh.html" title="Declarations for std_ivy unordered_map internals and public API." alt="" coords="1063,812,1249,837"/>
+<area shape="poly" id="edge69_Node000003_Node000024" title=" " alt="" coords="1362,558,1352,601,1334,656,1308,714,1271,766,1233,795,1193,814,1191,810,1231,791,1267,762,1303,711,1330,654,1347,600,1357,557"/>
+<area shape="rect" id="Node000032" href="$df/da8/IvyIteratorImpl_8h.html" title="Core iterator operations and adapter implementations." alt="" coords="707,592,837,617"/>
+<area shape="poly" id="edge38_Node000003_Node000032" title=" " alt="" coords="1297,543,838,598,837,593,1297,538"/>
+<area shape="rect" id="Node000034" href="$d2/dfd/IvyParallelOp_8h.html" title="Parallel operation primitives and policies for CPU/GPU execution." alt="" coords="1111,592,1231,617"/>
+<area shape="poly" id="edge45_Node000003_Node000034" title=" " alt="" coords="1321,551,1203,594,1201,589,1319,546"/>
+<area shape="rect" id="Node000031" href="$d8/d01/IvyTensorShape_8hh_source.html" title=" " alt="" coords="1265,959,1409,984"/>
+<area shape="poly" id="edge48_Node000003_Node000031" title=" " alt="" coords="1375,556,1391,611,1399,677,1399,826,1393,866,1379,904,1348,960,1343,957,1375,902,1388,865,1393,826,1393,677,1385,612,1370,558"/>
+<area shape="rect" id="Node000035" href="$da/dda/IvyThreadSafePtr_8h_source.html" title=" " alt="" coords="1535,885,1681,911"/>
+<area shape="poly" id="edge50_Node000003_Node000035" title=" " alt="" coords="1432,545,1482,563,1530,590,1550,607,1567,627,1577,650,1581,676,1581,753,1584,791,1591,828,1607,885,1601,886,1586,829,1579,792,1576,753,1576,677,1572,652,1562,630,1547,611,1527,594,1479,568,1430,550"/>
+<area shape="rect" id="Node000005" href="$d1/d44/IvyComplexVariable_8h_source.html" title=" " alt="" coords="1635,1252,1800,1277"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1298,1054,1238,1062,1186,1077,1168,1087,1158,1098,1156,1112,1165,1129,1195,1154,1242,1177,1301,1196,1368,1213,1510,1238,1635,1253,1634,1259,1510,1243,1367,1218,1300,1201,1240,1182,1192,1159,1161,1132,1151,1113,1153,1096,1165,1083,1184,1072,1237,1057,1297,1048"/>
+<area shape="rect" id="Node000015" href="$df/d7d/IvyConstant_8h_source.html" title=" " alt="" coords="1485,1105,1597,1131"/>
+<area shape="poly" id="edge13_Node000004_Node000015" title=" " alt="" coords="1424,1061,1517,1103,1515,1108,1422,1065"/>
+<area shape="poly" id="edge20_Node000004_Node000017" title=" " alt="" coords="1397,1069,1411,1104,1406,1106,1393,1071"/>
+<area shape="rect" id="Node000006" href="$d6/d76/IvyCerf_8hh_source.html" title=" " alt="" coords="1719,1325,1807,1351"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1734,1288,1758,1324,1753,1327,1730,1291"/>
+<area shape="rect" id="Node000009" href="$de/d03/IvyFunction_8h_source.html" title=" " alt="" coords="1367,1325,1476,1351"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="1657,1283,1470,1328,1469,1323,1656,1278"/>
+<area shape="rect" id="Node000012" href="$db/de2/IvyMathBaseArithmetic_8hh_source.html" title=" " alt="" coords="1500,1325,1695,1351"/>
+<area shape="poly" id="edge10_Node000005_Node000012" title=" " alt="" coords="1687,1287,1618,1327,1616,1323,1685,1282"/>
+<area shape="rect" id="Node000013" href="$de/dca/IvyMathConstOps_8hh_source.html" title=" " alt="" coords="1831,1325,1988,1351"/>
+<area shape="poly" id="edge12_Node000005_Node000013" title=" " alt="" coords="1762,1280,1879,1323,1877,1328,1760,1285"/>
+<area shape="rect" id="Node000007" href="$dc/dfe/IvyCerf_8h_source.html" title=" " alt="" coords="1700,1399,1780,1424"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1757,1365,1746,1399,1741,1398,1752,1363"/>
+<area shape="rect" id="Node000008" href="$de/d54/IvyMathBaseArithmetic_8h_source.html" title=" " alt="" coords="1585,1472,1772,1497"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1723,1436,1691,1474,1687,1470,1719,1433"/>
+<area shape="rect" id="Node000010" href="$db/d03/IvyMathFunctionPrimitives_8hh_source.html" title=" " alt="" coords="1328,1399,1544,1424"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1429,1364,1436,1398,1431,1399,1424,1365"/>
+<area shape="poly" id="edge11_Node000012_Node000008" title=" " alt="" coords="1613,1362,1674,1470,1670,1473,1608,1364"/>
+<area shape="poly" id="edge14_Node000015_Node000009" title=" " alt="" coords="1531,1144,1430,1326,1425,1324,1526,1142"/>
+<area shape="poly" id="edge15_Node000015_Node000012" title=" " alt="" coords="1550,1144,1597,1324,1592,1326,1545,1145"/>
+<area shape="rect" id="Node000016" href="$d3/d1f/IvyVariable_8h_source.html" title=" " alt="" coords="1581,1179,1688,1204"/>
+<area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="1569,1137,1621,1176,1618,1181,1565,1141"/>
+<area shape="poly" id="edge17_Node000016_Node000005" title=" " alt="" coords="1660,1211,1706,1250,1702,1254,1657,1215"/>
+<area shape="poly" id="edge18_Node000016_Node000009" title=" " alt="" coords="1608,1214,1440,1327,1437,1323,1605,1210"/>
+<area shape="poly" id="edge19_Node000016_Node000012" title=" " alt="" coords="1631,1218,1603,1326,1598,1324,1626,1217"/>
+<area shape="poly" id="edge21_Node000017_Node000009" title=" " alt="" coords="1417,1145,1424,1325,1418,1325,1412,1145"/>
+<area shape="rect" id="Node000019" href="$de/d7e/IvyBucketedIteratorBuilder_8h.html" title="Builder and helper utilities for bucketed iterator views." alt="" coords="541,739,747,764"/>
+<area shape="poly" id="edge23_Node000018_Node000019" title=" " alt="" coords="657,705,649,739,644,738,652,703"/>
+<area shape="rect" id="Node000020" href="$d6/def/IvyIterator_8h.html" title="Umbrella header exposing iterator primitives, traits, adapters, and builders." alt="" coords="285,812,387,837"/>
+<area shape="poly" id="edge37_Node000018_Node000020" title=" " alt="" coords="559,691,389,712,320,726,298,733,286,741,281,749,281,757,288,776,304,795,322,810,318,814,300,799,284,779,275,758,276,747,282,737,295,729,319,721,388,707,558,686"/>
+<area shape="rect" id="Node000027" href="$dc/da1/IvyContiguousIteratorBuilder_8h.html" title="Iterator&#45;builder helpers for constructing contiguous iterator ranges." alt="" coords="297,739,517,764"/>
+<area shape="poly" id="edge34_Node000018_Node000027" title=" " alt="" coords="607,697,448,741,447,736,605,692"/>
+<area shape="poly" id="edge24_Node000019_Node000020" title=" " alt="" coords="582,770,386,814,385,809,581,764"/>
+<area shape="poly" id="edge31_Node000019_Node000024" title=" " alt="" coords="740,763,1074,809,1073,815,739,768"/>
+<area shape="rect" id="Node000021" href="$d6/db5/IvyFind_8h.html" title="Linear search algorithms for generic iterators in the std_ivy namespace." alt="" coords="899,885,981,911"/>
+<area shape="poly" id="edge25_Node000020_Node000021" title=" " alt="" coords="401,835,690,870,899,891,899,896,689,875,400,840"/>
+<area shape="rect" id="Node000023" href="$dc/d1a/IvyTensorShape_8h_source.html" title=" " alt="" coords="939,1032,1075,1057"/>
+<area shape="poly" id="edge30_Node000020_Node000023" title=" " alt="" coords="385,839,972,1029,971,1034,383,844"/>
+<area shape="rect" id="Node000022" href="$d8/d2d/IvyAlgorithm_8h.html" title="Umbrella header exposing algorithm utilities under the std_ivy namespace." alt="" coords="947,959,1066,984"/>
+<area shape="poly" id="edge26_Node000021_Node000022" title=" " alt="" coords="962,919,998,957,994,960,959,923"/>
+<area shape="poly" id="edge27_Node000022_Node000004" title=" " alt="" coords="1080,984,1325,1029,1324,1035,1079,989"/>
+<area shape="poly" id="edge28_Node000022_Node000023" title=" " alt="" coords="1009,998,1009,1032,1004,1032,1004,998"/>
+<area shape="poly" id="edge29_Node000023_Node000017" title=" " alt="" coords="1089,1057,1354,1103,1366,1105,1365,1110,1353,1108,1088,1062"/>
+<area shape="rect" id="Node000025" href="$db/d9b/IvyUnorderedMapImpl_8h.html" title="Method definitions for the std_ivy unordered_map implementation." alt="" coords="1068,885,1247,911"/>
+<area shape="poly" id="edge32_Node000024_Node000025" title=" " alt="" coords="1159,851,1160,885,1154,885,1154,851"/>
+<area shape="rect" id="Node000026" href="$df/d9b/IvyUnorderedMap_8h.html" title="Umbrella header exposing the std_ivy unordered_map implementation." alt="" coords="1090,959,1241,984"/>
+<area shape="poly" id="edge33_Node000025_Node000026" title=" " alt="" coords="1163,924,1167,958,1161,959,1158,925"/>
+<area shape="poly" id="edge35_Node000027_Node000020" title=" " alt="" coords="387,776,349,814,346,810,383,772"/>
+<area shape="rect" id="Node000028" href="$d9/dc1/IvyVectorImpl_8hh.html" title="Declarations for the std_ivy vector container and related iterators." alt="" coords="411,812,543,837"/>
+<area shape="poly" id="edge36_Node000027_Node000028" title=" " alt="" coords="430,772,468,810,464,814,426,776"/>
+<area shape="poly" id="edge39_Node000032_Node000018" title=" " alt="" coords="744,627,680,667,677,663,741,623"/>
+<area shape="poly" id="edge40_Node000032_Node000020" title=" " alt="" coords="781,630,786,661,787,697,780,734,772,751,760,766,732,785,691,797,642,804,588,808,481,810,399,815,387,817,386,811,398,809,481,805,588,803,641,799,690,792,729,780,757,762,767,748,775,732,781,697,780,662,776,631"/>
+<area shape="rect" id="Node000033" href="$d7/de3/IvyReverseIterator_8h.html" title="Reverse iterator adapter for bidirectional and random&#45;access iterators." alt="" coords="343,665,497,691"/>
+<area shape="poly" id="edge41_Node000032_Node000033" title=" " alt="" coords="703,623,478,668,476,663,702,617"/>
+<area shape="poly" id="edge42_Node000033_Node000019" title=" " alt="" coords="470,692,609,736,607,741,468,697"/>
+<area shape="poly" id="edge44_Node000033_Node000020" title=" " alt="" coords="330,690,281,708,260,722,242,740,237,751,238,760,252,779,277,796,306,810,303,814,275,801,249,783,233,762,232,750,238,737,256,718,279,703,328,685"/>
+<area shape="poly" id="edge43_Node000033_Node000027" title=" " alt="" coords="418,705,411,739,406,738,413,704"/>
+<area shape="poly" id="edge46_Node000034_Node000022" title=" " alt="" coords="1196,626,1237,674,1257,704,1272,738,1288,772,1301,808,1303,829,1298,853,1284,881,1260,913,1234,925,1185,939,1067,962,1066,957,1184,933,1232,920,1257,909,1280,878,1293,852,1297,829,1296,809,1283,774,1267,740,1252,707,1233,677,1192,629"/>
+<area shape="poly" id="edge49_Node000031_Node000023" title=" " alt="" coords="1272,989,1061,1034,1060,1029,1271,984"/>
+<area shape="poly" id="edge58_Node000035_Node000031" title=" " alt="" coords="1552,917,1382,961,1380,956,1551,912"/>
+<area shape="rect" id="Node000036" href="$d8/d00/IvyBaseNode_8h_source.html" title=" " alt="" coords="1585,959,1705,984"/>
+<area shape="poly" id="edge51_Node000035_Node000036" title=" " alt="" coords="1623,922,1642,957,1637,960,1618,924"/>
+<area shape="rect" id="Node000037" href="$d0/d78/IvyNodeRelations_8h_source.html" title=" " alt="" coords="1535,1032,1684,1057"/>
+<area shape="poly" id="edge57_Node000035_Node000037" title=" " alt="" coords="1592,923,1578,952,1574,968,1576,983,1588,1009,1602,1030,1598,1033,1583,1012,1571,985,1569,967,1573,950,1587,921"/>
+<area shape="rect" id="Node000038" href="$d7/d4b/IvyTypeTags_8h_source.html" title=" " alt="" coords="1730,959,1843,984"/>
+<area shape="poly" id="edge59_Node000035_Node000038" title=" " alt="" coords="1650,913,1758,956,1756,961,1648,918"/>
+<area shape="poly" id="edge52_Node000036_Node000037" title=" " alt="" coords="1636,997,1618,1033,1613,1031,1631,995"/>
+<area shape="poly" id="edge53_Node000037_Node000005" title=" " alt="" coords="1631,1066,1668,1115,1702,1178,1714,1218,1719,1252,1714,1252,1709,1219,1698,1180,1663,1118,1626,1070"/>
+<area shape="poly" id="edge54_Node000037_Node000015" title=" " alt="" coords="1591,1069,1554,1107,1550,1103,1587,1065"/>
+<area shape="poly" id="edge56_Node000037_Node000016" title=" " alt="" coords="1616,1070,1635,1178,1630,1179,1611,1071"/>
+<area shape="poly" id="edge55_Node000037_Node000017" title=" " alt="" coords="1566,1064,1446,1108,1444,1103,1564,1059"/>
+<area shape="rect" id="Node000039" href="$d6/db3/IvyBaseMathTypes_8h_source.html" title=" " alt="" coords="1709,1032,1865,1057"/>
+<area shape="poly" id="edge60_Node000038_Node000039" title=" " alt="" coords="1789,998,1789,1032,1784,1032,1784,998"/>
+<area shape="poly" id="edge62_Node000039_Node000005" title=" " alt="" coords="1787,1071,1778,1133,1757,1205,1743,1232,1729,1253,1724,1250,1739,1229,1752,1203,1772,1132,1782,1071"/>
+<area shape="poly" id="edge64_Node000039_Node000009" title=" " alt="" coords="1802,1069,1821,1112,1836,1168,1839,1198,1837,1227,1830,1254,1814,1279,1789,1297,1752,1309,1708,1316,1659,1320,1562,1323,1488,1328,1477,1330,1476,1325,1488,1323,1562,1318,1659,1315,1707,1311,1751,1304,1786,1292,1810,1276,1825,1252,1832,1226,1834,1198,1831,1169,1816,1114,1797,1071"/>
+<area shape="poly" id="edge63_Node000039_Node000015" title=" " alt="" coords="1735,1064,1582,1108,1580,1103,1734,1059"/>
+<area shape="poly" id="edge68_Node000039_Node000016" title=" " alt="" coords="1766,1069,1649,1180,1645,1177,1762,1065"/>
+<area shape="poly" id="edge67_Node000039_Node000017" title=" " alt="" coords="1714,1063,1461,1110,1460,1105,1713,1057"/>
+<area shape="poly" id="edge61_Node000039_Node000040" title=" " alt="" coords="1695,1061,1343,1108,1342,1103,1694,1056"/>
+<area shape="rect" id="Node000041" href="$d5/dd3/IvyMathTypes_8h_source.html" title=" " alt="" coords="1919,1179,2043,1204"/>
+<area shape="poly" id="edge65_Node000039_Node000041" title=" " alt="" coords="1815,1064,1967,1176,1964,1181,1812,1068"/>
+<area shape="poly" id="edge66_Node000041_Node000010" title=" " alt="" coords="1997,1215,2009,1246,2018,1282,2018,1319,2012,1337,2002,1353,1983,1360,1945,1367,1827,1381,1545,1405,1544,1400,1826,1376,1945,1361,1982,1355,1998,1349,2008,1335,2013,1318,2013,1283,2004,1247,1992,1217"/>
+<area shape="poly" id="edge71_Node000042_Node000003" title=" " alt="" coords="1458,410,1375,520,1371,517,1454,407"/>
+<area shape="rect" id="Node000044" href="$d0/d69/IvyUnifiedPtr_8h.html" title="IvyUnifiedPtr method definitions and unified pointer lifecycle operations." alt="" coords="1273,445,1391,471"/>
+<area shape="poly" id="edge73_Node000043_Node000044" title=" " alt="" coords="1325,410,1332,445,1327,446,1320,411"/>
+<area shape="poly" id="edge74_Node000044_Node000003" title=" " alt="" coords="1345,482,1361,517,1356,520,1340,484"/>
+<area shape="poly" id="edge86_Node000045_Node000032" title=" " alt="" coords="994,110,943,127,894,154,874,170,858,190,848,212,844,237,844,460,837,500,821,538,802,571,784,594,780,590,797,567,816,536,832,499,839,459,839,236,843,210,854,187,870,166,891,149,940,123,992,105"/>
+<area shape="poly" id="edge102_Node000045_Node000034" title=" " alt="" coords="1081,115,1106,169,1115,202,1119,237,1119,459,1124,498,1136,535,1165,591,1161,593,1131,537,1119,499,1113,460,1113,237,1110,203,1101,171,1077,117"/>
+<area shape="poly" id="edge106_Node000045_Node000031" title=" " alt="" coords="988,98,743,111,434,137,289,156,169,179,123,192,88,206,66,221,59,237,59,679,63,718,76,749,96,772,123,789,155,803,191,814,274,835,318,843,369,849,489,852,771,845,915,841,1051,844,1168,856,1218,868,1260,883,1284,899,1305,919,1333,957,1329,960,1301,923,1281,903,1257,888,1216,873,1168,862,1051,849,915,847,771,850,489,858,368,854,317,849,273,840,190,819,153,808,120,794,93,776,71,752,58,720,53,679,53,236,62,218,85,202,121,187,168,174,288,151,433,132,743,106,988,93"/>
+<area shape="poly" id="edge77_Node000045_Node000039" title=" " alt="" coords="1142,96,1344,113,1588,143,1702,162,1795,183,1859,208,1877,221,1884,236,1884,899,1879,945,1858,986,1833,1014,1807,1034,1804,1030,1830,1010,1854,982,1874,943,1879,899,1879,237,1873,225,1857,212,1794,188,1701,167,1588,148,1343,119,1142,101"/>
+<area shape="rect" id="Node000046" href="$d6/de1/IvyHash_8h.html" title="Hash functors and helpers implemented under std_ivy." alt="" coords="937,152,1023,177"/>
+<area shape="poly" id="edge78_Node000045_Node000046" title=" " alt="" coords="1043,115,996,154,992,150,1040,110"/>
+<area shape="rect" id="Node000049" href="$da/d9d/IvyUnorderedMapKeyEval_8h.html" title="Key extraction and equality/hash evaluation helpers for unordered_map nodes." alt="" coords="1055,739,1257,764"/>
+<area shape="poly" id="edge107_Node000045_Node000049" title=" " alt="" coords="1068,118,1068,237,1068,606,1070,627,1076,647,1096,684,1121,714,1144,737,1140,740,1118,718,1092,687,1071,649,1065,628,1063,606,1063,237,1063,118"/>
+<area shape="rect" id="Node000050" href="$d8/d88/IvyIteratorPrimitives_8h.html" title="Primitive iterator tags and base category types used by std_ivy iterators." alt="" coords="576,445,744,471"/>
+<area shape="poly" id="edge87_Node000045_Node000050" title=" " alt="" coords="989,99,914,110,875,120,839,134,807,152,781,174,765,203,759,237,759,313,756,335,749,356,728,394,701,425,676,447,673,443,697,422,723,391,745,354,751,334,753,313,753,236,760,201,777,171,804,147,837,129,874,115,913,105,988,93"/>
+<area shape="rect" id="Node000051" href="$d5/d29/IvyIteratorTraits_8h.html" title="Iterator trait helpers and aliases for std_ivy iterator categories." alt="" coords="470,519,607,544"/>
+<area shape="poly" id="edge96_Node000045_Node000051" title=" " alt="" coords="988,100,857,114,782,125,709,140,643,158,590,180,569,193,554,206,545,221,541,237,541,386,541,518,536,518,536,386,536,236,540,219,550,203,566,189,587,175,641,153,708,134,781,120,856,109,988,95"/>
+<area shape="rect" id="Node000052" href="$d8/d36/IvyKernelRun_8h.html" title="Unified kernel dispatch layer with GPU&#45;first and CPU/OpenMP fallback execution." alt="" coords="1255,152,1375,177"/>
+<area shape="poly" id="edge97_Node000045_Node000052" title=" " alt="" coords="1119,105,1275,149,1274,154,1118,110"/>
+<area shape="rect" id="Node000053" href="$d4/d78/IvyMemoryHelpers_8h.html" title="Allocation, construction, destruction, and transfer helpers across memory domains." alt="" coords="1213,225,1371,251"/>
+<area shape="poly" id="edge101_Node000045_Node000053" title=" " alt="" coords="1106,107,1187,150,1240,189,1281,223,1278,227,1237,193,1184,154,1104,112"/>
+<area shape="rect" id="Node000054" href="$de/d0f/IvyPointerTraits_8h.html" title="Pointer traits and detection helpers for custom pointer abstractions." alt="" coords="1205,299,1339,324"/>
+<area shape="poly" id="edge103_Node000045_Node000054" title=" " alt="" coords="1094,111,1137,150,1157,177,1170,200,1182,223,1202,249,1230,275,1257,296,1254,301,1227,279,1198,252,1178,226,1165,203,1152,180,1133,154,1090,115"/>
+<area shape="rect" id="Node000047" href="$dd/dbc/IvyFunctional_8h.html" title="Functional umbrella header exposing std_ivy extensions and backend functional aliases." alt="" coords="906,665,1027,691"/>
+<area shape="poly" id="edge79_Node000046_Node000047" title=" " alt="" coords="980,191,975,310,975,533,970,665,965,665,969,533,969,310,975,191"/>
+<area shape="poly" id="edge82_Node000047_Node000023" title=" " alt="" coords="963,705,944,765,922,806,900,838,886,869,885,888,889,910,908,949,935,983,965,1010,990,1030,987,1034,961,1014,931,986,903,952,884,911,880,888,881,868,895,835,917,804,939,763,958,703"/>
+<area shape="poly" id="edge83_Node000047_Node000024" title=" " alt="" coords="985,700,1011,731,1044,762,1087,789,1129,810,1127,814,1085,794,1041,766,1008,735,981,703"/>
+<area shape="rect" id="Node000048" href="$d7/d59/IvyMinMax_8h.html" title="Min/max utility functions and comparators for host/device code." alt="" coords="823,739,929,764"/>
+<area shape="poly" id="edge80_Node000047_Node000048" title=" " alt="" coords="943,701,892,741,889,736,940,697"/>
+<area shape="poly" id="edge84_Node000047_Node000049" title=" " alt="" coords="1011,693,1126,736,1124,741,1009,698"/>
+<area shape="poly" id="edge81_Node000048_Node000022" title=" " alt="" coords="902,771,950,819,974,850,994,884,1006,924,1009,958,1004,959,1001,925,990,886,970,853,946,823,898,775"/>
+<area shape="poly" id="edge85_Node000049_Node000024" title=" " alt="" coords="1159,778,1159,812,1153,812,1153,778"/>
+<area shape="poly" id="edge88_Node000050_Node000018" title=" " alt="" coords="663,485,663,665,657,665,657,485"/>
+<area shape="poly" id="edge89_Node000050_Node000020" title=" " alt="" coords="563,467,425,481,349,492,276,506,210,524,157,546,137,559,122,573,113,588,109,604,109,679,114,708,127,732,147,753,172,771,230,797,286,812,284,817,228,802,169,775,144,757,123,735,109,709,104,680,104,603,108,586,118,569,133,555,154,542,208,519,274,501,348,486,424,476,562,462"/>
+<area shape="poly" id="edge90_Node000050_Node000051" title=" " alt="" coords="630,480,560,521,557,516,627,475"/>
+<area shape="poly" id="edge91_Node000051_Node000018" title=" " alt="" coords="559,553,652,663,648,667,555,556"/>
+<area shape="poly" id="edge92_Node000051_Node000020" title=" " alt="" coords="489,551,425,577,352,617,317,642,284,671,255,703,232,740,228,751,230,762,245,781,270,797,299,809,297,814,268,802,241,785,225,764,223,751,227,738,251,700,280,667,314,638,350,612,423,572,487,546"/>
+<area shape="poly" id="edge93_Node000051_Node000032" title=" " alt="" coords="590,545,735,589,733,594,588,550"/>
+<area shape="poly" id="edge95_Node000051_Node000033" title=" " alt="" coords="522,557,432,667,427,663,518,553"/>
+<area shape="poly" id="edge94_Node000051_Node000048" title=" " alt="" coords="537,558,534,588,535,623,543,659,562,689,574,695,597,703,666,717,823,741,822,746,665,723,596,708,572,700,558,693,538,661,530,624,529,588,531,557"/>
+<area shape="poly" id="edge98_Node000052_Node000053" title=" " alt="" coords="1309,192,1298,226,1293,224,1304,190"/>
+<area shape="poly" id="edge99_Node000053_Node000002" title=" " alt="" coords="1326,255,1399,296,1397,301,1323,260"/>
+<area shape="poly" id="edge100_Node000053_Node000034" title=" " alt="" coords="1250,259,1220,276,1194,300,1180,321,1173,338,1169,383,1169,459,1173,592,1167,592,1164,459,1164,383,1168,337,1175,318,1190,297,1217,272,1247,254"/>
+<area shape="poly" id="edge104_Node000054_Node000003" title=" " alt="" coords="1260,337,1245,373,1240,401,1241,424,1248,445,1263,469,1278,485,1295,497,1332,516,1329,521,1293,502,1275,489,1259,472,1243,448,1235,425,1235,401,1240,371,1255,335"/>
+<area shape="poly" id="edge105_Node000054_Node000043" title=" " alt="" coords="1289,334,1312,370,1308,373,1285,337"/>
+</map>

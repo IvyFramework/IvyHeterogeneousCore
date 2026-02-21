@@ -1,0 +1,15 @@
+<map id="IvyMath::IvyTensor&lt; T &gt;" name="IvyMath::IvyTensor&lt; T &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="384,167,567,192"/>
+<area shape="rect" id="Node000002" href="$d1/d7d/classIvyMath_1_1IvyTensorBase.html" title=" " alt="" coords="132,93,347,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="291,120,438,164,436,169,290,125"/>
+<area shape="rect" id="Node000003" href="$de/d4e/structIvyBaseNode.html" title=" " alt="" coords="5,13,113,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,41,214,91,212,96,97,46"/>
+<area shape="rect" id="Node000004" href="$d6/d3a/classIvyMath_1_1IvyBaseModifiable.html" title=" " alt="" coords="138,13,341,38"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="242,52,242,93,237,93,237,52"/>
+<area shape="rect" id="Node000005" href="$df/d5f/classIvyMath_1_1IvyClientManager.html" title=" " alt="" coords="365,5,564,45"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="399,52,273,96,272,91,397,47"/>
+<area shape="rect" id="Node000006" href="$d6/ddf/structIvyMath_1_1tensor__domain__tag.html" title=" " alt="" coords="371,93,579,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="478,132,478,167,473,167,473,132"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="603,93,774,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="642,125,511,169,509,164,641,120"/>
+</map>

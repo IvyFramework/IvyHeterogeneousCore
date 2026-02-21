@@ -1,0 +1,16 @@
+<map id="IvyMemoryHelpers::run_acc_on_host" name="IvyMemoryHelpers::run_acc_on_host">
+<area shape="rect" id="Node000001" title="Check if host&#45;side code must dispatch accelerator kernels for type." alt="" coords="5,63,180,103"/>
+<area shape="rect" id="Node000002" href="$d2/d12/namespaceIvyMemoryHelpers.html#a725e8fe9b15c51e1897f47a12820a6b8" title="Return default memory domain associated with the current compilation/execution context." alt="" coords="228,5,435,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,60,234,46,235,51,177,65"/>
+<area shape="rect" id="Node000003" href="$d2/d12/namespaceIvyMemoryHelpers.html#af7f504c8e6240385fdf2c47448a20965" title="Check if operations on type should run on any accelerator backend." alt="" coords="483,92,660,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,85,469,103,469,108,180,91"/>
+<area shape="rect" id="Node000007" href="$d2/d12/namespaceIvyMemoryHelpers.html#a267a2ac7e1e887a5b18e5cc801825204" title="Check if operations on type should run on host execution resources." alt="" coords="243,120,420,160"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="177,100,235,114,234,119,176,105"/>
+<area shape="rect" id="Node000004" href="$d2/d12/namespaceIvyMemoryHelpers.html#a325d02345e7a58363de443d83056e5df" title="Check if operations on type should run on GPU execution resources." alt="" coords="708,92,885,132"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="660,109,694,109,694,115,660,115"/>
+<area shape="rect" id="Node000005" href="$d2/d12/namespaceIvyMemoryHelpers.html#aa3ba0d79acd7a63fba4e7daab00d226f" title="Check if type is GPU device memory." alt="" coords="933,60,1099,100"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="885,96,919,91,920,97,886,102"/>
+<area shape="rect" id="Node000006" href="$d2/d12/namespaceIvyMemoryHelpers.html#ac98311832d01eb8d1357265dd95db4eb" title="Check if type is any unified&#45;memory variant." alt="" coords="933,124,1099,164"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="886,122,920,127,919,133,885,128"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="420,127,469,121,469,127,420,132"/>
+</map>

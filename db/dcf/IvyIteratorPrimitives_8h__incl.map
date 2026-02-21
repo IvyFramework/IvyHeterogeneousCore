@@ -1,0 +1,14 @@
+<map id="IvyIteratorPrimitives.h" name="IvyIteratorPrimitives.h">
+<area shape="rect" id="Node000001" title="Primitive iterator tags and base category types used by std_ivy iterators." alt="" coords="57,5,225,31"/>
+<area shape="rect" id="Node000002" href="$d1/db3/IvyBasicTypes_8h.html" title="Fundamental scalar aliases and compile&#45;time type conversion helpers." alt="" coords="129,79,255,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,29,178,66,174,69,148,33"/>
+<area shape="rect" id="Node000003" href="$d8/daa/IvyTypeTraits_8h.html" title="Type&#45;trait wrapper and macro helpers for SFINAE and compile&#45;time reflection checks." alt="" coords="5,152,176,177"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="138,32,119,80,100,139,95,138,113,78,133,30"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="177,106,120,146,117,142,174,102"/>
+<area shape="rect" id="Node000005" href="$d3/df2/IvyLimits_8h.html" title="Backend&#45;selecting numeric limits wrapper." alt="" coords="201,152,346,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="207,102,252,141,248,145,203,106"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="45,225,137,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="93,178,93,212,88,212,88,178"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="244,225,303,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="276,178,276,212,271,212,271,178"/>
+</map>

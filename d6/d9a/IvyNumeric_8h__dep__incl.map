@@ -1,0 +1,17 @@
+<map id="IvyNumeric.h" name="IvyNumeric.h">
+<area shape="rect" id="Node000001" title="Numeric umbrella header exposing std_ivy numeric utilities." alt="" coords="59,5,168,31"/>
+<area shape="rect" id="Node000002" href="$dc/d1a/IvyTensorShape_8h_source.html" title=" " alt="" coords="45,79,181,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,44,116,79,111,79,111,44"/>
+<area shape="rect" id="Node000003" href="$d8/d66/IvyTensor_8h_source.html" title=" " alt="" coords="66,152,161,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="116,118,116,152,111,152,111,118"/>
+<area shape="rect" id="Node000004" href="$de/d03/IvyFunction_8h_source.html" title=" " alt="" coords="59,225,168,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="116,191,116,225,111,225,111,191"/>
+<area shape="rect" id="Node000005" href="$db/d03/IvyMathFunctionPrimitives_8hh_source.html" title=" " alt="" coords="5,299,221,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="116,264,116,299,111,299,111,264"/>
+<area shape="rect" id="Node000006" href="$d8/da0/IvyMathFunctionPrimitives_8h_source.html" title=" " alt="" coords="9,372,217,397"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="116,338,116,372,111,372,111,338"/>
+<area shape="rect" id="Node000007" href="$db/de2/IvyMathBaseArithmetic_8hh_source.html" title=" " alt="" coords="16,445,211,471"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="116,411,116,445,111,445,111,411"/>
+<area shape="rect" id="Node000008" href="$de/d54/IvyMathBaseArithmetic_8h_source.html" title=" " alt="" coords="20,519,207,544"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="116,484,116,519,111,519,111,484"/>
+</map>

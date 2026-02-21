@@ -1,0 +1,5 @@
+<map id="IvyStdExtensions.h" name="IvyStdExtensions.h">
+<area shape="rect" id="Node000001" title="Conditional standard&#45;library backend selection across host and CUDA builds." alt="" coords="6,5,153,31"/>
+<area shape="rect" id="Node000002" href="$d8/d79/IvyCompilerFlags_8h.html" title="Compiler and language&#45;feature detection macros used by Ivy portability layers." alt="" coords="5,79,153,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,31,82,65,77,65,77,31"/>
+</map>

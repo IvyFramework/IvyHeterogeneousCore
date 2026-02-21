@@ -1,0 +1,5 @@
+<map id="IvyAtomic.h" name="IvyAtomic.h">
+<area shape="rect" id="Node000001" title="Backend&#45;selecting atomic wrapper that aliases CUDA or standard atomic facilities." alt="" coords="5,5,105,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="22,79,89,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,31,58,65,53,65,53,31"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="std_ivy::transfer_memory_primitive&lt; std_util::pair&lt; T, U &gt; &gt;::transfer_internal_memory" name="std_ivy::transfer_memory_primitive&lt; std_util::pair&lt; T, U &gt; &gt;::transfer_internal_memory">
+<area shape="rect" id="Node000001" title="Transfer internal memory of both pair members element&#45;wise." alt="" coords="5,5,276,60"/>
+<area shape="rect" id="Node000002" href="$d2/d12/namespaceIvyMemoryHelpers.html#a725e8fe9b15c51e1897f47a12820a6b8" title="Return default memory domain associated with the current compilation/execution context." alt="" coords="324,13,531,53"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="276,30,310,30,310,35,276,35"/>
+</map>
