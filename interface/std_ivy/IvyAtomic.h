@@ -1,3 +1,7 @@
+/**
+ * @file IvyAtomic.h
+ * @brief Backend-selecting atomic wrapper that aliases CUDA or standard atomic facilities.
+ */
 #ifndef IVYATOMIC_H
 #define IVYATOMIC_H
 

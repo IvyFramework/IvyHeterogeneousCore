@@ -1,6 +1,11 @@
 #ifndef IVYCUDACONFIG_H
 #define IVYCUDACONFIG_H
 
+/**
+ * @file IvyCudaConfig.h
+ * @brief CUDA runtime capability helpers and launch-dimension planning utilities.
+ */
+
 
 #include "config/IvyCudaFlags.h"
 
@@ -13,11 +18,22 @@
 
 
 namespace IvyCudaConfig{
+  /** @brief CUDA device ordinal type. */
   using IvyDeviceNum_t = int;
+  /** @brief Unsigned thread-count type used for launch dimensions. */
   using IvyBlockThread_t = unsigned int;
+  /** @brief Signed thread-count type used for launch-dimension calculations. */
   using IvyBlockThread_signed_t = int;
+  /** @brief CUDA launch-dimension type (`dim3`). */
   using IvyBlockThreadDim_t = dim3;
 
+  /**
+   * @brief Determine whether the GPU can be used for a 1D workload and propose launch dimensions.
+   * @param nreq_blocks Output block dimensions.
+   * @param nreq_threads_per_block Output thread dimensions per block.
+   * @param n Number of work items.
+   * @return True when a valid launch configuration is found.
+   */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool check_GPU_usable(IvyBlockThreadDim_t& nreq_blocks, IvyBlockThreadDim_t& nreq_threads_per_block, unsigned long long int n){
     nreq_blocks.x = nreq_blocks.y = nreq_blocks.z = 0;
     nreq_threads_per_block.x = nreq_threads_per_block.y = nreq_threads_per_block.z = 0;
@@ -90,6 +106,11 @@ namespace IvyCudaConfig{
     return res;
   }
 
+  /**
+   * @brief Resolve a raw CUDA stream from an optional pointer.
+   * @param ptr Optional pointer to stream handle.
+   * @return Dereferenced stream if present; otherwise the global default stream.
+   */
   __HOST_DEVICE__ cudaStream_t get_GPU_stream_from_pointer(cudaStream_t* ptr){
     return (ptr ? *ptr : GlobalGPUStreamRaw);
   }

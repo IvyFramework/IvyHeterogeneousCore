@@ -1,3 +1,7 @@
+/**
+ * @file IvyChrono.h
+ * @brief Backend-selecting chrono wrapper with common namespace aliases.
+ */
 #ifndef IVYCHRONO_H
 #define IVYCHRONO_H
 

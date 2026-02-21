@@ -1,5 +1,10 @@
 // No ifndef/define blocks for this file
 
+/**
+ * @file IvyStdExtensions.h
+ * @brief Conditional standard-library backend selection across host and CUDA builds.
+ */
+
 #include "IvyCompilerFlags.h"
 
 

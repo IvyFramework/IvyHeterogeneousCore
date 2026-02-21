@@ -1,3 +1,7 @@
+/**
+ * @file IvyNumeric.h
+ * @brief Numeric umbrella header exposing std_ivy numeric utilities.
+ */
 #ifndef IVYNUMERIC_H
 #define IVYNUMERIC_H
 

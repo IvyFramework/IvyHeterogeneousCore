@@ -1,3 +1,7 @@
+/**
+ * @file IvyAllocator.h
+ * @brief Allocation, deallocation, and memory-transfer primitives used by std_ivy containers.
+ */
 #ifndef IVYALLOCATOR_H
 #define IVYALLOCATOR_H
 
@@ -10,55 +14,92 @@
 
 
 namespace std_ivy{
-  /*
+  /**
   Base class of allocator primitives
   */
   template<typename T> class allocation_type_properties{
   public:
+    /** @brief Value type handled by this allocation property specialization. */
     typedef T value_type;
+    /** @brief Mutable pointer to value_type. */
     typedef T* pointer;
+    /** @brief Const pointer to value_type. */
     typedef T const* const_pointer;
+    /** @brief Mutable reference to value_type. */
     typedef T& reference;
+    /** @brief Const reference to value_type. */
     typedef T const& const_reference;
+    /** @brief Unsigned size/index type. */
     typedef IvyTypes::size_t size_type;
+    /** @brief Signed pointer-difference type. */
     typedef IvyTypes::ptrdiff_t difference_type;
 
+    /** @brief Get the address of a mutable reference. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ pointer address(reference x){ return addressof(x); }
+    /** @brief Get the address of a const reference. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ const_pointer address(const_reference x){ return addressof(x); }
+    /** @brief Return maximum representable element count for this allocator value type. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ size_type max_size() noexcept{
       return std_limits::numeric_limits<size_type>::max() / sizeof(T);
     }
   };
   template<typename T> class allocation_type_properties<T const>{
   public:
+    /** @brief Value type handled by this const allocation property specialization. */
     typedef T const value_type;
+    /** @brief Const pointer to value_type. */
     typedef T const* pointer;
+    /** @brief Const pointer to value_type. */
     typedef T const* const_pointer;
+    /** @brief Const reference to value_type. */
     typedef T const& reference;
+    /** @brief Const reference to value_type. */
     typedef T const& const_reference;
+    /** @brief Unsigned size/index type. */
     typedef IvyTypes::size_t size_type;
+    /** @brief Signed pointer-difference type. */
     typedef IvyTypes::ptrdiff_t difference_type;
 
+    /** @brief Get the address of a const reference. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ pointer address(reference x){ return addressof(x); }
+    /** @brief Return maximum representable element count for this allocator value type. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ size_type max_size() noexcept{
       return std_limits::numeric_limits<size_type>::max() / sizeof(T);
     }
   };
 
-  /*
+  /**
   allocator primitives
   */
   template<typename T> class allocator_primitive{
   public:
+    /** @brief Base property type for allocator primitives. */
     using base_t = allocation_type_properties<T>;
+    /** @brief Pointer type to allocator element values. */
     using pointer = typename base_t::pointer;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
 
+    /**
+     * @brief Allocate storage for `n` elements into `tgt`.
+     * @param tgt Output pointer.
+     * @param n Element count.
+     * @param mem_type Target memory-domain.
+     * @param stream Stream used by backend allocation path.
+     * @return True on success.
+     */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool allocate(
       pointer& tgt, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
       return IvyMemoryHelpers::allocate_memory(tgt, n, mem_type, stream);
     }
+    /**
+     * @brief Allocate storage and return pointer.
+     * @param n Element count.
+     * @param mem_type Target memory-domain.
+     * @param stream Stream used by backend allocation path.
+     * @return Allocated pointer or nullptr on failure path.
+     */
     static __HOST_DEVICE__ pointer allocate(
       size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
@@ -67,17 +108,20 @@ namespace std_ivy{
       return res;
     }
 
+    /** @brief Construct `n` elements in pre-allocated storage. */
     template<typename... Args> static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool construct(
       pointer& tgt, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args
     ){
       return IvyMemoryHelpers::construct(tgt, n, mem_type, stream, args...);
     }
 
+    /** @brief Allocate and construct values into `tgt`. */
     template<typename... Args> static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool build(
       pointer& tgt, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args
     ){
       return IvyMemoryHelpers::build(tgt, n, mem_type, stream, args...);
     }
+    /** @brief Allocate and construct values, returning the new pointer. */
     template<typename... Args> static __HOST_DEVICE__ pointer build(
       size_type n, IvyMemoryType mem_type, IvyGPUStream& stream, Args&&... args
     ){
@@ -88,22 +132,28 @@ namespace std_ivy{
   };
   template<typename T> class deallocator_primitive{
   public:
+    /** @brief Base property type for deallocator primitives. */
     using base_t = allocation_type_properties<T>;
+    /** @brief Pointer type to allocator element values. */
     using pointer = typename base_t::pointer;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
 
+    /** @brief Deallocate previously allocated storage. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool deallocate(
       pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
       return IvyMemoryHelpers::free_memory(p, n, mem_type, stream);
     }
 
+    /** @brief Run destructors on stored elements without deallocating storage. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destruct(
       pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
       return IvyMemoryHelpers::destruct(p, n, mem_type, stream);
     }
 
+    /** @brief Destruct elements and deallocate storage. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destroy(
       pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream
     ){
@@ -111,7 +161,7 @@ namespace std_ivy{
     }
   };
 
-  /*
+  /**
   We hold the convention to codfy all classes with internal data using a public or protected
   'bool transfer_internal_memory(IvyMemoryType const& new_mem_type)' member function.
   */
@@ -119,7 +169,7 @@ namespace std_ivy{
   template<typename T> class transfer_memory_primitive_without_internal_memory;
   template<typename T, typename = void> class transfer_memory_primitive_with_internal_memory;
   template<typename T> class transfer_memory_primitive;
-  /*
+  /**
     transfer_memory_primitive<std_util::pair<T, U>>:
     std_util::pair is a container with internal memory, so we can use this object safely only when internal memory transfer is ensured.
     This specialization ensures that internal memory transfer routines are called for the first and second elements of the pair.
@@ -128,11 +178,13 @@ namespace std_ivy{
 
   template<typename T, typename Enabler> class kernel_generic_transfer_internal_memory final : public kernel_base_noprep_nofin{
   protected:
+    /** @brief Dispatch element-level internal memory transfer. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_internal_memory(T* const& ptr, IvyMemoryType const& mem_type, bool release_old){
       return ptr->transfer_internal_memory(mem_type, release_old);
     }
 
   public:
+    /** @brief Kernel entry point for internal-memory transfer over an index range. */
     static __HOST_DEVICE__ void kernel(
       IvyTypes::size_t const& i, IvyTypes::size_t const& n, T* const& ptr,
       IvyMemoryType const& mem_type, bool const& release_old
@@ -145,14 +197,21 @@ namespace std_ivy{
 
   template<typename T> class transfer_memory_primitive_without_internal_memory{
   public:
+    /** @brief Base property type for transfer primitives. */
     using base_t = allocation_type_properties<T>;
+    /** @brief Pointer type to transferred values. */
     using pointer = typename base_t::pointer;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
 
-    // There is no memory transfer to be done, so transfer_internal_memory always returns true.
+    /**
+     * @brief No-op internal-memory transfer for trivially external objects.
+     * @return Always true.
+     */
     static __HOST_DEVICE__ constexpr bool transfer_internal_memory(pointer, IvyTypes::size_t const&, IvyMemoryType const&, IvyMemoryType const&, IvyGPUStream&, bool){
       return true;
     }
+    /** @brief Transfer flat object bytes between memory domains. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -163,12 +222,21 @@ namespace std_ivy{
   };
   template<typename T, typename Enabler> class transfer_memory_primitive_with_internal_memory{
   public:
+    /** @brief Base property type for transfer primitives. */
     using base_t = allocation_type_properties<T>;
+    /** @brief Value type handled by this transfer primitive. */
     using value_type = typename base_t::value_type;
+    /** @brief Pointer type to transferred values. */
     using pointer = typename base_t::pointer;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
+    /** @brief Kernel adapter used for internal-memory transfer. */
     using kernel_type = kernel_generic_transfer_internal_memory<value_type, Enabler>;
 
+    /**
+     * @brief Transfer nested/internal allocations for each element.
+     * @note Uses accelerator kernels when host is orchestrating accelerator memory.
+     */
     static __HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
       bool res = true;
       if (IvyMemoryHelpers::run_acc_on_host(ptr_mem_type)){
@@ -195,6 +263,10 @@ namespace std_ivy{
       return res;
     }
 
+    /**
+     * @brief Transfer element storage and then reconcile nested/internal allocations.
+     * @note Falls back through default execution memory when direct transfer path is unavailable.
+     */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -202,7 +274,7 @@ namespace std_ivy{
     ){
       if (!src) return false;
       bool res = true;
-      /*
+      /**
 #if DEVICE_CODE == DEVICE_CODE_HOST
       printf("transfer_memory_primitive_with_internal_memory::transfer: type = %s | n=%llu | src = %p (%d), tgt = %p (%d)\n", typeid(T).name(), n, src, int(type_src), tgt, int(type_tgt));
 #endif
@@ -230,21 +302,29 @@ namespace std_ivy{
   };
   // By default, we assume that the class has no internal memory to transfer.
   template<typename T> class transfer_memory_primitive : public transfer_memory_primitive_without_internal_memory<T>{};
-  /*
+  /**
     transfer_memory_primitive<std_util::pair<T, U>>:
     std_util::pair is a container with internal memory, so we can use this object safely only when internal memory transfer is ensured.
     This specialization ensures that internal memory transfer routines are called for the first and second elements of the pair.
   */
   template<typename T, typename U> class transfer_memory_primitive<std_util::pair<T, U>>{
   public:
+    /** @brief Base property type for pair transfer primitives. */
     using base_t = allocation_type_properties<std_util::pair<T, U>>;
+    /** @brief Pair value type handled by this transfer primitive. */
     using value_type = typename base_t::value_type;
+    /** @brief Pointer type to pair values. */
     using pointer = typename base_t::pointer;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
 
     using transfer_primitive_T = transfer_memory_primitive<T>;
     using transfer_primitive_U = transfer_memory_primitive<U>;
 
+    /**
+     * @brief Transfer internal memory of both pair members element-wise.
+     * @note This specialization preserves correctness for pair-held nested state.
+     */
     static __HOST_DEVICE__ bool transfer_internal_memory(pointer ptr, IvyTypes::size_t const& n, IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream, bool release_old){
       constexpr IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
       bool res = true;
@@ -278,6 +358,7 @@ namespace std_ivy{
       return res;
     }
 
+    /** @brief Transfer pair storage and then pair-member internal allocations. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_type n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -307,42 +388,65 @@ namespace std_ivy{
     }
   };
 
-  /*
+  /**
   allocator
   */
   template<typename T> class allocator : public allocation_type_properties<T>, public allocator_primitive<T>, public deallocator_primitive<T>, public transfer_memory_primitive<T>{
   public:
+    /** @brief Base allocation property type. */
     using base_t = allocation_type_properties<T>;
+    /** @brief Element value type. */
     using value_type = typename base_t::value_type;
+    /** @brief Mutable pointer type. */
     using pointer = typename base_t::pointer;
+    /** @brief Const pointer type. */
     using const_pointer = typename base_t::const_pointer;
+    /** @brief Mutable reference type. */
     using reference = typename base_t::reference;
+    /** @brief Const reference type. */
     using const_reference = typename base_t::const_reference;
+    /** @brief Unsigned size/index type. */
     using size_type = typename base_t::size_type;
+    /** @brief Signed pointer-difference type. */
     using difference_type = typename base_t::difference_type;
 
+    /** @brief Default constructor. */
     allocator() noexcept = default;
+    /** @brief Copy constructor. */
     __HOST_DEVICE__ allocator(allocator const& other) noexcept{}
+    /** @brief Converting copy constructor from compatible allocator type. */
     template<typename U> __HOST_DEVICE__ allocator(allocator<U> const& other) noexcept{}
+    /** @brief Destructor. */
     /*__HOST_DEVICE__*/ ~allocator() noexcept = default;
   };
+  /** @brief Equality comparison for allocator specializations. */
   template<typename T, typename U> bool operator==(std_ivy::allocator<T> const&, std_ivy::allocator<U> const&) noexcept{ return true; }
+  /** @brief Inequality comparison for allocator specializations. */
   template<typename T, typename U> bool operator!=(std_ivy::allocator<T> const& a1, std_ivy::allocator<U> const& a2) noexcept{ return !(a1==a2); }
 
-  /*
+  /**
   allocator_traits
   */
   template<typename Allocator_t> class allocator_traits{
   public:
+    /** @brief Underlying allocator type. */
     typedef Allocator_t allocator_type;
+    /** @brief Element value type. */
     typedef typename allocator_type::value_type value_type;
+    /** @brief Mutable reference type. */
     typedef typename allocator_type::reference reference;
+    /** @brief Const reference type. */
     typedef typename allocator_type::const_reference const_reference;
+    /** @brief Mutable pointer type. */
     typedef typename allocator_type::pointer pointer;
+    /** @brief Const pointer type. */
     typedef typename allocator_type::const_pointer const_pointer;
+    /** @brief Unsigned size/index type. */
     typedef typename allocator_type::size_type size_type;
+    /** @brief Signed pointer-difference type. */
     typedef typename allocator_type::difference_type difference_type;
 
+    /** @brief Allocate through allocator instance interface. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ pointer allocate(allocator_type const& a, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return a.allocate(n, mem_type, stream);
     }
@@ -387,6 +491,7 @@ namespace std_ivy{
       return a.max_size();
     }
 
+    /** @brief Allocate through allocator static interface. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ pointer allocate(size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return allocator_type::allocate(n, mem_type, stream);
     }
@@ -411,6 +516,7 @@ namespace std_ivy{
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool destroy(pointer& p, size_type n, IvyMemoryType mem_type, IvyGPUStream& stream){
       return allocator_type::destroy(p, n, mem_type, stream);
     }
+    /** @brief Transfer element storage through allocator static interface. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer(
       pointer& tgt, pointer const& src, size_t n,
       IvyMemoryType type_tgt, IvyMemoryType type_src,
@@ -418,6 +524,7 @@ namespace std_ivy{
     ){
       return allocator_type::transfer(tgt, src, n, type_tgt, type_src, stream);
     }
+    /** @brief Transfer nested/internal allocations through allocator static interface. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool transfer_internal_memory(
       pointer ptr, IvyTypes::size_t const& n,
       IvyMemoryType const& ptr_mem_type, IvyMemoryType const& mem_type, IvyGPUStream& stream,
@@ -430,10 +537,14 @@ namespace std_ivy{
     }
   };
 
-  /*
+  /**
   allocator_arg_t
   */
-  struct allocator_arg_t { explicit /*__HOST_DEVICE__*/ allocator_arg_t() = default; };
+  struct allocator_arg_t {
+    /** @brief Tag constructor for allocator-aware overload resolution. */
+    explicit /*__HOST_DEVICE__*/ allocator_arg_t() = default;
+  };
+  /** @brief Global tag instance for allocator-aware construction. */
   inline constexpr allocator_arg_t allocator_arg;
 
 }
@@ -441,7 +552,7 @@ namespace std_ivy{
 
 // IvyMemoryHelpers copy_data functionality should rely on allocators so that complex data structures can be copied correctly.
 namespace IvyMemoryHelpers{
-  /*
+  /**
   copy_data: Copies data from a pointer of type U to a pointer of type T.
   - target: Pointer to the target data.
   - source: Pointer to the source data.
@@ -454,6 +565,7 @@ namespace IvyMemoryHelpers{
     If stream is anything other than cudaStreamLegacy, the copy is asynchronous, even in device code.
   */
   template<typename T, typename U> struct copy_data_fcnal{
+    /** @brief Copy source values into target storage with allocation/transfer semantics. */
     static __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool copy_data(
       T*& target, U* const& source,
       size_t n_tgt_init, size_t n_tgt, size_t n_src
@@ -461,6 +573,7 @@ namespace IvyMemoryHelpers{
       , IvyGPUStream& stream
     );
   };
+  /** @brief Front-end wrapper dispatching to copy_data_fcnal specialization. */
   template<typename T, typename U> __INLINE_FCN_FORCE__ __HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src
@@ -475,10 +588,11 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   Overload to allow passing raw cudaStream_t objects.
   */
 #ifdef __USE_CUDA__
+  /** @brief Overload of copy_data that accepts a raw CUDA stream handle. */
   template<typename T, typename U> __INLINE_FCN_RELAXED__ __HOST_DEVICE__ bool copy_data(
     T*& target, U* const& source,
     size_t n_tgt_init, size_t n_tgt, size_t n_src,

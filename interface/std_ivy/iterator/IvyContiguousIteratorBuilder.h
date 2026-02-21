@@ -1,3 +1,7 @@
+/**
+ * @file IvyContiguousIteratorBuilder.h
+ * @brief Iterator-builder helpers for constructing contiguous iterator ranges.
+ */
 #ifndef IVYCONTIGUOUSITERATORBUILDER_H
 #define IVYCONTIGUOUSITERATORBUILDER_H
 

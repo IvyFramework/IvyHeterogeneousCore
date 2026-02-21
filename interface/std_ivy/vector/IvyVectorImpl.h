@@ -1,3 +1,7 @@
+/**
+ * @file IvyVectorImpl.h
+ * @brief Method definitions for the std_ivy vector container.
+ */
 #ifndef IVYVECTORIMPL_H
 #define IVYVECTORIMPL_H
 

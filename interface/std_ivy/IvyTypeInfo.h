@@ -1,3 +1,7 @@
+/**
+ * @file IvyTypeInfo.h
+ * @brief Type information wrapper providing a portable type-name macro.
+ */
 #ifndef IVYTYPEINFO_H
 #define IVYTYPEINFO_H
 

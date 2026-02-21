@@ -37,9 +37,10 @@ EXEFLAGS      = $(CXXFLAGS)
 
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
+OPENMP_FLAGS  = 
 CXXDEFINES    += -D__USE_CUDA__
 NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
-CXXFLAGS      = -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = -arch=sm_86 -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 endif
 

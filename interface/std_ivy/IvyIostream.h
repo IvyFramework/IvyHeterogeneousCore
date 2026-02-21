@@ -1,3 +1,7 @@
+/**
+ * @file IvyIostream.h
+ * @brief Stream I/O wrapper selecting host iostream or device-compatible print facilities.
+ */
 #ifndef IVYIOSTREAM_H
 #define IVYIOSTREAM_H
 

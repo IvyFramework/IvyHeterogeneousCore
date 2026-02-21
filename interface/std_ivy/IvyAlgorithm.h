@@ -1,3 +1,7 @@
+/**
+ * @file IvyAlgorithm.h
+ * @brief Umbrella header exposing algorithm utilities under the std_ivy namespace.
+ */
 #ifndef IVYALGORITHM_H
 #define IVYALGORITHM_H
 

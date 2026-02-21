@@ -23,6 +23,7 @@
 **/*.png
 **/*.eps
 **/settings.json
+**/.vscode
 test/*.root
 test/*.txt
 *.root

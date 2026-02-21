@@ -1,8 +1,13 @@
 #ifndef IVYMEMORYHELPERS_H
 #define IVYMEMORYHELPERS_H
 
+/**
+ * @file IvyMemoryHelpers.h
+ * @brief Allocation, construction, destruction, and transfer helpers across memory domains.
+ */
 
-/*
+
+/**
 IvyMemoryHelpers: A collection of functions for allocating, freeing, and copying memory.
 The functions are overloaded for both host and device code when CUDA is enabled.
 If CUDA is disabled, allocation and freeing are done with new and delete.
@@ -36,7 +41,7 @@ namespace IvyMemoryHelpers{
   using size_t = IvyTypes::size_t;
   using ptrdiff_t = IvyTypes::ptrdiff_t;
 
-  /*
+  /**
   allocate_memory: Allocates memory for an array of type T of size n. Constructors are called for the arguments args.
   - data: Pointer to the target data.
   - n: Number of elements.
@@ -66,7 +71,7 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   construct: Constructs an array of n objects for the arguments args.
   - data: Pointer to the target data.
   - n: Number of elements.
@@ -100,7 +105,7 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   build: Allocates memory for an array of type T of size n and builds the objects for the arguments args.
   Calling this function is a shorthand for allocate_memory + construct.
   - data: Pointer to the target data.
@@ -119,7 +124,7 @@ namespace IvyMemoryHelpers{
     , IvyGPUStream& stream
     , Args&&... args
   ){
-    return 
+    return
       allocate_memory<T, Args...>(
         data, n
         , type, stream
@@ -132,7 +137,7 @@ namespace IvyMemoryHelpers{
       );
   }
 
-  /*
+  /**
   free_memory: Frees the memory storing an array of type T of size n in a way consistent with allocate_memory.
   - data: Pointer to the data.
   - n: Number of elements.
@@ -162,7 +167,7 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   destruct: Calls the destructors of each element of an array of type T of size n.
   - data: Pointer to the data.
   - n: Number of elements.
@@ -202,7 +207,7 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   destroy: Calls the destructors of each element of an array of type T of size n, and frees the memory of the pointer in a way consistent with allocate_memory.
   - data: Pointer to the data.
   - n: Number of elements.
@@ -230,26 +235,39 @@ namespace IvyMemoryHelpers{
       );
   }
 
-  /*
+  /**
   construct_data_kernel: Kernel function for constructing object of type T from pointer.
   - n: Number of elements.
   - data: Pointer to the data array.
   - args: Arguments for the constructors of the elements.
   */
   template<typename T, typename... Args> struct construct_data_kernel : public kernel_base_noprep_nofin{
+    /**
+     * @brief Kernel entry point to construct element @p i in-place.
+     * @param i Linear element index.
+     * @param n Total number of elements.
+     * @param data Target data pointer.
+     * @param args Constructor arguments forwarded to each element.
+     */
     static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data, Args&&... args);
   };
 
-  /*
+  /**
   destruct_data_kernel: Kernel function for destructing object of type T from pointer.
   - n: Number of elements.
   - data: Pointer to the data array.
   */
   template<typename T> struct destruct_data_kernel : public kernel_base_noprep_nofin{
+    /**
+     * @brief Kernel entry point to destruct element @p i.
+     * @param i Linear element index.
+     * @param n Total number of elements.
+     * @param data Target data pointer.
+     */
     static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n, T* data);
   };
 
-  /*
+  /**
   copy_data_kernel: Kernel function for copying data from a pointer of type U to a pointer of type T.
   - n_tgt: Number of elements in the target array.
   - n_src: Number of elements in the source array with the constraint (n_src==n_tgt || n_src==1).
@@ -257,17 +275,31 @@ namespace IvyMemoryHelpers{
   - source: Pointer to the source data.
   */
   template<typename T, typename U> struct copy_data_kernel : public kernel_base_noprep_nofin{
+    /**
+     * @brief Kernel entry point to copy source data into target element @p i.
+     * @param i Linear target index.
+     * @param n_tgt Total number of target elements.
+     * @param n_src Number of source elements.
+     * @param target Target pointer.
+     * @param source Source pointer.
+     */
     static __HOST_DEVICE__ void kernel(size_t const& i, size_t const& n_tgt, size_t const& n_src, T* target, U* source);
   };
 
 #ifdef __USE_CUDA__
-  /*
+  /**
   get_cuda_transfer_direction: Translates the target and source memory locations to the corresponding cudaMemcpyKind transfer type.
   */
+  /**
+   * @brief Map Ivy memory domains to CUDA memcpy direction.
+   * @param tgt Target memory type.
+   * @param src Source memory type.
+   * @return CUDA copy-kind enum corresponding to @p src -> @p tgt transfer.
+   */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr cudaMemcpyKind get_cuda_transfer_direction(IvyMemoryType tgt, IvyMemoryType src);
 #endif
 
-  /*
+  /**
   transfer_memory: Runs the transfer operation between two pointers of type T.
   - tgt: Pointer to the target data.
   - src: Pointer to the source data.
@@ -296,7 +328,7 @@ namespace IvyMemoryHelpers{
     );
   }
 
-  /*
+  /**
   Overloads to allow passing raw cudaStream_t objects.
   */
 #ifdef __USE_CUDA__

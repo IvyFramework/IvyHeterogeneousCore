@@ -1,6 +1,11 @@
 #ifndef IVYCUDAFLAGS_H
 #define IVYCUDAFLAGS_H
 
+/**
+ * @file IvyCudaFlags.h
+ * @brief Host/device qualifier and portability macros for CUDA-aware builds.
+ */
+
 
 #include "config/IvyCompilerFlags.h"
 

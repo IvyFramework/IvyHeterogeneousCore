@@ -1,16 +1,25 @@
 #ifndef IVYBASICTYPES_H
 #define IVYBASICTYPES_H
 
+/**
+ * @file IvyBasicTypes.h
+ * @brief Fundamental scalar aliases and compile-time type conversion helpers.
+ */
+
 
 #include "std_ivy/IvyTypeTraits.h"
 #include "std_ivy/IvyLimits.h"
 
 
 namespace IvyTypes{
+  /** @brief Unsigned size type used across Ivy interfaces. */
   typedef unsigned long long int size_t;
+  /** @brief Signed size type used across Ivy interfaces. */
   typedef long long int signed_size_t;
+  /** @brief Signed pointer-difference type used across Ivy interfaces. */
   typedef long long int ptrdiff_t;
 
+  /** @brief Map arithmetic types to a floating-point type with sufficient precision. */
   template<typename T> struct convert_to_floating_point{
     static constexpr int d10_t = std_limits::numeric_limits<T>::digits10;
     static constexpr int d10_f = std_limits::numeric_limits<float>::digits10;
@@ -39,9 +48,11 @@ namespace IvyTypes{
       >
     >;
   };
+  /** @brief Convenience alias for convert_to_floating_point. */
   template<typename T> using convert_to_floating_point_t = typename convert_to_floating_point<T>::type;
 #define FLOAT_TYPE(TYPE) IvyTypes::convert_to_floating_point_t<TYPE>
 
+  /** @brief Map arithmetic types to integral types that preserve required precision. */
   template<typename T, bool is_unsigned = false> struct convert_to_integral_precision{
     using char_type = std_ttraits::conditional_t<is_unsigned, unsigned char, signed char>;
     using short_type = std_ttraits::conditional_t<is_unsigned, unsigned short, short>;
@@ -88,12 +99,15 @@ namespace IvyTypes{
       >
     >;
   };
+  /** @brief Convenience alias for convert_to_integral_precision. */
   template<typename T, bool is_unsigned=false>
   using convert_to_integral_precision_t = typename convert_to_integral_precision<T, is_unsigned>::type;
 #define INT_TYPE(TYPE) IvyTypes::convert_to_integral_precision_t<TYPE>
 #define UINT_TYPE(TYPE) IvyTypes::convert_to_integral_precision_t<TYPE, true>
 
+  /** @brief Rank type used to compare relative type priority in promotion logic. */
   using type_rank_t = unsigned short;
+  /** @brief Compile-time rank assignment for scalar and templated types. */
   template<typename T> struct type_rank : public std_ttraits::integral_constant<
     type_rank_t,
     std_ttraits::is_same_v<T, void> ? 0 :
@@ -118,11 +132,14 @@ namespace IvyTypes{
     std_ttraits::is_same_v<T, unsigned char> ? 13 :
     std_ttraits::is_same_v<T, bool> ? 14 : 15
   >{};
+  /** @brief Convenience variable template exposing type rank value. */
   template<typename T> inline constexpr type_rank_t type_rank_v = type_rank<T>::value;
+  /** @brief Sum of ranks for two types. */
   template<typename T = void, typename U = void> struct type_rank_sum : public std_ttraits::integral_constant<
     type_rank_t,
     type_rank_v<T> + type_rank_v<U>
   >{};
+  /** @brief Convenience variable template exposing summed rank value. */
   template<typename T = void, typename U = void> inline constexpr type_rank_t type_rank_sum_v = type_rank_sum<T, U>::value;
   template<typename T, typename U, typename S> struct type_rank_sum<T, type_rank_sum<U, S>> : public std_ttraits::integral_constant<
     type_rank_t,

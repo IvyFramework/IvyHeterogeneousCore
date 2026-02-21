@@ -1,3 +1,7 @@
+/**
+ * @file IvyCmath.h
+ * @brief Backend-selecting cmath wrapper that exposes std_math aliasing.
+ */
 #ifndef IVYCMATH_H
 #define IVYCMATH_H
 

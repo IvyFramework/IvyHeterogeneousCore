@@ -1,6 +1,11 @@
 #ifndef IVYCUDAEVENT_H
 #define IVYCUDAEVENT_H
 
+/**
+ * @file IvyCudaEvent.h
+ * @brief CUDA-event wrapper implementation.
+ */
+
 
 #include "config/IvyCudaException.h"
 #include "std_ivy/IvyCassert.h"

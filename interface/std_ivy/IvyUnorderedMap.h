@@ -1,3 +1,7 @@
+/**
+ * @file IvyUnorderedMap.h
+ * @brief Umbrella header exposing the std_ivy unordered_map implementation.
+ */
 #ifndef IVYUNORDEREDMAP_H
 #define IVYUNORDEREDMAP_H
 

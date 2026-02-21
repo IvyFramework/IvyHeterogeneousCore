@@ -1,3 +1,7 @@
+/**
+ * @file IvyMemory.h
+ * @brief Umbrella header exposing memory traits, allocators, views, and unified pointer types.
+ */
 #ifndef IVYMEMORY_H
 #define IVYMEMORY_H
 

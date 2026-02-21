@@ -1,3 +1,7 @@
+/**
+ * @file IvyUnorderedMapImpl.h
+ * @brief Method definitions for the std_ivy unordered_map implementation.
+ */
 #ifndef IVYUNORDEREDMAPIMPL_H
 #define IVYUNORDEREDMAPIMPL_H
 

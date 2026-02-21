@@ -1,3 +1,7 @@
+/**
+ * @file IvyHash.h
+ * @brief Hash functors and helpers implemented under std_ivy.
+ */
 #ifndef IVYHASH_H
 #define IVYHASH_H
 
@@ -8,10 +12,17 @@
 
 
 namespace ivy_hash_impl{
+  /**
+   * @brief Generic hash functor that folds object bytes into IvyTypes::size_t.
+   * @tparam T Input type.
+   */
   template<typename T> struct IvyHash{
+    /** @brief Hash result type. */
     using result_type = IvyTypes::size_t;
+    /** @brief Input argument type with cv-qualifiers removed. */
     using argument_type = std_ttraits::remove_cv_t<T>;
 
+    /** @brief Compute hash value for an object. */
     __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type nb_T = sizeof(argument_type);
       constexpr result_type size_partition = sizeof(result_type);
@@ -37,10 +48,14 @@ namespace ivy_hash_impl{
       return res;
     }
   };
+  /** @brief Hash specialization for C-string pointers with null-terminated traversal. */
   template<> struct IvyHash<char const*>{
+    /** @brief Hash result type. */
     using result_type = IvyTypes::size_t;
+    /** @brief Input argument type. */
     using argument_type = char const*;
 
+    /** @brief Compute hash value for a null-terminated const char string. */
     __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
@@ -53,10 +68,14 @@ namespace ivy_hash_impl{
       return res;
     }
   };
+  /** @brief Hash specialization for mutable C-string pointers with null-terminated traversal. */
   template<> struct IvyHash<char*>{
+    /** @brief Hash result type. */
     using result_type = IvyTypes::size_t;
+    /** @brief Input argument type. */
     using argument_type = char*;
 
+    /** @brief Compute hash value for a null-terminated mutable char string. */
     __HOST_DEVICE__ constexpr result_type operator()(argument_type const& v) const{
       constexpr result_type size_partition = sizeof(result_type);
       constexpr result_type nbits_partition = size_partition*8;
@@ -71,6 +90,7 @@ namespace ivy_hash_impl{
   };
 }
 namespace std_ivy{
+  /** @brief Public hash alias used throughout std_ivy containers. */
   template<typename T> using hash = ivy_hash_impl::IvyHash<T>;
 }
 

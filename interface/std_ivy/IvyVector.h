@@ -1,3 +1,7 @@
+/**
+ * @file IvyVector.h
+ * @brief Umbrella header exposing the std_ivy vector implementation.
+ */
 #ifndef IVYVECTOR_H
 #define IVYVECTOR_H
 

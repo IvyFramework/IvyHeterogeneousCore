@@ -1,11 +1,17 @@
 #ifndef IVYMEMORYTYPES_H
 #define IVYMEMORYTYPES_H
 
+/**
+ * @file IvyMemoryTypes.h
+ * @brief Memory-domain tags and constexpr query helpers.
+ */
+
 
 #include "config/IvyCompilerConfig.h"
 
 
 namespace IvyMemoryHelpers{
+  /** @brief Supported memory domains used by Ivy alloc/transfer helpers. */
   enum class IvyMemoryType : unsigned char{
     Host,
     GPU,
@@ -15,61 +21,72 @@ namespace IvyMemoryHelpers{
     nMemoryTypes
   };
 
-  /*
+  /**
   get_mem_type_name: Returns the C-string name of the memory type.
   */
+  /** @brief Return a printable memory-domain name for @p type. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr const char* get_memory_type_name(IvyMemoryType type);
 
-  /*
+  /**
   is_host_memory: Returns true if the memory type is host memory.
   */
+  /** @brief Check if @p type resides in host-addressable CPU memory. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool is_host_memory(IvyMemoryType type);
 
-  /*
+  /**
   is_gpu_memory: Returns true if the memory type is GPU device memory.
   */
+  /** @brief Check if @p type is GPU device memory. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool is_gpu_memory(IvyMemoryType type);
 
-  /*
+  /**
   is_unified_memory: Returns true if the memory type is unified memory.
   */
+  /** @brief Check if @p type is any unified-memory variant. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool is_unified_memory(IvyMemoryType type);
 
-  /*
+  /**
   is_pagelocked: Returns true if the memory type is page-locked host memory.
   */
+  /** @brief Check if @p type is page-locked host memory. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool is_pagelocked(IvyMemoryType type);
 
-  /*
+  /**
   is_prefetched: Returns true if the memory type is unified memory that has been prefetched.
   */
+  /** @brief Check if @p type is prefetched unified memory. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool is_prefetched(IvyMemoryType type);
 
-  /*
+  /**
   use_device_GPU: Returns true if the memory type is associated with the GPU
   */
+  /** @brief Check if operations on @p type should run on GPU execution resources. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool use_device_GPU(IvyMemoryType type);
 
-  /*
+  /**
   use_device_acc: Returns true if the memory type is associated with hardware accelerators.
   */
+  /** @brief Check if operations on @p type should run on any accelerator backend. */
   __INLINE_FCN_RELAXED__ __HOST_DEVICE__ constexpr bool use_device_acc(IvyMemoryType type);
 
-  /*
+  /**
   use_device_host: Simply the same as !use_device_acc.
   */
+  /** @brief Check if operations on @p type should run on host execution resources. */
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr bool use_device_host(IvyMemoryType type);
 
-  /*
+  /**
   run_acc_on_host: Check if we are in the host context and the specified memory type needs to run hardware acceleration.
   */
+  /** @brief Check if host-side code must dispatch accelerator kernels for @p type. */
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr bool run_acc_on_host(IvyMemoryType type);
 
-  /*
+  /**
   get_execution_default_memory: Returns the default memory type for the current execution environment.
   For host code or if not using CUDA, this is IvyMemoryType::Host.
   Otherwise, for device code, this is IvyMemoryType::GPU.
   */
+  /** @brief Return default memory domain associated with the current compilation/execution context. */
   __INLINE_FCN_FORCE__ __HOST_DEVICE__ constexpr IvyMemoryType get_execution_default_memory();
 }
 

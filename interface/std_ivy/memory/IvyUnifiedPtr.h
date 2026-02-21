@@ -1,3 +1,7 @@
+/**
+ * @file IvyUnifiedPtr.h
+ * @brief IvyUnifiedPtr method definitions and unified pointer lifecycle operations.
+ */
 #ifndef IVYUNIFIEDPTR_H
 #define IVYUNIFIEDPTR_H
 

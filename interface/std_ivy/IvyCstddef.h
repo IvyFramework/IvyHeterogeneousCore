@@ -1,3 +1,7 @@
+/**
+ * @file IvyCstddef.h
+ * @brief Backend-selecting cstddef wrapper for size and pointer-related utilities.
+ */
 #ifndef IVYCSTDDEF_H
 #define IVYCSTDDEF_H
 

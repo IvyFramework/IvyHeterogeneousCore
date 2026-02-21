@@ -1,3 +1,7 @@
+/**
+ * @file IvyLimits.h
+ * @brief Backend-selecting numeric limits wrapper.
+ */
 #ifndef IVYLIMITS_H
 #define IVYLIMITS_H
 

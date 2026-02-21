@@ -1,3 +1,7 @@
+/**
+ * @file IvyBucketedIteratorBuilder.h
+ * @brief Builder and helper utilities for bucketed iterator views.
+ */
 #ifndef IVYBUCKETEDITERATORBUILDER_H
 #define IVYBUCKETEDITERATORBUILDER_H
 

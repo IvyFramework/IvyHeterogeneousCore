@@ -1,3 +1,7 @@
+/**
+ * @file IvyIterator.h
+ * @brief Umbrella header exposing iterator primitives, traits, adapters, and builders.
+ */
 #ifndef IVYITERATOR_H
 #define IVYITERATOR_H
 

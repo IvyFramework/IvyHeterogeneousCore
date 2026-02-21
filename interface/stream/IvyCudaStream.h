@@ -1,6 +1,11 @@
 #ifndef IVYCUDASTREAM_H
 #define IVYCUDASTREAM_H
 
+/**
+ * @file IvyCudaStream.h
+ * @brief CUDA-stream wrapper implementation.
+ */
+
 
 #include "stream/IvyCudaStream.hh"
 #include "stream/IvyCudaEvent.h"

@@ -1,3 +1,7 @@
+/**
+ * @file IvyReverseIterator.h
+ * @brief Reverse iterator adapter for bidirectional and random-access iterators.
+ */
 #ifndef IVYREVERSEITERATOR_H
 #define IVYREVERSEITERATOR_H
 

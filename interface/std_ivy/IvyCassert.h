@@ -1,3 +1,7 @@
+/**
+ * @file IvyCassert.h
+ * @brief Backend-selecting assertion wrapper for host and CUDA builds.
+ */
 #ifndef IVYCASSERT_H
 #define IVYCASSERT_H
 

@@ -1,3 +1,7 @@
+/**
+ * @file IvyInitializerList.h
+ * @brief Wrapper around std::initializer_list with a local namespace alias.
+ */
 #ifndef IVYINITIALIZERLIST_H
 #define IVYINITIALIZERLIST_H
 

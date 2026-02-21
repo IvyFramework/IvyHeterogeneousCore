@@ -1,3 +1,7 @@
+/**
+ * @file IvyContiguousIterator.h
+ * @brief Contiguous iterator adapters and traits for pointer-like traversal.
+ */
 #ifndef IVYCONTIGUOUSITERATOR_H
 #define IVYCONTIGUOUSITERATOR_H
 

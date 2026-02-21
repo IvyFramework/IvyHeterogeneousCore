@@ -1,3 +1,7 @@
+/**
+ * @file IvyFunctional.h
+ * @brief Functional umbrella header exposing std_ivy extensions and backend functional aliases.
+ */
 #ifndef IVYFUNCTIONAL_H
 #define IVYFUNCTIONAL_H
 

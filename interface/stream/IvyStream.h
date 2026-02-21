@@ -1,6 +1,11 @@
 #ifndef IVYSTREAM_H
 #define IVYSTREAM_H
 
+/**
+ * @file IvyStream.h
+ * @brief Unified stream/event aliases bridging CUDA and non-CUDA backends.
+ */
+
 
 #include "stream/IvyCudaStream.h"
 #include "stream/IvyCudaEvent.h"
@@ -9,14 +14,17 @@
 #include "stream/IvyBlankStreamEvent.h"
 
 
-/*
+/**
 These are master typedefs to interface all types of streams and events.
 */
 #ifdef __USE_CUDA__
 
 namespace IvyStreamUtils{
+  /** @brief Active backend event type in CUDA builds. */
   typedef IvyCudaEvent IvyGPUEvent;
+  /** @brief Active backend stream type in CUDA builds. */
   typedef IvyCudaStream IvyGPUStream;
+  /** @brief Callback function type used by GPU stream callbacks. */
   typedef IvyGPUStream::fcn_callback_t IvyGPUStream_CBFcn_t;
 }
 using IvyStreamUtils::IvyGPUEvent;
@@ -28,7 +36,9 @@ using IvyStreamUtils::IvyGPUStream_CBFcn_t;
 #else
 
 namespace IvyStreamUtils{
+  /** @brief Active backend event type in non-CUDA builds. */
   typedef IvyBlankStreamEvent IvyGPUEvent;
+  /** @brief Active backend stream type in non-CUDA builds. */
   typedef IvyBlankStream IvyGPUStream;
 }
 using IvyStreamUtils::IvyGPUEvent;
@@ -41,6 +51,7 @@ using IvyStreamUtils::IvyGPUStream;
 
 #define GlobalGPUStream IvyGPUStream(GlobalGPUStreamRaw, false)
 namespace IvyStreamUtils{
+  /** @brief Build a non-owning wrapper to the global backend stream. */
   __HOST_DEVICE__ IvyGPUStream* make_global_gpu_stream(){ return make_stream<IvyGPUStream>(GlobalGPUStreamRaw, false); }
 }
 

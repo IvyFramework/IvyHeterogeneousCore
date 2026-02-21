@@ -1,3 +1,7 @@
+/**
+ * @file IvyCstdio.h
+ * @brief C stdio wrapper defining common print macros for host and device contexts.
+ */
 #ifndef IVYCSTDIO_H
 #define IVYCSTDIO_H
 

@@ -1,6 +1,11 @@
 #ifndef IVYCOMPILERFLAGS_H
 #define IVYCOMPILERFLAGS_H
 
+/**
+ * @file IvyCompilerFlags.h
+ * @brief Compiler and language-feature detection macros used by Ivy portability layers.
+ */
+
 
 /*
 C++ standard version
