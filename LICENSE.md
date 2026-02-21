@@ -1,0 +1,74 @@
+# License
+
+This page is a Doxygen-friendly rendering of the project license.
+
+**Authoritative legal terms are defined in the file `LICENSE` at repository root.**
+
+---
+
+## IvyHeterogeneousCore Proprietary License
+
+Version 1.0
+
+Copyright (c) 2026 Ulaşcan Sarıca. All rights reserved.
+
+### 1. Parties and Scope
+
+This license governs all source code, headers, build scripts, tests, generated artifacts, and related materials in this repository (the “Software”).
+The sole rights holder and licensor is Ulaşcan Sarıca (the “Developer” or “Licensor”).
+
+### 2. No Public License Grant
+
+No permission or license is granted to any person or entity to use the Software, except as expressly stated in Section 3.
+Any rights not expressly granted are reserved by the Licensor.
+
+### 3. Authorized Use
+
+The Software may be used only by the Developer, Ulaşcan Sarıca.
+Any use by any other person or entity is strictly prohibited unless that person or entity has prior, explicit, written authorization signed or otherwise issued in writing by the Developer.
+Email authorization is valid only if sent from an address controlled by the Developer and clearly identifies:
+
+- the authorized person/entity,
+- the scope of permitted use,
+- the effective dates, and
+- any additional conditions.
+
+### 4. Prohibited Acts Without Written Authorization
+
+Without authorization under Section 3, no person or entity may, directly or indirectly:
+
+- access, use, execute, compile, run, test, benchmark, or evaluate the Software;
+- copy, reproduce, modify, adapt, translate, or create derivative works;
+- distribute, publish, sublicense, sell, lease, lend, transfer, or make available the Software;
+- use the Software for commercial, internal, academic, research, or personal purposes;
+- remove or alter copyright, authorship, or proprietary notices.
+
+### 5. Ownership and Intellectual Property
+
+All rights, title, and interest in and to the Software, including all intellectual property rights, remain exclusively with the Licensor.
+No implied license is granted by estoppel, exhaustion, or otherwise.
+
+### 6. Enforcement and Remedies
+
+Any unauthorized use constitutes infringement and breach of this license.
+The Licensor may seek all remedies available under applicable law, including injunctive relief, damages, costs, and attorneys’ fees where permitted.
+Unauthorized use may cause irreparable harm for which monetary damages alone may be insufficient.
+
+### 7. Compliance With Applicable Law
+
+This license is intended to be interpreted and enforced to the maximum extent permitted by applicable law, including relevant laws in the United States and in European jurisdictions where enforcement is sought.
+If any provision is found invalid or unenforceable, that provision shall be enforced to the maximum extent permissible, and the remaining provisions remain in full force and effect.
+
+### 8. Disclaimer and Limitation
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE LICENSOR SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING FROM OR RELATED TO THE SOFTWARE OR THIS LICENSE.
+
+### 9. No Waiver; Entire Terms
+
+Failure to enforce any provision is not a waiver.
+This document constitutes the complete license terms for the Software unless replaced by a later written license issued by the Licensor.
+
+### 10. Contact for Authorization
+
+Requests for written authorization must be made directly to the Developer, Ulaşcan Sarıca.
