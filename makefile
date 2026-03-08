@@ -44,8 +44,8 @@ GPU_GENCODE := -gencode arch=compute_$(GPU_ARCH_RAW),code=[sm_$(GPU_ARCH_RAW),co
 
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
-OPENMP_FLAGS  = 
-CXXDEFINES    += -D__USE_CUDA__ -D__LONG_DOUBLE_FORBIDDEN__
+OPENMP_FLAGS  =
+CXXDEFINES    += -D__USE_CUDA__
 NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
 CXXFLAGS      = $(GPU_GENCODE) -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
