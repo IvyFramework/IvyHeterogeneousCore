@@ -35,13 +35,21 @@ endif
 CXXFLAGS      = -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(CXXFLAGS)
 
+# Auto-detect GPU compute capability; fall back to sm_86 if nvidia-smi is unavailable.
+GPU_ARCH_RAW := $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d '.')
+ifeq ($(strip $(GPU_ARCH_RAW)),)
+  GPU_ARCH_RAW := 86
+endif
+GPU_GENCODE := -gencode arch=compute_$(GPU_ARCH_RAW),code=[sm_$(GPU_ARCH_RAW),compute_$(GPU_ARCH_RAW)]
+
 ifneq ($(strip $(USE_CUDA)),)
 CXX           = nvcc
 OPENMP_FLAGS  = 
-CXXDEFINES    += -D__USE_CUDA__
+CXXDEFINES    += -D__USE_CUDA__ -D__LONG_DOUBLE_FORBIDDEN__
 NVLINKOPTS    = -Xnvlink --suppress-stack-size-warning
-CXXFLAGS      = -arch=sm_86 -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
+CXXFLAGS      = $(GPU_GENCODE) -dc -rdc=true -x cu --cudart=shared $(NVLINKOPTS) -Xcompiler -fPIC -g -ftemplate-backtrace-limit=0 $(CXXOPTIM) $(CXXVEROPT) $(OPENMP_FLAGS) $(ROOTCFLAGS) $(CXXDEFINES) $(CXXINC) $(EXTCXXFLAGS)
 EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
+LIBDLINKFLAGS = $(GPU_GENCODE) $(NVLINKOPTS) -Xcompiler -fPIC
 endif
 
 NLIBS        += $(EXTLIBS)
@@ -59,7 +67,7 @@ EXES = $(subst $(BINDIR),$(EXEDIR),$(EXESPRIM))
 TESTEXES = $(subst $(TESTDIR),$(TESTEXEDIR),$(TESTEXESPRIM))
 
 
-.PHONY: all utests help compile clean
+.PHONY: all utests help compile clean lib
 .SILENT: exedirs testexedirs clean $(EXES) $(TESTEXES)
 
 
@@ -93,6 +101,7 @@ $(TESTEXEDIR)%:: $(TESTDIR)%.cc | testexedirs
 clean:
 	rm -rf $(EXEDIR)
 	rm -rf $(TESTEXEDIR)
+	rm -rf $(LIBDIR)
 	rm -f $(BINDIR)*.o
 	rm -f $(BINDIR)*.so
 	rm -f $(BINDIR)*.d
@@ -115,6 +124,22 @@ clean:
 	rm -f $(TESTDIR)*.d
 	rm -f $(TESTDIR)*.pcm
 	rm -f $(TESTDIR)*.pyc
+
+
+LIBDIR         = $(COMPILEPATH)lib/
+LIBNAME        = libIvyHeterogeneousCore
+SRCDIR         = $(COMPILEPATH)src/
+
+lib:
+	mkdir -p $(LIBDIR)
+ifeq ($(strip $(USE_CUDA)),)
+	$(CXX) $(CXXFLAGS) -shared -o $(LIBDIR)$(LIBNAME).so $(SRCDIR)IvyHeterogeneousCore.cc
+else
+	$(CXX) $(CXXFLAGS) -o $(LIBDIR)$(LIBNAME).o $(SRCDIR)IvyHeterogeneousCore.cc
+	$(CXX) $(LIBDLINKFLAGS) -dlink -shared $(LIBDIR)$(LIBNAME).o -o $(LIBDIR)$(LIBNAME)_dlink.o
+	$(CXX) $(LIBDLINKFLAGS) -shared $(LIBDIR)$(LIBNAME).o $(LIBDIR)$(LIBNAME)_dlink.o -o $(LIBDIR)$(LIBNAME).so -lcudart
+	rm -f $(LIBDIR)$(LIBNAME).o $(LIBDIR)$(LIBNAME)_dlink.o
+endif
 
 
 include $(DEPS)

@@ -12,6 +12,7 @@
 #include "config/IvyCudaFlags.h"
 #include "stream/IvyBlankStream.h"
 #include "stream/IvyBlankStreamEvent.h"
+#include "stream/IvyCPUStream.h"
 
 
 /**
@@ -38,8 +39,8 @@ using IvyStreamUtils::IvyGPUStream_CBFcn_t;
 namespace IvyStreamUtils{
   /** @brief Active backend event type in non-CUDA builds. */
   typedef IvyBlankStreamEvent IvyGPUEvent;
-  /** @brief Active backend stream type in non-CUDA builds. */
-  typedef IvyBlankStream IvyGPUStream;
+  /** @brief Active backend stream type in non-CUDA builds (CPU stream with optional OpenMP). */
+  typedef IvyCPUStream IvyGPUStream;
 }
 using IvyStreamUtils::IvyGPUEvent;
 using IvyStreamUtils::IvyGPUStream;

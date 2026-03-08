@@ -175,6 +175,59 @@ namespace IvyMath{
     __HOST__ value_t const& value() const{ this->eval(); return *output; }
   };
 
+  /**
+   * @brief Eager concrete tensor function for gradient results.
+   *
+   * Holds an eagerly computed tensor and exposes it as an
+   * `IvyFunction<T, tensor_domain_tag, tensor_domain_tag>`. Used as the
+   * concrete return type of `IvyRegularFunction_1D::gradient()` when the
+   * input domain is `tensor_domain_tag`, bypassing the lazy chain-rule
+   * multiply (which would require a second-order tensor gradient).
+   *
+   * @tparam T  An `IvyTensor<…>` type.
+   */
+  template<typename T>
+  class IvyTensorEagerFunction final
+    : public IvyFunction<T, tensor_domain_tag, tensor_domain_tag>
+  {
+  public:
+    using base_t = IvyFunction<T, tensor_domain_tag, tensor_domain_tag>;
+    using grad_t = typename base_t::grad_t;
+
+    __HOST__ explicit IvyTensorEagerFunction(T const& val) : base_t(val){}
+    __HOST__ IvyTensorEagerFunction(IvyTensorEagerFunction const& other)
+      : base_t(__DYNAMIC_CAST__(base_t const&, other)){}
+    __HOST__ IvyTensorEagerFunction(IvyTensorEagerFunction&& other)
+      : base_t(__DYNAMIC_CAST__(base_t&&, std_util::move(other))){}
+    ~IvyTensorEagerFunction() = default;
+
+    __HOST__ void eval() const override{}
+
+    __HOST__ bool depends_on(IvyBaseNode const* node) const override{
+      return (this == node);
+    }
+
+    /**
+     * @brief Gradient of an eagerly-constant tensor is the zero tensor.
+     *
+     * Since `IvyTensorEagerFunction` is used only for first-order gradients
+     * (values are already computed), requesting a further gradient returns
+     * a tensor of the same shape filled with zero-valued variables.
+     */
+    __HOST__ IvyThreadSafePtr_t<grad_t> gradient(
+      IvyThreadSafePtr_t<IvyBaseNode> const& /*var*/
+    ) const override{
+      using dtype_t = typename T::dtype_t;
+      using inner_t = typename dtype_t::element_type;
+      constexpr std_ivy::IvyMemoryType mem = IvyMemoryHelpers::get_execution_default_memory();
+      T zero_val(*(this->output));
+      IvyTensorDim_t const n = zero_val.num_elements();
+      for (IvyTensorDim_t i = 0; i < n; ++i)
+        zero_val[i] = make_IvyThreadSafePtr<inner_t>(mem, nullptr, typename inner_t::value_t(0));
+      return make_IvyThreadSafePtr<IvyTensorEagerFunction<T>>(mem, nullptr, zero_val);
+    }
+  };
+
   template<typename T, typename Domain = get_domain_t<T>, typename Operability = get_operability_t<T>>
   struct function_gradient{
     using value_t = unpack_if_function_t<T>;
@@ -194,12 +247,20 @@ namespace IvyMath{
       T const& fcn, IvyThreadSafePtr_t<IvyBaseNode> const& var
     ){
       using dtype_t = typename T::dtype_t;
-      T res(fcn.shape(), Zero<dtype_t>());
+      // Copy the tensor structure; elements will be overwritten element-wise.
+      T res(fcn);
       for (IvyTensorDim_t i=0; i<fcn.num_elements(); ++i){
-        auto grad = function_gradient::get(fcn[i], var);
-        res[i] = *grad;
+        // Dispatch to the specialization for the *element* type, not for T itself.
+        auto grad = function_gradient<dtype_t>::get(fcn[i], var);
+        if constexpr (is_pointer_v<dtype_t>){
+          // grad is already a pointer (IvyThreadSafePtr_t<inner_t>); assign directly.
+          res[i] = grad;
+        } else {
+          // grad is IvyThreadSafePtr_t<dtype_t>; dereference to get the value.
+          res[i] = *grad;
+        }
       }
-      return make_IvyThreadSafePtr(var.get_memory_type(), var.gpu_stream(), res);
+      return make_IvyThreadSafePtr<T>(var.get_memory_type(), var.gpu_stream(), res);
     }
   };
   template<typename T> struct function_gradient<T, get_domain_t<T>, function_value_tag>{

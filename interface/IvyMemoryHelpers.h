@@ -32,6 +32,8 @@ For that reason, the -rdc=true flag is required when compiling device code.
 #include "std_ivy/IvyCassert.h"
 #include "std_ivy/IvyUtility.h"
 #include "std_ivy/IvyCstdio.h"
+#include "std_ivy/IvyCstdlib.h"
+#include "std_ivy/IvyNew.h"
 #include "std_ivy/IvyTypeInfo.h"
 #include "stream/IvyStream.h"
 
@@ -485,7 +487,7 @@ namespace IvyMemoryHelpers{
     else
 #endif
     {
-      data = (T*) malloc(n*sizeof(T));
+      data = (T*) std::malloc(n*sizeof(T));
 #ifdef __DEBUG_MEMORY__
       __PRINT_DEBUG__("allocate_memory_fcnal::allocate_memory: Method = malloc, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
@@ -575,7 +577,7 @@ namespace IvyMemoryHelpers{
 #ifdef __DEBUG_MEMORY__
       __PRINT_DEBUG__("free_memory_fcnal::free_memory: Method = free, ptr = %p, n = %llu, mem_type = %s, type = %s\n", data, n, name_mem_type, name_T);
 #endif
-      free(data);
+      std::free(data);
     }
     data = nullptr;
     return true;

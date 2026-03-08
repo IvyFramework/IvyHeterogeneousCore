@@ -69,6 +69,35 @@ namespace IvyMath{
   __HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
+  template<typename T>
+  __HOST__ NegateFcnal<T, tensor_domain_tag>::value_t NegateFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = -unpack_function_input_reduced<inner_t>::get(*x[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = -unpack_function_input_reduced<dtype_t>::get(x[i]);
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> NegateFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, typename inner_t::value_t(-1));
+      } else {
+        res[i] = dtype_t(-1);
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_arithmetic_v<T> && !is_pointer_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
@@ -205,6 +234,37 @@ namespace IvyMath{
   __HOST_DEVICE__ ExpFcnal<T, complex_domain_tag>::grad_t ExpFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(x);
   }
+  template<typename T>
+  __HOST__ ExpFcnal<T, tensor_domain_tag>::value_t ExpFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::exp(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::exp(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> ExpFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = exp(x), f'(x) = exp(x)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::exp(unpack_function_input_reduced<inner_t>::get(*(*dep)[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::exp(unpack_function_input_reduced<dtype_t>::get((*dep)[i]));
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ExpFcnal<T>::value_t Exp(T const& x){ return ExpFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyExp<typename T::element_type>::base_t> Exp(T const& x){
@@ -232,6 +292,38 @@ namespace IvyMath{
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ LogFcnal<T, complex_domain_tag>::grad_t LogFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return MultInverse(x);
+  }
+  template<typename T>
+  __HOST__ LogFcnal<T, tensor_domain_tag>::value_t LogFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::log(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::log(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> LogFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = log(x), f'(x) = 1/x
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, One<decltype(val)>()/val);
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        res[i] = One<decltype(val)>()/val;
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename LogFcnal<T>::value_t Log(T const& x){ return LogFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
@@ -286,6 +378,37 @@ namespace IvyMath{
   }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ SinFcnal<T, complex_domain_tag>::grad_t SinFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
+  template<typename T>
+  __HOST__ SinFcnal<T, tensor_domain_tag>::value_t SinFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::sin(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::sin(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> SinFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = sin(x), f'(x) = cos(x)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::cos(unpack_function_input_reduced<inner_t>::get(*(*dep)[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::cos(unpack_function_input_reduced<dtype_t>::get((*dep)[i]));
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SinFcnal<T>::value_t Sin(T const& x){ return SinFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySin<typename T::element_type>::base_t> Sin(T const& x){
@@ -312,6 +435,37 @@ namespace IvyMath{
   }
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ CosFcnal<T, complex_domain_tag>::grad_t CosFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
+  template<typename T>
+  __HOST__ CosFcnal<T, tensor_domain_tag>::value_t CosFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::cos(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::cos(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> CosFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = cos(x), f'(x) = -sin(x)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = -std_math::sin(unpack_function_input_reduced<inner_t>::get(*(*dep)[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = -std_math::sin(unpack_function_input_reduced<dtype_t>::get((*dep)[i]));
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CosFcnal<T>::value_t Cos(T const& x){ return CosFcnal<T>::eval(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
   __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCos<typename T::element_type>::base_t> Cos(T const& x){
@@ -908,6 +1062,24 @@ namespace IvyMath{
     default:
       return make_IvyThreadSafePtr<grad_type_U>(y.get_memory_type(), y.gpu_stream(), One<fndtype_t>()) * x;
     }
+  }
+  template<typename T, typename U>
+  __HOST__ MultiplyFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::value_t MultiplyFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::eval(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      using x_elem_t = typename T::dtype_t;
+      using y_elem_t = typename U::dtype_t;
+      if constexpr (is_pointer_v<x_elem_t> && is_pointer_v<y_elem_t>){
+        using inner_t = typename x_elem_t::element_type;
+        fndtype_t const xval = unpack_function_input_reduced<inner_t>::get(*x[i]);
+        fndtype_t const yval = unpack_function_input_reduced<typename y_elem_t::element_type>::get(*y[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, xval * yval);
+      } else if constexpr (!is_pointer_v<x_elem_t> && !is_pointer_v<y_elem_t>){
+        res[i] = x[i] * y[i];
+      }
+    }
+    return res;
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t Multiply(T const& x, U const& y){ return MultiplyFcnal<T, U>::eval(x, y); }

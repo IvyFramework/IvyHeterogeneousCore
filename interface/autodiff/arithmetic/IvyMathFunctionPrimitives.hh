@@ -21,17 +21,40 @@ namespace IvyMath{
     function_data_client_updator<F, T>::update(fcn, dep);
   }
 
+  /**
+   * @brief Detect whether an Evaluator struct declares a preferred gradient domain.
+   *
+   * If an evaluator struct defines @c gradient_domain_tag, that type is used as
+   * the @c GradientDomain of `IvyRegularFunction_1D`.  Otherwise the function
+   * domain (@c Domain) is used, preserving the existing behaviour.
+   *
+   * @tparam Evaluator  The evaluator struct (e.g., ExpFcnal<T, tensor_domain_tag>).
+   * @tparam Default    Fallback type when Evaluator has no gradient_domain_tag.
+   */
+  template<typename Evaluator, typename Default, typename = void>
+  struct evaluator_gradient_domain { using type = Default; };
+  template<typename Evaluator, typename Default>
+  struct evaluator_gradient_domain<
+    Evaluator, Default,
+    std_ttraits::void_t<typename Evaluator::gradient_domain_tag>
+  >{ using type = typename Evaluator::gradient_domain_tag; };
+  /** @brief Shorthand for @c evaluator_gradient_domain<Evaluator, Default>::type. */
+  template<typename Evaluator, typename Default>
+  using evaluator_gradient_domain_t = typename evaluator_gradient_domain<Evaluator, Default>::type;
+
   /*
   IvyRegularFunction_1D:
   This is a master class for regular 1D functions.
   Unless we have any special cases in return types, i.e., not the return type of reduced_value_t<T> required here,
   this master class should be used with partial specializations for different Evaluator types.
+  If the Evaluator declares a `gradient_domain_tag`, it overrides the default GradientDomain.
+  This allows tensor-domain evaluators to opt out of gradient compilation.
   */
   template<
     typename T, typename Evaluator,
     typename precision_type = unpacked_reduced_value_t<T>,
     typename Domain = get_domain_t<T>,
-    typename GradientDomain = Domain
+    typename GradientDomain = evaluator_gradient_domain_t<Evaluator, Domain>
   > class IvyRegularFunction_1D : public IvyFunction<precision_type, Domain, GradientDomain>
   {
   public:

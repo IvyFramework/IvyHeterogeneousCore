@@ -229,7 +229,7 @@ namespace IvyMath{
           has_neg1 = true;
           idim = 0;
         }
-        else if (idim_signed<=0) __PRINT_ERROR__("IvyTensorShape::reshape: Dimension size must be positive or -1.\n");
+        else if (idim_signed<=0){ __PRINT_ERROR__("IvyTensorShape::reshape: Dimension size must be positive or -1.\n"); }
         else idim = __STATIC_CAST__(IvyTensorDim_t, idim_signed);
       }
       else{
@@ -252,10 +252,10 @@ namespace IvyMath{
         }
       }
     }
-    else if (nel_new != nel) __PRINT_ERROR__(
+    else if (nel_new != nel){ __PRINT_ERROR__(
       "IvyTensorShape::reshape: Total number of elements after reshape %llu does not match original number of elements %llu.\n",
       nel_new, nel
-    );
+    ); }
     this->rank_ = vdims.size();
     this->dims = vdims;
   }

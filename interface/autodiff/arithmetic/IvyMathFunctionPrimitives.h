@@ -31,8 +31,38 @@ namespace IvyMath{
   __HOST__ IvyThreadSafePtr_t<typename IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, GradientDomain>::grad_t> IvyRegularFunction_1D<T, Evaluator, precision_type, Domain, GradientDomain>::gradient(
     IvyThreadSafePtr_t<IvyBaseNode> const& var
   ) const{
-    auto grad_dep = function_gradient<T, Evaluator>::get(*dep, var);
-    return evaluator_t::gradient(dep)*grad_dep;
+    if constexpr (std_ttraits::is_same_v<Domain, tensor_domain_tag>){
+      // Tensor domain: compute the chain rule eagerly element-wise.
+      // Using the lazy pointer × pointer multiply would instantiate
+      // IvyMultiply<T,T> whose gradient() (pure-virtual in
+      // IvyFunction<T,tensor,tensor>) cannot be satisfied without infinite
+      // template recursion. Instead we compute f'(dep[i]) * ∂dep[i]/∂var
+      // for each i directly and pack the results into an IvyTensorEagerFunction.
+      auto f_prime  = evaluator_t::gradient(dep);           // IvyThreadSafePtr_t<T>
+      auto grad_dep = function_gradient<T>::get(*dep, var); // IvyThreadSafePtr_t<T>
+      using dtype_t = typename T::dtype_t;
+      constexpr std_ivy::IvyMemoryType mem = IvyMemoryHelpers::get_execution_default_memory();
+      T result(*f_prime);
+      IvyTensorDim_t const n = result.num_elements();
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        for (IvyTensorDim_t i = 0; i < n; ++i){
+          auto const fv = unpack_function_input_reduced<inner_t>::get(*(*f_prime)[i]);
+          auto const gv = unpack_function_input_reduced<inner_t>::get(*(*grad_dep)[i]);
+          result[i] = make_IvyThreadSafePtr<inner_t>(mem, nullptr, fv * gv);
+        }
+      } else {
+        for (IvyTensorDim_t i = 0; i < n; ++i){
+          auto const fv = unpack_function_input_reduced<dtype_t>::get((*f_prime)[i]);
+          auto const gv = unpack_function_input_reduced<dtype_t>::get((*grad_dep)[i]);
+          result[i] = fv * gv;
+        }
+      }
+      return make_IvyThreadSafePtr<IvyTensorEagerFunction<T>>(mem, nullptr, result);
+    } else {
+      auto grad_dep = function_gradient<T>::get(*dep, var);
+      return evaluator_t::gradient(dep)*grad_dep;
+    }
   }
 
   // Special 1D case with no gradients

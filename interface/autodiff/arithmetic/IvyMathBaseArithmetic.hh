@@ -89,6 +89,14 @@ namespace IvyMath{
     template<typename X_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
+  /** @brief Element-wise negation for tensor-domain inputs. */
+  template<typename T> struct NegateFcnal<T, tensor_domain_tag>{
+    using dtype_t = typename T::dtype_t;
+    using value_t = T;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x);
+    static __HOST__ IvyThreadSafePtr_t<T> gradient(IvyThreadSafePtr_t<T> const& dep);
+  };
   template<typename T> using IvyNegate = IvyRegularFunction_1D<T, NegateFcnal<unpack_if_function_t<T>>>;
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x);
   template<typename T, ENABLE_IF_BOOL(!is_arithmetic_v<T> && !is_pointer_v<T>)>
@@ -220,6 +228,14 @@ namespace IvyMath{
     template<typename X_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
+  /** @brief Element-wise exponential for tensor-domain inputs. */
+  template<typename T> struct ExpFcnal<T, tensor_domain_tag>{
+    using dtype_t = typename T::dtype_t;
+    using value_t = T;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x);
+    static __HOST__ IvyThreadSafePtr_t<T> gradient(IvyThreadSafePtr_t<T> const& dep);
+  };
   template<typename T> using IvyExp = IvyRegularFunction_1D<T, ExpFcnal<unpack_if_function_t<T>>>;
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename ExpFcnal<T>::value_t Exp(T const& x);
   template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
@@ -248,6 +264,14 @@ namespace IvyMath{
     static __HOST_DEVICE__ value_t eval(T const& x);
     template<typename X_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  /** @brief Element-wise logarithm for tensor-domain inputs. */
+  template<typename T> struct LogFcnal<T, tensor_domain_tag>{
+    using dtype_t = typename T::dtype_t;
+    using value_t = T;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x);
+    static __HOST__ IvyThreadSafePtr_t<T> gradient(IvyThreadSafePtr_t<T> const& dep);
   };
   template<typename T> using IvyLog = IvyRegularFunction_1D<T, LogFcnal<unpack_if_function_t<T>>>;
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename LogFcnal<T>::value_t Log(T const& x);
@@ -307,6 +331,14 @@ namespace IvyMath{
     template<typename X_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
   };
+  /** @brief Element-wise sine for tensor-domain inputs. */
+  template<typename T> struct SinFcnal<T, tensor_domain_tag>{
+    using dtype_t = typename T::dtype_t;
+    using value_t = T;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x);
+    static __HOST__ IvyThreadSafePtr_t<T> gradient(IvyThreadSafePtr_t<T> const& dep);
+  };
   template<typename T> using IvySin = IvyRegularFunction_1D<T, SinFcnal<unpack_if_function_t<T>>>;
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename SinFcnal<T>::value_t Sin(T const& x);
   template<typename T, ENABLE_IF_BOOL(is_pointer_v<T>)>
@@ -335,6 +367,14 @@ namespace IvyMath{
     static __HOST_DEVICE__ value_t eval(T const& x);
     template<typename X_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(IvyThreadSafePtr_t<X_t> const& x);
+  };
+  /** @brief Element-wise cosine for tensor-domain inputs. */
+  template<typename T> struct CosFcnal<T, tensor_domain_tag>{
+    using dtype_t = typename T::dtype_t;
+    using value_t = T;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x);
+    static __HOST__ IvyThreadSafePtr_t<T> gradient(IvyThreadSafePtr_t<T> const& dep);
   };
   template<typename T> using IvyCos = IvyRegularFunction_1D<T, CosFcnal<unpack_if_function_t<T>>>;
   template<typename T, ENABLE_IF_BOOL(!is_pointer_v<T>)> __INLINE_FCN_FORCE__ __HOST_DEVICE__ typename CosFcnal<T>::value_t Cos(T const& x);
@@ -875,6 +915,18 @@ namespace IvyMath{
     static __HOST_DEVICE__ value_t eval(T const& x, U const& y);
     template<typename X_t, typename Y_t>
     static __INLINE_FCN_FORCE__ __HOST_DEVICE__ grad_t gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y);
+  };
+  /**
+   * @brief Element-wise multiplication for two tensor-domain inputs.
+   *
+   * Computes the Hadamard (element-wise) product.  Each output element is the
+   * scalar product of the corresponding elements in @p x and @p y.
+   */
+  template<typename T, typename U> struct MultiplyFcnal<T, U, tensor_domain_tag, tensor_domain_tag>{
+    using value_t = T;
+    using dtype_t = typename T::dtype_t;
+    using fndtype_t = fundamental_data_t<dtype_t>;
+    static __HOST__ value_t eval(T const& x, U const& y);
   };
   template<typename T, typename U> using IvyMultiply = IvyRegularFunction_2D<T, U, MultiplyFcnal<unpack_if_function_t<T>, unpack_if_function_t<U>>>;
   template<typename T, typename U, ENABLE_IF_BOOL(!is_pointer_v<T> && !is_pointer_v<U>)>
