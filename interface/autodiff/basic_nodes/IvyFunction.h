@@ -290,7 +290,12 @@ namespace IvyMath{
   };
   template<typename precision_type, typename Domain, typename U>
   struct IvyNodeBinaryRelations<IvyFunction<precision_type, Domain>, U>{
-    static __HOST_DEVICE__ bool depends_on(IvyFunction<precision_type, Domain> const& fcn, U* var){
+    /**
+     * @brief Delegate depends_on query to the virtual IvyFunction::depends_on().
+     * @note __HOST__ only: IvyFunction::depends_on() is a virtual __HOST__ method.
+     *       Function graph nodes never exist on the device; this query is always host-side.
+     */
+    static __HOST__ bool depends_on(IvyFunction<precision_type, Domain> const& fcn, U* var){
       return fcn.depends_on(var);
     }
   };
@@ -311,6 +316,64 @@ namespace std_ivy{
       __PRINT_INFO__("Function(");
       print_value(var.value(), false);
       __PRINT_INFO__(")");
+    }
+  };
+}
+
+namespace IvyMemoryHelpers{
+  /**
+   * @brief @c __HOST__-only partial specialization of @c construct_fcnal for
+   *        all types derived from @c IvyMath::function_value_tag (i.e. every
+   *        @c IvyFunction, @c IvyRegularFunction_1D, @c IvyRegularFunction_2D …).
+   *
+   * @c IvyFunction-derived objects have @c __HOST__-only constructors because
+   * they use virtual dispatch and RAII constructs that are incompatible with
+   * CUDA device code.  The primary @c construct_fcnal template is
+   * @c __HOST_DEVICE__; NVCC therefore warns (#20011-D) when it tries to
+   * compile the placement-new for these types in device-compilation mode.
+   *
+   * This constrained partial specialization (C++20 @c requires) intercepts all
+   * such types and restricts @c construct() to @c __HOST__ only.  The body is
+   * identical to the primary template's host-only path (no CUDA device-memory
+   * transfer needed because these objects can only live in host memory).
+   *
+   * @tparam T     An @c IvyFunction-derived type (@c is_base_of function_value_tag).
+   * @tparam Args  Constructor argument types.
+   */
+  template<typename T, typename... Args>
+    requires (std_ttraits::is_base_of_v<IvyMath::function_value_tag, T>)
+  struct construct_fcnal<T, Args...>{
+    /**
+     * @brief Place-construct @p n instances of @p T (an @c IvyFunction-derived type).
+     *
+     * Signature is @c __HOST_DEVICE__ to match the primary template and avoid NVCC
+     * warning #20011-D at the call-site (the free @c construct() wrapper is
+     * @c __HOST_DEVICE__).  The body is wrapped in @c \#ifndef @c __CUDA_ARCH__ so
+     * that the @c __HOST__-only placement-new is never compiled into device code —
+     * NVCC therefore does not see any @c __HOST__→device call, and the warning
+     * disappears without any diagnostic-suppression flag.
+     *
+     * @c IvyFunction objects can never be created on the device (they use virtual
+     * dispatch, RAII, and STL containers); the @c \#else branch returning @c false
+     * is a compile-time-dead unreachable stub for device translation units only.
+     */
+    static __HOST_DEVICE__ bool construct(
+      T*& data,
+      IvyTypes::size_t n,
+      IvyMemoryType /*type*/,
+      IvyGPUStream& /*stream*/,
+      Args&&... args
+    ){
+#ifndef __CUDA_ARCH__
+      if (!data) return false;
+      if (n==0) return true;
+      for (IvyTypes::size_t i=0; i<n; ++i)
+        new (data+i) T(std_util::forward<Args>(args)...);
+      return true;
+#else
+      (void) data; (void) n;
+      return false; // unreachable: IvyFunction objects cannot be constructed on device
+#endif
     }
   };
 }

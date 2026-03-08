@@ -98,17 +98,31 @@ namespace IvyMath{
     }
     return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_arithmetic_v<T> && !is_pointer_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename NegateFcnal<T>::value_t Negate(T const& x){ return NegateFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_arithmetic_v<T> && !is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_arithmetic_v<T> && !is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename NegateFcnal<T>::value_t operator-(T const& x){ return Negate(x); }
+  /**
+   * @brief Construct a lazy Negate function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> Negate(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> Negate(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyNegate<typename T::element_type>>(def_mem_type, nullptr, IvyNegate(x));
     add_fcn_to_clients(res, x);
     return res;
   }
+  /**
+   * @brief Construct a lazy function function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> operator-(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyNegate<typename T::element_type>::base_t> operator-(T const& x){
     return Negate(x);
   }
 
@@ -134,9 +148,49 @@ namespace IvyMath{
   __HOST_DEVICE__ MultInverseFcnal<T, complex_domain_tag>::grad_t MultInverseFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -MultInverse(x*x);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename MultInverseFcnal<T>::value_t MultInverse(T const& x){ return MultInverseFcnal<T>::eval(x); }
+  template<typename T>
+  __HOST__ MultInverseFcnal<T, tensor_domain_tag>::value_t MultInverseFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*x[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, One<decltype(val)>()/val);
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get(x[i]);
+        res[i] = One<decltype(val)>()/val;
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> MultInverseFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = 1/x, f'(x) = -1/x^2
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, MinusOne<decltype(val)>()/(val*val));
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        res[i] = MinusOne<decltype(val)>()/(val*val);
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename MultInverseFcnal<T>::value_t MultInverse(T const& x){ return MultInverseFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename MultInverseFcnal<T>::value_t MultInverse(T const& x){ return MultInverseFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy MultInverse function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultInverse<typename T::element_type>::base_t> MultInverse(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyMultInverse<typename T::element_type>::base_t> MultInverse(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyMultInverse<typename T::element_type>>(def_mem_type, nullptr, IvyMultInverse(x));
     add_fcn_to_clients(res, x);
@@ -166,9 +220,48 @@ namespace IvyMath{
   __HOST_DEVICE__ SqrtFcnal<T, complex_domain_tag>::grad_t SqrtFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Pow(x, Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), MinusOneHalf<fndtype_t>()));
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SqrtFcnal<T>::value_t Sqrt(T const& x){ return SqrtFcnal<T>::eval(x); }
+  template<typename T>
+  __HOST__ SqrtFcnal<T, tensor_domain_tag>::value_t SqrtFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::sqrt(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::sqrt(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> SqrtFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = sqrt(x), f'(x) = 1/(2*sqrt(x))
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, OneHalf<decltype(val)>()/std_math::sqrt(val));
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        res[i] = OneHalf<decltype(val)>()/std_math::sqrt(val);
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename SqrtFcnal<T>::value_t Sqrt(T const& x){ return SqrtFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename SqrtFcnal<T>::value_t Sqrt(T const& x){ return SqrtFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Sqrt function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySqrt<typename T::element_type>::base_t> Sqrt(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvySqrt<typename T::element_type>::base_t> Sqrt(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvySqrt<typename T::element_type>>(def_mem_type, nullptr, IvySqrt(x));
     add_fcn_to_clients(res, x);
@@ -186,9 +279,23 @@ namespace IvyMath{
   __HOST_DEVICE__ AbsFcnal<T, complex_domain_tag>::value_t AbsFcnal<T, complex_domain_tag>::eval(T const& x){
     return value_t(unpack_function_input_reduced<T>::get(x).norm());
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename AbsFcnal<T>::value_t Abs(T const& x){
-    return AbsFcnal<T>::eval(x);
+  template<typename T>
+  __HOST__ AbsFcnal<T, tensor_domain_tag>::value_t AbsFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::abs(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::abs(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
   }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename AbsFcnal<T>::value_t Abs(T const& x){ return AbsFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename AbsFcnal<T>::value_t Abs(T const& x){ return AbsFcnal<T>::eval(x); }
 
   // COMPLEX PHASE
   template<typename T, typename domain_tag>
@@ -265,9 +372,16 @@ namespace IvyMath{
     }
     return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ExpFcnal<T>::value_t Exp(T const& x){ return ExpFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename ExpFcnal<T>::value_t Exp(T const& x){ return ExpFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename ExpFcnal<T>::value_t Exp(T const& x){ return ExpFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Exp function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyExp<typename T::element_type>::base_t> Exp(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyExp<typename T::element_type>::base_t> Exp(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyExp<typename T::element_type>>(def_mem_type, nullptr, IvyExp(x));
     add_fcn_to_clients(res, x);
@@ -325,9 +439,16 @@ namespace IvyMath{
     }
     return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename LogFcnal<T>::value_t Log(T const& x){ return LogFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename LogFcnal<T>::value_t Log(T const& x){ return LogFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename LogFcnal<T>::value_t Log(T const& x){ return LogFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Log function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLog<typename T::element_type>::base_t> Log(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyLog<typename T::element_type>::base_t> Log(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyLog<typename T::element_type>>(def_mem_type, nullptr, IvyLog(x));
     add_fcn_to_clients(res, x);
@@ -353,8 +474,14 @@ namespace IvyMath{
     return MultInverse(x) / Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), LogTen<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename Log10Fcnal<T>::value_t Log10(T const& x){ return Log10Fcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Log10 function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLog10<typename T::element_type>::base_t> Log10(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyLog10<typename T::element_type>::base_t> Log10(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyLog10<typename T::element_type>>(def_mem_type, nullptr, IvyLog10(x));
     add_fcn_to_clients(res, x);
@@ -409,9 +536,16 @@ namespace IvyMath{
     }
     return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SinFcnal<T>::value_t Sin(T const& x){ return SinFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename SinFcnal<T>::value_t Sin(T const& x){ return SinFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename SinFcnal<T>::value_t Sin(T const& x){ return SinFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Sin function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySin<typename T::element_type>::base_t> Sin(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvySin<typename T::element_type>::base_t> Sin(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvySin<typename T::element_type>>(def_mem_type, nullptr, IvySin(x));
     add_fcn_to_clients(res, x);
@@ -466,9 +600,16 @@ namespace IvyMath{
     }
     return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CosFcnal<T>::value_t Cos(T const& x){ return CosFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename CosFcnal<T>::value_t Cos(T const& x){ return CosFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename CosFcnal<T>::value_t Cos(T const& x){ return CosFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Cos function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCos<typename T::element_type>::base_t> Cos(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyCos<typename T::element_type>::base_t> Cos(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyCos<typename T::element_type>>(def_mem_type, nullptr, IvyCos(x));
     add_fcn_to_clients(res, x);
@@ -480,9 +621,50 @@ namespace IvyMath{
   __HOST_DEVICE__ TanFcnal<T, domain_tag>::value_t TanFcnal<T, domain_tag>::eval(T const& x){ return Sin(x)/Cos(x); }
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ TanFcnal<T, domain_tag>::grad_t TanFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Sec(x); return r*r; }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename TanFcnal<T>::value_t Tan(T const& x){ return TanFcnal<T>::eval(x); }
+  template<typename T>
+  __HOST__ TanFcnal<T, tensor_domain_tag>::value_t TanFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::tan(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::tan(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> TanFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = tan(x), f'(x) = sec^2(x) = 1/cos^2(x)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        auto const c = std_math::cos(val);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, One<decltype(val)>()/(c*c));
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        auto const c = std_math::cos(val);
+        res[i] = One<decltype(val)>()/(c*c);
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename TanFcnal<T>::value_t Tan(T const& x){ return TanFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename TanFcnal<T>::value_t Tan(T const& x){ return TanFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Tan function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyTan<typename T::element_type>::base_t> Tan(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyTan<typename T::element_type>::base_t> Tan(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyTan<typename T::element_type>>(def_mem_type, nullptr, IvyTan(x));
     add_fcn_to_clients(res, x);
@@ -495,8 +677,14 @@ namespace IvyMath{
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ SecFcnal<T, domain_tag>::grad_t SecFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Sec(x)*Tan(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SecFcnal<T>::value_t Sec(T const& x){ return SecFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Sec function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySec<typename T::element_type>::base_t> Sec(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvySec<typename T::element_type>::base_t> Sec(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvySec<typename T::element_type>>(def_mem_type, nullptr, IvySec(x));
     add_fcn_to_clients(res, x);
@@ -509,8 +697,14 @@ namespace IvyMath{
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ CscFcnal<T, domain_tag>::grad_t CscFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Csc(x)*Cot(x);; }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CscFcnal<T>::value_t Csc(T const& x){ return CscFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Csc function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCsc<typename T::element_type>::base_t> Csc(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyCsc<typename T::element_type>::base_t> Csc(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyCsc<typename T::element_type>>(def_mem_type, nullptr, IvyCsc(x));
     add_fcn_to_clients(res, x);
@@ -523,8 +717,14 @@ namespace IvyMath{
   template<typename T, typename domain_tag> template<typename X_t>
   __HOST_DEVICE__ CotFcnal<T, domain_tag>::grad_t CotFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Csc(x); return -r*r; }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CotFcnal<T>::value_t Cot(T const& x){ return CotFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Cot function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCot<typename T::element_type>::base_t> Cot(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyCot<typename T::element_type>::base_t> Cot(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyCot<typename T::element_type>>(def_mem_type, nullptr, IvyCot(x));
     add_fcn_to_clients(res, x);
@@ -554,8 +754,14 @@ namespace IvyMath{
   template<typename T> template<typename X_t>
   __HOST_DEVICE__ SinHFcnal<T, complex_domain_tag>::grad_t SinHFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return CosH(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SinHFcnal<T>::value_t SinH(T const& x){ return SinHFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy SinH function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySinH<typename T::element_type>::base_t> SinH(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvySinH<typename T::element_type>::base_t> SinH(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvySinH<typename T::element_type>>(def_mem_type, nullptr, IvySinH(x));
     add_fcn_to_clients(res, x);
@@ -587,8 +793,14 @@ namespace IvyMath{
     return SinH(x);
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CosHFcnal<T>::value_t CosH(T const& x){ return CosHFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy CosH function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyCosH<typename T::element_type>::base_t> CosH(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyCosH<typename T::element_type>::base_t> CosH(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyCosH<typename T::element_type>>(def_mem_type, nullptr, IvyCosH(x));
     add_fcn_to_clients(res, x);
@@ -616,9 +828,48 @@ namespace IvyMath{
   __HOST_DEVICE__ ErfFcnal<T, complex_domain_tag>::grad_t ErfFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfFcnal<T>::value_t Erf(T const& x){ return ErfFcnal<T>::eval(x); }
+  template<typename T>
+  __HOST__ ErfFcnal<T, tensor_domain_tag>::value_t ErfFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = std_math::erf(unpack_function_input_reduced<inner_t>::get(*x[i]));
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, val);
+      } else {
+        res[i] = std_math::erf(unpack_function_input_reduced<dtype_t>::get(x[i]));
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ IvyThreadSafePtr_t<T> ErfFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep){
+    // f(x) = erf(x), f'(x) = (2/sqrt(pi)) * exp(-x^2)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    T res(*dep);
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const val = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, TwoOverSqrtPi<decltype(val)>()*std_math::exp(-val*val));
+      } else {
+        auto const val = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        res[i] = TwoOverSqrtPi<decltype(val)>()*std_math::exp(-val*val);
+      }
+    }
+    return make_IvyThreadSafePtr<T>(def_mem_type, nullptr, res);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename ErfFcnal<T>::value_t Erf(T const& x){ return ErfFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename ErfFcnal<T>::value_t Erf(T const& x){ return ErfFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Erf function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErf<typename T::element_type>::base_t> Erf(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyErf<typename T::element_type>::base_t> Erf(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyErf<typename T::element_type>>(def_mem_type, nullptr, IvyErf(x));
     add_fcn_to_clients(res, x);
@@ -647,8 +898,14 @@ namespace IvyMath{
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x){ return ErfcFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Erfc function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyErfc<typename T::element_type>::base_t> Erfc(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyErfc<typename T::element_type>>(def_mem_type, nullptr, IvyErfc(x));
     add_fcn_to_clients(res, x);
@@ -680,9 +937,72 @@ namespace IvyMath{
       Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*Faddeeva(x);
   }
-  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename FaddeevaFcnal<T>::value_t Faddeeva(T const& x){ return FaddeevaFcnal<T>::eval(x); }
+
+  // FADDEEVA — tensor domain (element-wise, output is a complex-valued tensor)
+  template<typename T>
+  __HOST__ FaddeevaFcnal<T, tensor_domain_tag>::value_t FaddeevaFcnal<T, tensor_domain_tag>::eval(T const& x){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    using cplx_dtype_t = convert_to_complex_t<dtype_t>;
+    value_t res(x.shape());
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const rv = unpack_function_input_reduced<inner_t>::get(*x[i]);
+        using num_t = std_ttraits::remove_const_t<decltype(rv)>;
+        auto const cval = IvyCerf::faddeeva(IvyComplexVariable<num_t>(rv, Zero<num_t>()));
+        using cinner_t = typename cplx_dtype_t::element_type;
+        res[i] = make_IvyThreadSafePtr<cinner_t>(def_mem_type, nullptr, cval);
+      } else {
+        auto const rv = unpack_function_input_reduced<dtype_t>::get(x[i]);
+        using num_t = std_ttraits::remove_const_t<decltype(rv)>;
+        auto const cval = IvyCerf::faddeeva(IvyComplexVariable<num_t>(rv, Zero<num_t>()));
+        res[i] = cval;
+      }
+    }
+    return res;
+  }
+  template<typename T>
+  __HOST__ auto FaddeevaFcnal<T, tensor_domain_tag>::gradient(IvyThreadSafePtr_t<T> const& dep)
+  -> IvyThreadSafePtr_t<grad_value_t>{
+    // dw/dz element-wise = (2i/√π) − 2·z·w(z)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    using cplx_dtype_t = convert_to_complex_t<dtype_t>;
+    grad_value_t res((*dep).shape());
+    for (IvyTensorDim_t i = 0; i < (*dep).num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const rv = unpack_function_input_reduced<inner_t>::get(*(*dep)[i]);
+        using num_t = std_ttraits::remove_const_t<decltype(rv)>;
+        using cval_t = IvyComplexVariable<num_t>;
+        cval_t const z(rv, Zero<num_t>());
+        cval_t const wz = IvyCerf::faddeeva(z);
+        cval_t const two_i_over_sqrtpi(Zero<num_t>(), TwoOverSqrtPi<num_t>());
+        cval_t const grad_i = two_i_over_sqrtpi - cval_t(Two<num_t>(), Zero<num_t>()) * z * wz;
+        using cinner_t = typename cplx_dtype_t::element_type;
+        res[i] = make_IvyThreadSafePtr<cinner_t>(def_mem_type, nullptr, grad_i);
+      } else {
+        auto const rv = unpack_function_input_reduced<dtype_t>::get((*dep)[i]);
+        using num_t = std_ttraits::remove_const_t<decltype(rv)>;
+        using cval_t = IvyComplexVariable<num_t>;
+        cval_t const z(rv, Zero<num_t>());
+        cval_t const wz = IvyCerf::faddeeva(z);
+        cval_t const two_i_over_sqrtpi(Zero<num_t>(), TwoOverSqrtPi<num_t>());
+        cval_t const grad_i = two_i_over_sqrtpi - cval_t(Two<num_t>(), Zero<num_t>()) * z * wz;
+        res[i] = grad_i;
+      }
+    }
+    return make_IvyThreadSafePtr<grad_value_t>(def_mem_type, nullptr, res);
+  }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_tensor_v<T>)> __HOST_DEVICE__ typename FaddeevaFcnal<T>::value_t Faddeeva(T const& x){ return FaddeevaFcnal<T>::eval(x); }
+  template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && is_tensor_v<T>)> __HOST__ typename FaddeevaFcnal<T>::value_t Faddeeva(T const& x){ return FaddeevaFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Faddeeva function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeeva<typename T::element_type>::base_t> Faddeeva(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyFaddeeva<typename T::element_type>::base_t> Faddeeva(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyFaddeeva<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeeva(x));
     add_fcn_to_clients(res, x);
@@ -711,8 +1031,14 @@ namespace IvyMath{
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfFastFcnal<T>::value_t ErfFast(T const& x){ return ErfFastFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy ErfFast function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfFast<typename T::element_type>::base_t> ErfFast(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyErfFast<typename T::element_type>::base_t> ErfFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyErfFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfFast(x));
     add_fcn_to_clients(res, x);
@@ -741,8 +1067,14 @@ namespace IvyMath{
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFastFcnal<T>::value_t ErfcFast(T const& x){ return ErfcFastFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy ErfcFast function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyErfcFast<typename T::element_type>::base_t> ErfcFast(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyErfcFast<typename T::element_type>::base_t> ErfcFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyErfcFast<typename T::element_type>>(def_mem_type, nullptr, IvyErfcFast(x));
     add_fcn_to_clients(res, x);
@@ -775,8 +1107,14 @@ namespace IvyMath{
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*FaddeevaFast(x);
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename FaddeevaFastFcnal<T>::value_t FaddeevaFast(T const& x){ return FaddeevaFastFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy FaddeevaFast function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyFaddeevaFast<typename T::element_type>::base_t> FaddeevaFast(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyFaddeevaFast<typename T::element_type>::base_t> FaddeevaFast(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyFaddeevaFast<typename T::element_type>>(def_mem_type, nullptr, IvyFaddeevaFast(x));
     add_fcn_to_clients(res, x);
@@ -863,16 +1201,28 @@ namespace IvyMath{
   __HOST_DEVICE__ typename AddFcnal<T, U>::value_t Add(T const& x, U const& y){ return AddFcnal<T, U>::eval(x, y); }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename AddFcnal<T, U>::value_t operator+(T const& x, U const& y){ return Add(x, y); }
+  /**
+   * @brief Construct a lazy Add function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> Add(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> Add(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyAdd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAdd(x, y));
     add_fcn_to_clients(res, x);
     add_fcn_to_clients(res, y);
     return res;
   }
+  /**
+   * @brief Construct a lazy function function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> operator+(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyAdd<typename T::element_type, typename U::element_type>::base_t> operator+(T const& x, U const& y){
     return Add(x, y);
   }
 
@@ -959,16 +1309,28 @@ namespace IvyMath{
       !std_iter::is_contiguous_iterator_v<T> && !std_iter::is_contiguous_iterator_v<U>
     )
   > __HOST_DEVICE__ typename SubtractFcnal<T, U>::value_t operator-(T const& x, U const& y){ return Subtract(x, y); }
+  /**
+   * @brief Construct a lazy Subtract function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> Subtract(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> Subtract(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvySubtract<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvySubtract(x, y));
     add_fcn_to_clients(res, x);
     add_fcn_to_clients(res, y);
     return res;
   }
+  /**
+   * @brief Construct a lazy function function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> operator-(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvySubtract<typename T::element_type, typename U::element_type>::base_t> operator-(T const& x, U const& y){
     return Subtract(x, y);
   }
 
@@ -1081,20 +1443,36 @@ namespace IvyMath{
     }
     return res;
   }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U> && !is_tensor_v<T> && !is_tensor_v<U>)>
   __HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t Multiply(T const& x, U const& y){ return MultiplyFcnal<T, U>::eval(x, y); }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U> && (is_tensor_v<T> || is_tensor_v<U>))>
+  __HOST__ typename MultiplyFcnal<T, U>::value_t Multiply(T const& x, U const& y){ return MultiplyFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U> && !is_tensor_v<T> && !is_tensor_v<U>)>
   __HOST_DEVICE__ typename MultiplyFcnal<T, U>::value_t operator*(T const& x, U const& y){ return Multiply(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U> && (is_tensor_v<T> || is_tensor_v<U>))>
+  __HOST__ typename MultiplyFcnal<T, U>::value_t operator*(T const& x, U const& y){ return Multiply(x, y); }
+  /**
+   * @brief Construct a lazy Multiply function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> Multiply(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> Multiply(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyMultiply<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyMultiply(x, y));
     add_fcn_to_clients(res, x);
     add_fcn_to_clients(res, y);
     return res;
   }
+  /**
+   * @brief Construct a lazy function function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> operator*(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyMultiply<typename T::element_type, typename U::element_type>::base_t> operator*(T const& x, U const& y){
     return Multiply(x, y);
   }
 
@@ -1181,16 +1559,28 @@ namespace IvyMath{
   __HOST_DEVICE__ typename DivideFcnal<T, U>::value_t Divide(T const& x, U const& y){ return DivideFcnal<T, U>::eval(x, y); }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!(is_arithmetic_v<T> && is_arithmetic_v<U>) && !is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename DivideFcnal<T, U>::value_t operator/(T const& x, U const& y){ return Divide(x, y); }
+  /**
+   * @brief Construct a lazy Divide function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> Divide(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> Divide(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyDivide<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyDivide(x, y));
     add_fcn_to_clients(res, x);
     add_fcn_to_clients(res, y);
     return res;
   }
+  /**
+   * @brief Construct a lazy function function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> operator/(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyDivide<typename T::element_type, typename U::element_type>::base_t> operator/(T const& x, U const& y){
     return Divide(x, y);
   }
 
@@ -1298,10 +1688,131 @@ namespace IvyMath{
       return Log(x)*Pow(x, y);
     }
   }
-  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
+  template<typename T, typename U>
+  __HOST__ PowFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::value_t PowFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::eval(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      using x_elem_t = typename T::dtype_t;
+      using y_elem_t = typename U::dtype_t;
+      if constexpr (is_pointer_v<x_elem_t> && is_pointer_v<y_elem_t>){
+        using inner_t = typename x_elem_t::element_type;
+        auto const xv = unpack_function_input_reduced<inner_t>::get(*x[i]);
+        auto const yv = unpack_function_input_reduced<typename y_elem_t::element_type>::get(*y[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, std_math::pow(xv, yv));
+      } else if constexpr (!is_pointer_v<x_elem_t> && !is_pointer_v<y_elem_t>){
+        res[i] = std_math::pow(x[i], y[i]);
+      }
+    }
+    return res;
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST__ IvyThreadSafePtr_t<typename PowFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::value_t> PowFcnal<T, U, tensor_domain_tag, tensor_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    // ivar==0: d/dx x^y = y * x^(y-1)
+    // ivar==1: d/dy x^y = log(x) * x^y
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(*x);
+    for (IvyTensorDim_t i = 0; i < (*x).num_elements(); ++i){
+      using x_elem_t = typename X_t::dtype_t;
+      using y_elem_t = typename Y_t::dtype_t;
+      if constexpr (is_pointer_v<x_elem_t> && is_pointer_v<y_elem_t>){
+        using inner_t = typename x_elem_t::element_type;
+        auto const xv = unpack_function_input_reduced<inner_t>::get(*(*x)[i]);
+        auto const yv = unpack_function_input_reduced<typename y_elem_t::element_type>::get(*(*y)[i]);
+        std_ttraits::remove_const_t<decltype(xv)> gval{};
+        if (ivar == 0){
+          gval = yv * std_math::pow(xv, yv - One<decltype(yv)>());
+        } else {
+          gval = std_math::log(xv) * std_math::pow(xv, yv);
+        }
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, gval);
+      }
+    }
+    return make_IvyThreadSafePtr<value_t>(def_mem_type, nullptr, res);
+  }
+  template<typename T, typename U>
+  __HOST__ PowFcnal<T, U, tensor_domain_tag, arithmetic_domain_tag>::value_t PowFcnal<T, U, tensor_domain_tag, arithmetic_domain_tag>::eval(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(x);
+    for (IvyTensorDim_t i = 0; i < x.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const xv = unpack_function_input_reduced<inner_t>::get(*x[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, std_math::pow(xv, static_cast<decltype(xv)>(y)));
+      } else {
+        res[i] = std_math::pow(x[i], static_cast<dtype_t>(y));
+      }
+    }
+    return res;
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST__ IvyThreadSafePtr_t<typename PowFcnal<T, U, tensor_domain_tag, arithmetic_domain_tag>::value_t> PowFcnal<T, U, tensor_domain_tag, arithmetic_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    // gradient wrt tensor x: y * x^(y-1)
+    // gradient wrt scalar y: undefined (no graph node for arithmetic)
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(*x);
+    if (ivar == 0){
+      for (IvyTensorDim_t i = 0; i < (*x).num_elements(); ++i){
+        if constexpr (is_pointer_v<dtype_t>){
+          using inner_t = typename dtype_t::element_type;
+          auto const xv = unpack_function_input_reduced<inner_t>::get(*(*x)[i]);
+          auto const yv = static_cast<decltype(xv)>(*y);
+          res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, yv * std_math::pow(xv, yv - One<decltype(yv)>()));
+        } else {
+          auto const yv = static_cast<dtype_t>(*y);
+          res[i] = yv * std_math::pow((*x)[i], yv - One<dtype_t>());
+        }
+      }
+    }
+    return make_IvyThreadSafePtr<value_t>(def_mem_type, nullptr, res);
+  }
+  template<typename T, typename U>
+  __HOST__ PowFcnal<T, U, arithmetic_domain_tag, tensor_domain_tag>::value_t PowFcnal<T, U, arithmetic_domain_tag, tensor_domain_tag>::eval(T const& x, U const& y){
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(y);
+    for (IvyTensorDim_t i = 0; i < y.num_elements(); ++i){
+      if constexpr (is_pointer_v<dtype_t>){
+        using inner_t = typename dtype_t::element_type;
+        auto const yv = unpack_function_input_reduced<inner_t>::get(*y[i]);
+        res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, std_math::pow(static_cast<decltype(yv)>(x), yv));
+      } else {
+        res[i] = std_math::pow(static_cast<dtype_t>(x), y[i]);
+      }
+    }
+    return res;
+  }
+  template<typename T, typename U> template<typename X_t, typename Y_t>
+  __HOST__ IvyThreadSafePtr_t<typename PowFcnal<T, U, arithmetic_domain_tag, tensor_domain_tag>::value_t> PowFcnal<T, U, arithmetic_domain_tag, tensor_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+    // gradient wrt tensor y: log(x) * x^y
+    constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
+    value_t res(*y);
+    if (ivar == 1){
+      for (IvyTensorDim_t i = 0; i < (*y).num_elements(); ++i){
+        if constexpr (is_pointer_v<dtype_t>){
+          using inner_t = typename dtype_t::element_type;
+          auto const xv = static_cast<fundamental_data_t<typename inner_t::value_t>>(*x);
+          auto const yv = unpack_function_input_reduced<inner_t>::get(*(*y)[i]);
+          res[i] = make_IvyThreadSafePtr<inner_t>(def_mem_type, nullptr, std_math::log(xv) * std_math::pow(xv, yv));
+        } else {
+          auto const xv = static_cast<dtype_t>(*x);
+          res[i] = std_math::log(xv) * std_math::pow(xv, (*y)[i]);
+        }
+      }
+    }
+    return make_IvyThreadSafePtr<value_t>(def_mem_type, nullptr, res);
+  }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U> && !is_tensor_v<T> && !is_tensor_v<U>)>
   __HOST_DEVICE__ typename PowFcnal<T, U>::value_t Pow(T const& x, U const& y){ return PowFcnal<T, U>::eval(x, y); }
+  template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U> && (is_tensor_v<T> || is_tensor_v<U>))>
+  __HOST__ typename PowFcnal<T, U>::value_t Pow(T const& x, U const& y){ return PowFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy Pow function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>&& is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyPow<typename T::element_type, typename U::element_type>::base_t> Pow(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyPow<typename T::element_type, typename U::element_type>::base_t> Pow(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyPow<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyPow(x, y));
     add_fcn_to_clients(res, x);
@@ -1320,8 +1831,14 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ NotFcnal<T, real_domain_tag>::value_t NotFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Not(unpack_function_input_reduced<T>::get(x))); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename NotFcnal<T>::value_t Not(T const& x){ return NotFcnal<T>::eval(x); }
+  /**
+   * @brief Construct a lazy Not function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, ENABLE_IF_BOOL_IMPL(is_pointer_v<T>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyNot<typename T::element_type>::base_t> Not(T const& x){
+  __HOST__ IvyThreadSafePtr_t<typename IvyNot<typename T::element_type>::base_t> Not(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyNot<typename T::element_type>>(def_mem_type, nullptr, IvyNot(x));
     add_fcn_to_clients(res, x);
@@ -1370,8 +1887,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename EqualFcnal<T, U>::value_t Equal(T const& x, U const& y){ return EqualFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy Equal function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyEqual<typename T::element_type, typename U::element_type>::base_t> Equal(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyEqual(x, y));
     add_fcn_to_clients(res, x);
@@ -1396,8 +1919,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename OrFcnal<T, U>::value_t Or(T const& x, U const& y){ return OrFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy Or function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyOr<typename T::element_type, typename U::element_type>::base_t> Or(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyOr<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyOr(x, y));
     add_fcn_to_clients(res, x);
@@ -1422,8 +1951,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename XorFcnal<T, U>::value_t Xor(T const& x, U const& y){ return XorFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy Xor function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyXor<typename T::element_type, typename U::element_type>::base_t> Xor(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyXor<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyXor(x, y));
     add_fcn_to_clients(res, x);
@@ -1449,8 +1984,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename AndFcnal<T, U>::value_t And(T const& x, U const& y){ return AndFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy And function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyAnd<typename T::element_type, typename U::element_type>::base_t> And(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyAnd<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyAnd(x, y));
     add_fcn_to_clients(res, x);
@@ -1495,8 +2036,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename GreaterThanFcnal<T, U>::value_t GreaterThan(T const& x, U const& y){ return GreaterThanFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy GreaterThan function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyGreaterThan<typename T::element_type, typename U::element_type>::base_t> GreaterThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyGreaterThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterThan(x, y));
     add_fcn_to_clients(res, x);
@@ -1542,8 +2089,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename LessThanFcnal<T, U>::value_t LessThan(T const& x, U const& y){ return LessThanFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy LessThan function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyLessThan<typename T::element_type, typename U::element_type>::base_t> LessThan(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyLessThan<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessThan(x, y));
     add_fcn_to_clients(res, x);
@@ -1589,8 +2142,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename GreaterOrEqualFcnal<T, U>::value_t GreaterOrEqual(T const& x, U const& y){ return GreaterOrEqualFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy GreaterOrEqual function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyGreaterOrEqual<typename T::element_type, typename U::element_type>::base_t> GreaterOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyGreaterOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyGreaterOrEqual(x, y));
     add_fcn_to_clients(res, x);
@@ -1637,8 +2196,14 @@ namespace IvyMath{
   }
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T> && !is_pointer_v<U>)>
   __HOST_DEVICE__ typename LessOrEqualFcnal<T, U>::value_t LessOrEqual(T const& x, U const& y){ return LessOrEqualFcnal<T, U>::eval(x, y); }
+  /**
+   * @brief Construct a lazy LessOrEqual function node for autodiff.
+   * @note  Host-only: function-graph objects (IvyRegularFunction) use
+   *        virtual dispatch and RAII, which are incompatible with device code.
+   *        Direct numerical evaluation (the non-pointer overload) is __HOST_DEVICE__.
+   */
   template<typename T, typename U, ENABLE_IF_BOOL_IMPL(is_pointer_v<T> && is_pointer_v<U>)>
-  __HOST_DEVICE__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y){
+  __HOST__ IvyThreadSafePtr_t<typename IvyLessOrEqual<typename T::element_type, typename U::element_type>::base_t> LessOrEqual(T const& x, U const& y){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
     auto res = make_IvyThreadSafePtr<IvyLessOrEqual<typename T::element_type, typename U::element_type>>(def_mem_type, nullptr, IvyLessOrEqual(x, y));
     add_fcn_to_clients(res, x);

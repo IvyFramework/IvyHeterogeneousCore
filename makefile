@@ -1,6 +1,10 @@
 PROJECTNAME          = IvyFramework
 PACKAGENAME          = IvyHeterogeneousCore
 
+# Parallel compilation: use all available cores.
+# -k (keep-going) ensures that a single failing TU does not abort other independent targets.
+MAKEFLAGS += -j$(shell nproc) -k
+
 
 COMPILEPATH          = $(PWD)/
 
@@ -52,6 +56,15 @@ EXEFLAGS      = $(filter-out -dc, $(CXXFLAGS))
 LIBDLINKFLAGS = $(GPU_GENCODE) $(NVLINKOPTS) -Xcompiler -fPIC
 endif
 
+ifeq ($(strip $(USE_CUDA)),)
+  # Precompiled header — g++ only. nvcc does not support .gch (nvcc --pch is fatal).
+  PCHFILE    = $(INCLUDEDIR)IvyPrecompiledHeader.h
+  PCHOUT     = $(PCHFILE).gch
+  # EXEFLAGS = $(CXXFLAGS) is a lazy recursive assignment (line 40), so adding
+  # -include to CXXFLAGS automatically propagates to EXEFLAGS; no duplicate needed.
+  CXXFLAGS  += -include $(PCHFILE)
+endif
+
 NLIBS        += $(EXTLIBS)
 # Filter out libNew because it leads to floating-point exceptions in versions of ROOT prior to 6.08.02
 # See the thread https://root-forum.cern.ch/t/linking-new-library-leads-to-a-floating-point-exception-at-startup/22404
@@ -67,7 +80,7 @@ EXES = $(subst $(BINDIR),$(EXEDIR),$(EXESPRIM))
 TESTEXES = $(subst $(TESTDIR),$(TESTEXEDIR),$(TESTEXESPRIM))
 
 
-.PHONY: all utests help compile clean lib
+.PHONY: all utests help compile clean lib pch distclean
 .SILENT: exedirs testexedirs clean $(EXES) $(TESTEXES)
 
 
@@ -102,6 +115,7 @@ clean:
 	rm -rf $(EXEDIR)
 	rm -rf $(TESTEXEDIR)
 	rm -rf $(LIBDIR)
+	rm -f $(INCLUDEDIR)/*.gch
 	rm -f $(BINDIR)*.o
 	rm -f $(BINDIR)*.so
 	rm -f $(BINDIR)*.d
@@ -141,5 +155,18 @@ else
 	rm -f $(LIBDIR)$(LIBNAME).o $(LIBDIR)$(LIBNAME)_dlink.o
 endif
 
+
+pch:
+ifeq ($(strip $(USE_CUDA)),)
+	@echo "Building g++ precompiled header (CPU only)..."
+	$(CXX) $(filter-out -include $(PCHFILE), $(CXXFLAGS)) -x c++-header -o $(PCHOUT) $(PCHFILE)
+	@echo "PCH written: $(PCHOUT)"
+else
+	@echo "PCH skipped: nvcc does not support .gch precompiled headers."
+endif
+
+distclean: clean
+	@echo "Removing precompiled header artifacts..."
+	rm -f $(INCLUDEDIR)*.gch
 
 include $(DEPS)

@@ -13,10 +13,11 @@
 
 
 namespace IvyTypes{
-  /** @brief Unsigned size type used across Ivy interfaces. */
-  typedef unsigned long long int size_t;
-  /** @brief Signed size type used across Ivy interfaces. */
-  typedef long long int signed_size_t;
+  /// @brief Matches ::size_t exactly on all platforms, preventing CUDA stub-generator
+  ///        ambiguity when IvyTypes is brought into scope via 'using namespace IvyMath'.
+  using size_t = decltype(sizeof(int));
+  /// @brief Matches std::ptrdiff_t exactly on all platforms.
+  using signed_size_t = decltype(static_cast<char*>(nullptr) - static_cast<char*>(nullptr));
   /** @brief Signed pointer-difference type used across Ivy interfaces. */
   typedef long long int ptrdiff_t;
 

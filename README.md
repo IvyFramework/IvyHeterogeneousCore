@@ -374,18 +374,24 @@ The pointer overloads register the result in the client-manager graph.
 | `operator-`         | x − y   | ✓   | ✓      | ✓      |
 | `operator*`         | x · y   | ✓   | ✓      | ✓      |
 | `operator/`         | x / y   | ✓   | ✓      | ✗      |
-| `Pow(x, y)`         | x^y     | ✓   | ✓      | ✗      |
+| `Pow(x, y)`         | x^y     | ✓   | ✓      | ✓      |
 | `Exp(x)`            | e^x     | ✓   | ✓      | ✓      |
 | `Log(x)`            | ln x    | ✓   | ✓      | ✓      |
 | `Sin(x)`            | sin x   | ✓   | ✓      | ✓      |
 | `Cos(x)`            | cos x   | ✓   | ✓      | ✓      |
-| `Tan(x)`            | tan x   | ✓   | ✓      | ✗      |
-| `Sqrt(x)`           | √x      | ✓   | ✓      | ✗      |
-| `Abs(x)`            | |x|     | ✓   | ✓      | ✗      |
-| `Erf(x)`            | erf(x)  | ✓   | ✗      | ✗      |
-| `Faddeeva(x)`       | w(x)    | ✗   | ✓      | ✗      |
+| `Tan(x)`            | tan x   | ✓   | ✓      | ✓      |
+| `Sqrt(x)`           | √x      | ✓   | ✓      | ✓      |
+| `Abs(x)`            | |x|     | ✓   | ✓      | ✓      |
+| `Erf(x)`            | erf(x)  | ✓   | ✓      | ✓      |
+| `Faddeeva(x)`       | w(x)    | ✓   | ✓      | ✓      |
 | `Negate(x)`         | −x      | ✓   | ✓      | ✓      |
-| `MultInverse(x)`    | 1/x     | ✓   | ✓      | ✗      |
+| `MultInverse(x)`    | 1/x     | ✓   | ✓      | ✓      |
+
+The Faddeeva function `w(x) = exp(-x²)·erfc(-ix)` accepts both real and complex
+arguments.  For a real input `x`, it returns a complex-valued result.  This is
+accessed via `Faddeeva(x)` where `x` is an `IvyVariable<T>` or
+`IvyTensor<IvyVariable<T>>`.  The gradient `dw/dz = (2i/√π) − 2z·w(z)` is
+complex-valued even for real input.
 
 Comparison and logic operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) are
 available for real types but return `bool` — they do **not** participate in

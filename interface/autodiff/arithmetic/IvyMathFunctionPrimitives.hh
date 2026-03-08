@@ -110,7 +110,7 @@ namespace IvyMath{
     typename T, typename U, typename Evaluator,
     typename precision_type = more_precise_reduced_t<T, U>,
     typename Domain = get_domain_t<more_precise_t<T, U>>,
-    typename GradientDomain = Domain
+    typename GradientDomain = evaluator_gradient_domain_t<Evaluator, Domain>
   > class IvyRegularFunction_2D : public IvyFunction<precision_type, Domain, GradientDomain>
   {
   public:

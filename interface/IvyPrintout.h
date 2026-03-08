@@ -30,9 +30,13 @@ namespace std_ivy{
   template<> struct value_printout<unsigned int>{ static __HOST_DEVICE__ void print(unsigned int const& x){ __PRINT_INFO__("%u", x); } };
   /** @brief Print int as signed integer. */
   template<> struct value_printout<int>{ static __HOST_DEVICE__ void print(int const& x){ __PRINT_INFO__("%d", x); } };
-#ifndef __LONG_INT_FORBIDDEN__
-  /** @brief Print unsigned long int as unsigned long integer. */
+  // Note: unsigned long int is NOT guarded by __LONG_INT_FORBIDDEN__ because
+  // IvyTypes::size_t = decltype(sizeof(int)) = unsigned long on LP64 platforms.
+  // Printing size_t values (e.g. tensor dimensions, hash bucket sizes) must work
+  // on the host regardless of the LONG_INT_FORBIDDEN flag (which targets device code).
+  /** @brief Print unsigned long int as unsigned long integer (host size_t on LP64). */
   template<> struct value_printout<unsigned long int>{ static __HOST_DEVICE__ void print(unsigned long const& x){ __PRINT_INFO__("%lu", x); } };
+#ifndef __LONG_INT_FORBIDDEN__
   /** @brief Print long int as signed long integer. */
   template<> struct value_printout<long int>{ static __HOST_DEVICE__ void print(long const& x){ __PRINT_INFO__("%ld", x); } };
 #endif
