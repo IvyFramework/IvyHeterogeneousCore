@@ -47,6 +47,36 @@ The library was built to power the `IvyFramework` ecosystem — a larger collect
 
 ## 2. Architecture Overview
 
+### 2.1 STL-generalization data flow
+
+`interface/std_ivy/*` mirrors core STL behavior (`IvyVector`, `IvyUnorderedMap`, iterators, allocators, smart pointers) while carrying explicit memory-domain metadata. The data flow is:
+
+1. user container operation (`push_back`, iterator traversal, map insert/find),
+2. allocator dispatch through `IvyAllocator`/`IvyMemoryHelpers`,
+3. memory-domain-aware transfer/build/free for Host/GPU/Unified,
+4. optional stream-aware execution via `IvyGPUStream` wrappers.
+
+### 2.2 CPU/GPU memory dispatch flow
+
+Dispatch is encoded by memory type and annotation policy:
+
+- numeric kernels remain host/device-eligible (`IVY_MATH_NUMERIC_QUALIFIER`),
+- lazy graph construction and pointer-gradient paths are host-only (`IVY_MATH_GRAPH_QUALIFIER`),
+- tensor STL evaluation paths are host-only (`IVY_MATH_TENSOR_STL_QUALIFIER`).
+
+This policy is centralized in `interface/config/IvyAnnotationDispatchPolicy.h` and applied in arithmetic autodiff call sites so device compilation no longer instantiates host-only graph code.
+
+### 2.3 Autodiff graph flow
+
+For pointer inputs (variable/tensor/function pointers), math calls (e.g. `Exp(x)`, `Sin(x)`, `Pow(x,y)`) create lazy `IvyRegularFunction_*D` nodes. At evaluation time, `value()` triggers `eval()` if modified, and gradient calls traverse dependencies:
+
+- `func->gradient(variable_ptr)` for scalar-variable differentiation,
+- `func->gradient(variable_ptr)` for tensor-shared-variable differentiation,
+- `func->gradient(variable_ptr)` through intermediate function nodes (`u=Exp(x)`, `h=Sin(u)`).
+
+The external API remains unchanged: `func->gradient(x)` is the stable entry point.
+
+
 The library is organised in four conceptual layers stacked on top of each other:
 
 ```
@@ -189,6 +219,48 @@ make clean
 
 Removes `executables/`, `test_executables/`, and intermediate object files.
 
+### 4.6 One-line acceptance harness
+
+```bash
+make diagnostics-baseline
+```
+
+Runs the non-interactive diagnostics matrix and writes acceptance logs under
+`strict_logs/`.
+
+### 4.7 Shared-library consumption cookbook
+
+Build shared library:
+
+```bash
+make lib
+```
+
+or CUDA-enabled:
+
+```bash
+USE_CUDA=1 make lib
+```
+
+Link an external application:
+
+```bash
+g++ -std=c++20 -O2 -I./interface \
+  -L./lib -Wl,-rpath,'$ORIGIN/lib' \
+  -lIvyHeterogeneousCore your_app.cc -o your_app
+```
+
+### 4.8 One-line ergonomics demo
+
+```bash
+make all && ./executables/gradient_ergonomics_demo
+```
+
+The demo validates these user-facing patterns:
+- `func->gradient(x)` for scalar variables,
+- `tensor_func->gradient(x)` for tensor/shared-variable flows,
+- chained-function variable gradients (`h = Sin(Exp(x))`, then `h->gradient(x)`).
+
 ---
 
 ## 5. Quick-Start Example
@@ -201,12 +273,12 @@ compiles against the library's headers with no pre-built libraries needed.
  * quickstart.cc — minimal IvyHeterogeneousCore autodiff example.
  *
  * Compile (CPU):
- *   g++ -std=c++20 -O2 -I${IVYROOT}/interface -o quickstart quickstart.cc
+ *   g++ -std=c++20 -O2 -I/workspace/IvyHeterogeneousCore/interface -o quickstart quickstart.cc
  *
  * Compile (CUDA):
  *   nvcc -std=c++20 -O2 -x cu -rdc=true -D__USE_CUDA__ \
  *        -D__LONG_DOUBLE_FORBIDDEN__ \
- *        -I${IVYROOT}/interface -o quickstart quickstart.cc
+ *        -I/workspace/IvyHeterogeneousCore/interface -o quickstart quickstart.cc
  */
 #include "autodiff/arithmetic/IvyMathBaseArithmetic.h"
 #include "autodiff/basic_nodes/IvyTensor.h"
@@ -553,17 +625,17 @@ After `make lib` (or `make lib USE_CUDA=1`), the shared object is at
 IVYROOT=/path/to/IvyHeterogeneousCore
 
 g++ -std=c++20 -O2 \
-    -I${IVYROOT}/interface \
-    -L${IVYROOT}/lib \
+    -I/workspace/IvyHeterogeneousCore/interface \
+    -L/workspace/IvyHeterogeneousCore/lib \
     -lIvyHeterogeneousCore \
-    -Wl,-rpath,${IVYROOT}/lib \
+    -Wl,-rpath,/workspace/IvyHeterogeneousCore/lib \
     -o myapp myapp.cc
 ```
 
 Or set `LD_LIBRARY_PATH` at runtime instead of `-Wl,-rpath`:
 
 ```bash
-export LD_LIBRARY_PATH=${IVYROOT}/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=/workspace/IvyHeterogeneousCore/lib:${LD_LIBRARY_PATH}
 ./myapp
 ```
 
@@ -572,10 +644,10 @@ export LD_LIBRARY_PATH=${IVYROOT}/lib:${LD_LIBRARY_PATH}
 ```bash
 nvcc -std=c++20 -O2 -x cu -rdc=true \
      -D__USE_CUDA__ -D__LONG_DOUBLE_FORBIDDEN__ \
-     -I${IVYROOT}/interface \
-     -L${IVYROOT}/lib \
+     -I/workspace/IvyHeterogeneousCore/interface \
+     -L/workspace/IvyHeterogeneousCore/lib \
      -lIvyHeterogeneousCore \
-     -Xlinker -rpath,${IVYROOT}/lib \
+     -Xlinker -rpath,/workspace/IvyHeterogeneousCore/lib \
      -o myapp myapp.cu
 ```
 
@@ -716,11 +788,12 @@ definitions are inline templates. If you see missing symbols, ensure you
 also compile your own source with the include path:
 
 ```bash
-g++ -std=c++20 -I${IVYROOT}/interface -L${IVYROOT}/lib \
-    -lIvyHeterogeneousCore -o app app.cc
+g++ -std=c++20 -I/workspace/IvyHeterogeneousCore/interface -L/workspace/IvyHeterogeneousCore/lib \
+    -lIvyHeterogeneousCore -o /workspace/IvyHeterogeneousCore/executables/shared_library_smoke \
+    /workspace/IvyHeterogeneousCore/bin/shared_library_smoke.cc
 ```
 
-and that `LD_LIBRARY_PATH` (or `-Wl,-rpath`) points to `${IVYROOT}/lib`.
+and that `LD_LIBRARY_PATH` (or `-Wl,-rpath`) points to `/workspace/IvyHeterogeneousCore/lib`.
 
 ---
 
@@ -740,3 +813,24 @@ For clarity:
 
 See the full legal terms in [License](LICENSE.md) (authoritative legal file: `LICENSE`).
 
+
+
+## 15. Verified Non-Interactive Command Cookbook
+
+All commands below were executed from a clean shell using `set -euo pipefail` and literal repository paths.
+
+```bash
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make distclean
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make EXTCXXFLAGS='-w' pch && make EXTCXXFLAGS='-w' utests
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make lib
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && USE_CUDA=1 make EXTCXXFLAGS='-w' utests
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && USE_CUDA=1 make lib
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && for b in /workspace/IvyHeterogeneousCore/executables/*; do timeout 120s "$b"; done
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && for t in /workspace/IvyHeterogeneousCore/test_executables/utest_*; do timeout 120s "$t"; done
+```
+
+### Shared-library include/link workflow (literal paths)
+
+```bash
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && g++ -std=c++20 -O2 -I/workspace/IvyHeterogeneousCore/interface -L/workspace/IvyHeterogeneousCore/lib -lIvyHeterogeneousCore -Wl,-rpath,/workspace/IvyHeterogeneousCore/lib -o /workspace/IvyHeterogeneousCore/executables/shared_library_smoke /workspace/IvyHeterogeneousCore/bin/shared_library_smoke.cc
+```

@@ -145,7 +145,7 @@ namespace IvyMath{
   }
 
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorDim_t> const& indices) const{
-    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
+    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", static_cast<unsigned long long>(indices.size()), rank_);
 
     auto ref_dims = this->view_dims();
     auto ref_indices = std_mem::view(indices);
@@ -157,7 +157,7 @@ namespace IvyMath{
     auto it_end_index = std_iter::end(*ref_indices);
     auto it_dim = std_iter::begin(*ref_dims);
     while (it_index != it_end_index){
-      if (*it_index >= *it_dim) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Index = %llu for axis %hu exceeds number of dimensions = %llu.\n", *it_index, iaxis, *it_dim);
+      if (*it_index >= *it_dim) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Index = %llu for axis %hu exceeds number of dimensions = %llu.\n", static_cast<unsigned long long>(*it_index), iaxis, static_cast<unsigned long long>(*it_dim));
       nel_tmp /= *it_dim;
       res += nel_tmp*(*it_index);
       ++iaxis;
@@ -168,7 +168,7 @@ namespace IvyMath{
     return res;
   }
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_vec::vector<IvyTensorSignedDim_t> const& indices) const{
-    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
+    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", static_cast<unsigned long long>(indices.size()), rank_);
 
     auto ref_dims = this->view_dims();
     auto ref_indices = std_mem::view(indices);
@@ -189,7 +189,7 @@ namespace IvyMath{
   }
   template<typename T, std_ttraits::enable_if_t<std_ttraits::is_integral_v<T>, bool>>
   __HOST_DEVICE__ IvyTensorDim_t IvyTensorShape::get_abs_index(std_ilist::initializer_list<T> const& indices) const{
-    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", indices.size(), rank_);
+    if (indices.size()>rank_) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Number of axes = %llu exceeds rank = %hu.\n", static_cast<unsigned long long>(indices.size()), rank_);
 
     auto ref_dims = this->view_dims();
 
@@ -205,7 +205,7 @@ namespace IvyMath{
         idx_pos = __STATIC_CAST__(IvyTensorDim_t, iidx);
       }
       else idx_pos = __STATIC_CAST__(IvyTensorDim_t, idx);
-      if (idx_pos >= *it_dim) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Index = %llu for axis %hu exceeds number of dimensions = %llu.\n", idx_pos, iaxis, *it_dim);
+      if (idx_pos >= *it_dim) __PRINT_ERROR__("IvyTensorShape::get_abs_index: Index = %llu for axis %hu exceeds number of dimensions = %llu.\n", static_cast<unsigned long long>(idx_pos), iaxis, static_cast<unsigned long long>(*it_dim));
       nel_tmp /= *it_dim;
       res += nel_tmp*idx_pos;
       ++iaxis;
@@ -242,7 +242,7 @@ namespace IvyMath{
     if (has_neg1){
       if (nel % nel_new != 0) __PRINT_ERROR__(
         "IvyTensorShape::reshape: Cannot infer dimension size for -1 since total number of elements %llu is not divisible by product of specified dimensions %llu.\n",
-        nel, nel_new
+        static_cast<unsigned long long>(nel), static_cast<unsigned long long>(nel_new)
       );
       auto idim = nel / nel_new;
       for (auto& dim:vdims){
@@ -254,7 +254,7 @@ namespace IvyMath{
     }
     else if (nel_new != nel){ __PRINT_ERROR__(
       "IvyTensorShape::reshape: Total number of elements after reshape %llu does not match original number of elements %llu.\n",
-      nel_new, nel
+      static_cast<unsigned long long>(nel_new), static_cast<unsigned long long>(nel)
     ); }
     this->rank_ = vdims.size();
     this->dims = vdims;
@@ -262,7 +262,7 @@ namespace IvyMath{
   __HOST_DEVICE__ void IvyTensorShape::reshape(IvyTensorShape const& new_shape){
     if (new_shape.nel != this->nel) __PRINT_ERROR__(
       "IvyTensorShape::reshape: Total number of elements after reshape %llu does not match original number of elements %llu.\n",
-      new_shape.nel, this->nel
+      static_cast<unsigned long long>(new_shape.nel), static_cast<unsigned long long>(this->nel)
     );
     this->rank_ = new_shape.rank_;
     this->dims = new_shape.dims;
@@ -410,14 +410,14 @@ namespace IvyMath{
 
     for (auto const& cax:contraction_axis_pairs){
       if (cax.first>=s1_dims.size()) __PRINT_ERROR__(
-        "IvyTensorShape::get_contraction_shape: Axis index = %hu of tensor 1 exceeds rank = %llu.\n", cax.first, s1_dims.size()
+        "IvyTensorShape::get_contraction_shape: Axis index = %hu of tensor 1 exceeds rank = %llu.\n", cax.first, static_cast<unsigned long long>(s1_dims.size())
       );
       if (cax.second>=s2_dims.size()) __PRINT_ERROR__(
-        "IvyTensorShape::get_contraction_shape: Axis index = %hu of tensor 2 exceeds rank = %llu.\n", cax.second, s2_dims.size()
+        "IvyTensorShape::get_contraction_shape: Axis index = %hu of tensor 2 exceeds rank = %llu.\n", cax.second, static_cast<unsigned long long>(s2_dims.size())
       );
       if (s1_dims.at(cax.first)!=s2_dims.at(cax.second)) __PRINT_ERROR__(
         "IvyTensorShape::get_contraction_shape: Number of dimensions are not equal for axes [%hu, %hu], i.e., %llu != %llu.\n",
-        cax.first, cax.second, s1_dims.at(cax.first), s2_dims.at(cax.second)
+        cax.first, cax.second, static_cast<unsigned long long>(s1_dims.at(cax.first)), static_cast<unsigned long long>(s2_dims.at(cax.second))
       );
     }
 
@@ -482,7 +482,7 @@ namespace IvyMath{
     bool first = true;
     for (auto const& dim:dims){
       if (!first) __PRINT_INFO__(",");
-      __PRINT_INFO__(" %llu", dim);
+      __PRINT_INFO__(" %llu", static_cast<unsigned long long>(dim));
       first = false;
     }
     __PRINT_INFO__((rank_>0 ? " " : ""));

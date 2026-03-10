@@ -1,6 +1,10 @@
 #ifndef IVYCLIENTMANAGER_H
 #define IVYCLIENTMANAGER_H
 
+/**
+ * @file IvyClientManager.h
+ * @brief Host-side client tracking utilities for autodiff graph nodes.
+ */
 
 #include "std_ivy/IvyMemory.h"
 #include "std_ivy/IvyVector.h"
@@ -17,6 +21,14 @@ namespace std_ivy{
   template<typename T> class transfer_memory_primitive_with_internal_memory<T, ENABLE_IF_TYPED_BASE_OF_IMPL(T, IvyClientManager<T>, T)>;
 }
 namespace IvyMath{
+  /**
+   * @brief Host-only client ownership manager used by graph nodes.
+   *
+   * The client list stores host-resident graph references (`shared_ptr` to
+   * @c IvyBaseModifiable). CUDA kernels do not mutate this structure, so all
+   * public methods are intentionally host-only to avoid device-side
+   * instantiation of graph bookkeeping code.
+   */
   template<typename T> class IvyClientManager{
     public:
       typedef T origin_t;
@@ -44,12 +56,15 @@ namespace IvyMath{
     }
 
     public:
-      __HOST_DEVICE__ IvyClientManager() = default;
-      __HOST_DEVICE__ IvyClientManager(IvyClientManager const& other) = default;
+      __HOST_DEVICE__ IvyClientManager() : clients_(){}
+      __HOST_DEVICE__ IvyClientManager(IvyClientManager const& other) : clients_(other.clients_){}
       __HOST_DEVICE__ IvyClientManager(IvyClientManager&& other) : clients_(std_util::move(other.clients_)){}
-      __HOST_DEVICE__ ~IvyClientManager() = default;
+      __HOST_DEVICE__ ~IvyClientManager(){}
 
-      __HOST_DEVICE__ IvyClientManager& operator=(IvyClientManager const& other) = default;
+      __HOST_DEVICE__ IvyClientManager& operator=(IvyClientManager const& other){
+        if (this != &other) clients_ = other.clients_;
+        return *this;
+      }
       __HOST_DEVICE__ IvyClientManager& operator=(IvyClientManager&& other){
         if (this != &other) clients_ = std_util::move(other.clients_);
         return *this;
@@ -103,15 +118,18 @@ namespace IvyMath{
 
   };
 
+  /**
+   * @brief No-op host-only manager used when a node has no client tracking.
+   */
   class IvyClientlessManager{
     public:
-      __HOST_DEVICE__ IvyClientlessManager() = default;
-      __HOST_DEVICE__ IvyClientlessManager(IvyClientlessManager const& other) = default;
-      __HOST_DEVICE__ IvyClientlessManager(IvyClientlessManager&& other) = default;
-      __HOST_DEVICE__ ~IvyClientlessManager() = default;
+      __HOST_DEVICE__ IvyClientlessManager(){}
+      __HOST_DEVICE__ IvyClientlessManager(IvyClientlessManager const&){}
+      __HOST_DEVICE__ IvyClientlessManager(IvyClientlessManager&&){}
+      __HOST_DEVICE__ ~IvyClientlessManager(){}
 
-      __HOST_DEVICE__ IvyClientlessManager& operator=(IvyClientlessManager const& other) = default;
-      __HOST_DEVICE__ IvyClientlessManager& operator=(IvyClientlessManager&& other) = default;
+      __HOST_DEVICE__ IvyClientlessManager& operator=(IvyClientlessManager const&){ return *this; }
+      __HOST_DEVICE__ IvyClientlessManager& operator=(IvyClientlessManager&&){ return *this; }
 
       template<typename T>
       __HOST_DEVICE__ bool add_client(T const& client){ return false; }

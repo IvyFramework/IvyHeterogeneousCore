@@ -26,6 +26,8 @@
 **/*.eps
 **/settings.json
 **/.vscode
+**/evidence*
+**/*_logs
 test/*.root
 test/*.txt
 *.root

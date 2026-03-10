@@ -44,6 +44,16 @@ make distclean
 
 Removes all build artifacts including test executables and the `.gch` PCH file.
 
+### One-line acceptance harness (non-interactive)
+
+```bash
+make diagnostics-baseline
+```
+
+This command runs CPU/CUDA baseline diagnostics, warning inventory generation,
+and writes structured logs under `strict_logs/` with no interactive prompts.
+Use it to capture reproducible acceptance evidence in one command.
+
 ## 4. Running Tests
 
 ```bash
@@ -68,6 +78,18 @@ Removes all build artifacts including test executables and the `.gch` PCH file.
 | `utest_tensor_pow` | Tensor-domain `Pow(t1, t2)` eval and gradients w.r.t. base and exponent |
 | `utest_unified_ptr_basic` | `IvyThreadSafePtr_t` construction, copy, move semantics |
 | `utest_unified_ptr_transfer` | Host-to-device and device-to-host pointer transfer |
+
+Run all unit tests in one command:
+
+```bash
+for t in ./test_executables/utest_*; do "$t"; done
+```
+
+Run the gradient ergonomics demo:
+
+```bash
+./executables/gradient_ergonomics_demo
+```
 
 ## 5. Library Architecture
 
@@ -183,7 +205,56 @@ double dRe = gval.Re();  // ≈ −14.8142
 double dIm = gval.Im();  // ≈  17.1522
 ```
 
-## 7. Adding a New Math Function
+### d) Function-chain target and intermediate-node usage
+
+```cpp
+#include "autodiff/arithmetic/IvyMathBaseArithmetic.h"
+using namespace IvyMath;
+
+auto x = Variable<double>(IvyMemoryType::Host, nullptr, 1.0);
+auto u = Exp(x);
+auto h = Sin(u);
+
+// Variable target (recommended production pattern)
+auto dh_dx = h->gradient(x);
+double gx = dh_dx->value().value(); // cos(exp(1)) * exp(1)
+
+// Function target (supported ergonomics path)
+auto dh_du = h->gradient(u);
+double gu = dh_du->value().value(); // cos(exp(1))
+```
+
+## 7. Shared-library consumption
+
+### Build shared library
+
+```bash
+make lib
+```
+
+or CUDA-enabled:
+
+```bash
+USE_CUDA=1 make lib
+```
+
+The generated library is `lib/libIvyHeterogeneousCore.so`.
+
+### Link against the shared library
+
+```bash
+g++ -std=c++20 -O2 -I./interface \
+  -L./lib -Wl,-rpath,'$ORIGIN/lib' \
+  -lIvyHeterogeneousCore your_app.cc -o your_app
+```
+
+### Smoke-test dynamic linking
+
+```bash
+make all && ./executables/shared_library_smoke
+```
+
+## 8. Adding a New Math Function
 
 1. **Declare `FooFcnal<T>`** in `interface/autodiff/arithmetic/IvyMathBaseArithmetic.hh`.
    Define the nested type aliases `value_t` and `grad_t`, and declare static methods
@@ -206,7 +277,7 @@ double dIm = gval.Im();  // ≈  17.1522
    that `grep -c "warning #20011" <cuda_log>` returns 0. A non-zero count means a
    graph-building overload is incorrectly annotated `__HOST_DEVICE__`.
 
-## 8. Known Limitations
+## 9. Known Limitations
 
 - **`Abs` and `Faddeeva` tensor gradients are disabled:** both declare
   `gradient_domain_tag = undefined_domain_tag`. `Abs` is not differentiable at zero;
@@ -216,3 +287,55 @@ double dIm = gval.Im();  // ≈  17.1522
   nvcc 12.x. The PCH speedup (`make pch`) applies to CPU (g++) builds only.
 - **`ccache` is not integrated:** repeated CUDA builds re-compile from scratch. On a
   48-core machine, a parallel `USE_CUDA=1 make utests` takes approximately 3m 34s.
+
+
+## 10. Architecture and Data-Flow (Acceptance-Oriented)
+
+### 9.1 STL-generalization layer
+
+- Headers: `interface/std_ivy/*`
+- Core types: `IvyVector`, `IvyUnorderedMap`, `IvyUnifiedPtr`, iterator builders
+- Data flow: API call -> allocator traits -> `IvyMemoryHelpers` -> stream/memory-domain operations
+
+### 9.2 CPU/GPU memory dispatch layer
+
+- Policy header: `interface/config/IvyAnnotationDispatchPolicy.h`
+- Numeric/evaluable paths: `IVY_MATH_NUMERIC_QUALIFIER`
+- Lazy graph and pointer-gradient paths: `IVY_MATH_GRAPH_QUALIFIER`
+- Tensor STL evaluation paths: `IVY_MATH_TENSOR_STL_QUALIFIER`
+
+This split prevents illegal host calls from `__host__ __device__` instantiation contexts while preserving user API shape.
+
+### 9.3 Autodiff graph layer
+
+- Node base: `interface/autodiff/basic_nodes/IvyFunction.h`
+- Arithmetic node factories: `interface/autodiff/arithmetic/IvyMathBaseArithmetic.hh/.h`
+- User entry point: `func->gradient(x)`
+
+Concrete patterns:
+
+1. Variable target
+   - `auto x = Variable<double>(IvyMemoryType::Host, stream, 1.0);`
+   - `auto f = Sin(Exp(x));`
+   - `auto df_dx = f->gradient(x);`
+
+2. Tensor shared-variable target
+   - `auto t = Tensor<IvyVariablePtr_t<double>>(IvyMemoryType::Host, stream, IvyTensorShape({2,2}), x);`
+   - `auto ft = Exp(t);`
+   - `auto dft_dx = ft->gradient(x);`
+
+3. Function-chain usability (function in graph, variable as gradient target)
+   - `auto u = Exp(x);`
+   - `auto h = Sin(u);`
+   - `auto dh_dx = h->gradient(x);`
+
+## 10. One-Line Commands (Literal Paths, Non-Interactive)
+
+```bash
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make distclean
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make EXTCXXFLAGS='-w' pch && make EXTCXXFLAGS='-w' utests
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && USE_CUDA=1 make EXTCXXFLAGS='-w' utests
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && make lib && USE_CUDA=1 make lib
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && for b in /workspace/IvyHeterogeneousCore/executables/*; do timeout 120s "$b"; done
+cd /workspace/IvyHeterogeneousCore && set -euo pipefail && for t in /workspace/IvyHeterogeneousCore/test_executables/utest_*; do timeout 120s "$t"; done
+```

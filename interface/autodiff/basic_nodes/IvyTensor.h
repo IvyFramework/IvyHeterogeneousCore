@@ -1,6 +1,10 @@
 #ifndef IVYTENSOR_H
 #define IVYTENSOR_H
 
+/**
+ * @file IvyTensor.h
+ * @brief Tensor node types and host-side tensor graph storage.
+ */
 
 #include "config/IvyCompilerConfig.h"
 #include "stream/IvyStream.h"
@@ -26,6 +30,9 @@ namespace std_ivy{
   template<typename T> class transfer_memory_primitive<IvyTensor<T>> : public transfer_memory_primitive_with_internal_memory<IvyTensor<T>, IvyTensor<T>>{};
 }
 namespace IvyMath{
+  /**
+   * @brief Base host tensor node with client-tracking support.
+   */
   template<typename T> class IvyTensorBase :
     public IvyBaseNode,
     public IvyBaseModifiable,
@@ -37,7 +44,7 @@ namespace IvyMath{
       __HOST_DEVICE__ IvyTensorBase() : IvyBaseModifiable(), clientmgr_t(){}
       __HOST_DEVICE__ IvyTensorBase(IvyTensorBase const& other) : IvyBaseModifiable(), clientmgr_t(other){}
       __HOST_DEVICE__ IvyTensorBase(IvyTensorBase&& other) : IvyBaseModifiable(), clientmgr_t(std_util::move(other)){}
-      __HOST_DEVICE__ ~IvyTensorBase() = default;
+      __HOST_DEVICE__ ~IvyTensorBase(){}
 
     protected:
       __HOST_DEVICE__ IvyTensorBase& operator=(IvyTensorBase const& other){

@@ -6,6 +6,15 @@
 #include "std_ivy/IvyCmath.h"
 #include "autodiff/special_functions/cerf/IvyCerf.h"
 
+/**
+ * @file IvyMathBaseArithmetic.h
+ * @brief Definitions for arithmetic autodiff functionals.
+ *
+ * Definitions corresponding to pointer-dependent gradients use
+ * @c IVY_MATH_GRAPH_QUALIFIER to enforce host-only graph execution.
+ * Pure numeric paths remain @c __HOST_DEVICE__ and are unaffected.
+ */
+
 
 namespace IvyMath{
   /****************/
@@ -57,7 +66,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ NegateFcnal<T, real_domain_tag>::value_t NegateFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(-unpack_function_input_reduced<T>::get(x)); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ NegateFcnal<T, real_domain_tag>::grad_t NegateFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER NegateFcnal<T, real_domain_tag>::grad_t NegateFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T>
@@ -66,7 +75,7 @@ namespace IvyMath{
     return value_t(-xx.Re(), -xx.Im());
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER NegateFcnal<T, complex_domain_tag>::grad_t NegateFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return make_IvyThreadSafePtr<typename grad_t::element_type>(x.get_memory_type(), x.gpu_stream(), MinusOne<fndtype_t>());
   }
   template<typename T>
@@ -134,7 +143,7 @@ namespace IvyMath{
     return value_t(MultInverse(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ MultInverseFcnal<T, real_domain_tag>::grad_t MultInverseFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER MultInverseFcnal<T, real_domain_tag>::grad_t MultInverseFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -MultInverse(x*x);
   }
   template<typename T>
@@ -145,7 +154,7 @@ namespace IvyMath{
     return res;
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ MultInverseFcnal<T, complex_domain_tag>::grad_t MultInverseFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER MultInverseFcnal<T, complex_domain_tag>::grad_t MultInverseFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -MultInverse(x*x);
   }
   template<typename T>
@@ -203,7 +212,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ SqrtFcnal<T, real_domain_tag>::value_t SqrtFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(SqrtFcnal<dtype_t>::eval(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SqrtFcnal<T, real_domain_tag>::grad_t SqrtFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER SqrtFcnal<T, real_domain_tag>::grad_t SqrtFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Pow(x, Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), MinusOneHalf<fndtype_t>()));
   }
   template<typename T>
@@ -217,7 +226,7 @@ namespace IvyMath{
     return res;
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SqrtFcnal<T, complex_domain_tag>::grad_t SqrtFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER SqrtFcnal<T, complex_domain_tag>::grad_t SqrtFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Pow(x, Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), MinusOneHalf<fndtype_t>()));
   }
   template<typename T>
@@ -328,7 +337,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ ExpFcnal<T, real_domain_tag>::value_t ExpFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Exp(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ExpFcnal<T, real_domain_tag>::grad_t ExpFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ExpFcnal<T, real_domain_tag>::grad_t ExpFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(x);
   }
   template<typename T>
@@ -338,7 +347,7 @@ namespace IvyMath{
     return value_t(r*Cos(im), r*Sin(im));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ExpFcnal<T, complex_domain_tag>::grad_t ExpFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ExpFcnal<T, complex_domain_tag>::grad_t ExpFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(x);
   }
   template<typename T>
@@ -394,7 +403,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ LogFcnal<T, real_domain_tag>::value_t LogFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Log(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ LogFcnal<T, real_domain_tag>::grad_t LogFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER LogFcnal<T, real_domain_tag>::grad_t LogFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return MultInverse(x);
   }
   template<typename T>
@@ -404,7 +413,7 @@ namespace IvyMath{
     return value_t(Log(r), phi);
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ LogFcnal<T, complex_domain_tag>::grad_t LogFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER LogFcnal<T, complex_domain_tag>::grad_t LogFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return MultInverse(x);
   }
   template<typename T>
@@ -461,7 +470,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ Log10Fcnal<T, real_domain_tag>::value_t Log10Fcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Log10(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ Log10Fcnal<T, real_domain_tag>::grad_t Log10Fcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER Log10Fcnal<T, real_domain_tag>::grad_t Log10Fcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return MultInverse(x) / Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), LogTen<fndtype_t>());
   }
   template<typename T>
@@ -470,7 +479,7 @@ namespace IvyMath{
     return res/LogTen<dtype_t>();
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ Log10Fcnal<T, complex_domain_tag>::grad_t Log10Fcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER Log10Fcnal<T, complex_domain_tag>::grad_t Log10Fcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return MultInverse(x) / Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), LogTen<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename Log10Fcnal<T>::value_t Log10(T const& x){ return Log10Fcnal<T>::eval(x); }
@@ -494,7 +503,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ SinFcnal<T, real_domain_tag>::value_t SinFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Sin(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SinFcnal<T, real_domain_tag>::grad_t SinFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
+  IVY_MATH_GRAPH_QUALIFIER SinFcnal<T, real_domain_tag>::grad_t SinFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
   template<typename T>
   __HOST_DEVICE__ SinFcnal<T, complex_domain_tag>::value_t SinFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
@@ -504,7 +513,7 @@ namespace IvyMath{
     return (exp_arg - MultInverse(exp_arg))/value_t(Zero<fndtype_t>(), Two<fndtype_t>());
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SinFcnal<T, complex_domain_tag>::grad_t SinFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
+  IVY_MATH_GRAPH_QUALIFIER SinFcnal<T, complex_domain_tag>::grad_t SinFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Cos(x); }
   template<typename T>
   __HOST__ SinFcnal<T, tensor_domain_tag>::value_t SinFcnal<T, tensor_domain_tag>::eval(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -558,7 +567,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ CosFcnal<T, real_domain_tag>::value_t CosFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(Cos(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ CosFcnal<T, real_domain_tag>::grad_t CosFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
+  IVY_MATH_GRAPH_QUALIFIER CosFcnal<T, real_domain_tag>::grad_t CosFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
   template<typename T>
   __HOST_DEVICE__ CosFcnal<T, complex_domain_tag>::value_t CosFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
@@ -568,7 +577,7 @@ namespace IvyMath{
     return (exp_arg + MultInverse(exp_arg))/Two<fndtype_t>();
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ CosFcnal<T, complex_domain_tag>::grad_t CosFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
+  IVY_MATH_GRAPH_QUALIFIER CosFcnal<T, complex_domain_tag>::grad_t CosFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Sin(x); }
   template<typename T>
   __HOST__ CosFcnal<T, tensor_domain_tag>::value_t CosFcnal<T, tensor_domain_tag>::eval(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -620,7 +629,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag>
   __HOST_DEVICE__ TanFcnal<T, domain_tag>::value_t TanFcnal<T, domain_tag>::eval(T const& x){ return Sin(x)/Cos(x); }
   template<typename T, typename domain_tag> template<typename X_t>
-  __HOST_DEVICE__ TanFcnal<T, domain_tag>::grad_t TanFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Sec(x); return r*r; }
+  IVY_MATH_GRAPH_QUALIFIER TanFcnal<T, domain_tag>::grad_t TanFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Sec(x); return r*r; }
   template<typename T>
   __HOST__ TanFcnal<T, tensor_domain_tag>::value_t TanFcnal<T, tensor_domain_tag>::eval(T const& x){
     constexpr std_ivy::IvyMemoryType def_mem_type = IvyMemoryHelpers::get_execution_default_memory();
@@ -675,7 +684,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag>
   __HOST_DEVICE__ SecFcnal<T, domain_tag>::value_t SecFcnal<T, domain_tag>::eval(T const& x){ return MultInverse(Cos(x)); }
   template<typename T, typename domain_tag> template<typename X_t>
-  __HOST_DEVICE__ SecFcnal<T, domain_tag>::grad_t SecFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Sec(x)*Tan(x); }
+  IVY_MATH_GRAPH_QUALIFIER SecFcnal<T, domain_tag>::grad_t SecFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return Sec(x)*Tan(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SecFcnal<T>::value_t Sec(T const& x){ return SecFcnal<T>::eval(x); }
   /**
    * @brief Construct a lazy Sec function node for autodiff.
@@ -695,7 +704,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag>
   __HOST_DEVICE__ CscFcnal<T, domain_tag>::value_t CscFcnal<T, domain_tag>::eval(T const& x){ return MultInverse(Sin(x)); }
   template<typename T, typename domain_tag> template<typename X_t>
-  __HOST_DEVICE__ CscFcnal<T, domain_tag>::grad_t CscFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Csc(x)*Cot(x);; }
+  IVY_MATH_GRAPH_QUALIFIER CscFcnal<T, domain_tag>::grad_t CscFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return -Csc(x)*Cot(x);; }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CscFcnal<T>::value_t Csc(T const& x){ return CscFcnal<T>::eval(x); }
   /**
    * @brief Construct a lazy Csc function node for autodiff.
@@ -715,7 +724,7 @@ namespace IvyMath{
   template<typename T, typename domain_tag>
   __HOST_DEVICE__ CotFcnal<T, domain_tag>::value_t CotFcnal<T, domain_tag>::eval(T const& x){ return Cos(x)/Sin(x); }
   template<typename T, typename domain_tag> template<typename X_t>
-  __HOST_DEVICE__ CotFcnal<T, domain_tag>::grad_t CotFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Csc(x); return -r*r; }
+  IVY_MATH_GRAPH_QUALIFIER CotFcnal<T, domain_tag>::grad_t CotFcnal<T, domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ auto r = Csc(x); return -r*r; }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CotFcnal<T>::value_t Cot(T const& x){ return CotFcnal<T>::eval(x); }
   /**
    * @brief Construct a lazy Cot function node for autodiff.
@@ -740,7 +749,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ SinHFcnal<T, real_domain_tag>::value_t SinHFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(SinH(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SinHFcnal<T, real_domain_tag>::grad_t SinHFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return CosH(x); }
+  IVY_MATH_GRAPH_QUALIFIER SinHFcnal<T, real_domain_tag>::grad_t SinHFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return CosH(x); }
   template<typename T>
   __HOST_DEVICE__ SinHFcnal<T, complex_domain_tag>::value_t SinHFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
@@ -752,7 +761,7 @@ namespace IvyMath{
     return value_t(sha*cb, cha*sb);
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ SinHFcnal<T, complex_domain_tag>::grad_t SinHFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return CosH(x); }
+  IVY_MATH_GRAPH_QUALIFIER SinHFcnal<T, complex_domain_tag>::grad_t SinHFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return CosH(x); }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename SinHFcnal<T>::value_t SinH(T const& x){ return SinHFcnal<T>::eval(x); }
   /**
    * @brief Construct a lazy SinH function node for autodiff.
@@ -777,7 +786,7 @@ namespace IvyMath{
   template<typename T>
   __HOST_DEVICE__ CosHFcnal<T, real_domain_tag>::value_t CosHFcnal<T, real_domain_tag>::eval(T const& x){ return value_t(CosH(unpack_function_input_reduced<T>::get(x))); }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ CosHFcnal<T, real_domain_tag>::grad_t CosHFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return SinH(x); }
+  IVY_MATH_GRAPH_QUALIFIER CosHFcnal<T, real_domain_tag>::grad_t CosHFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){ return SinH(x); }
   template<typename T>
   __HOST_DEVICE__ CosHFcnal<T, complex_domain_tag>::value_t CosHFcnal<T, complex_domain_tag>::eval(T const& x){
     auto const& a = unpack_function_input_reduced<T>::get(x).Re();
@@ -789,7 +798,7 @@ namespace IvyMath{
     return value_t(cha*cb, sha*sb);
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ CosHFcnal<T, complex_domain_tag>::grad_t CosHFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER CosHFcnal<T, complex_domain_tag>::grad_t CosHFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return SinH(x);
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename CosHFcnal<T>::value_t CosH(T const& x){ return CosHFcnal<T>::eval(x); }
@@ -817,7 +826,7 @@ namespace IvyMath{
     return value_t(Erf(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfFcnal<T, real_domain_tag>::grad_t ErfFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfFcnal<T, real_domain_tag>::grad_t ErfFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
@@ -825,7 +834,7 @@ namespace IvyMath{
     return IvyCerf::erf(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfFcnal<T, complex_domain_tag>::grad_t ErfFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfFcnal<T, complex_domain_tag>::grad_t ErfFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
@@ -886,7 +895,7 @@ namespace IvyMath{
     return value_t(Erfc(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFcnal<T, real_domain_tag>::grad_t ErfcFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfcFcnal<T, real_domain_tag>::grad_t ErfcFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
@@ -894,7 +903,7 @@ namespace IvyMath{
     return IvyCerf::erfc(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFcnal<T, complex_domain_tag>::grad_t ErfcFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfcFcnal<T, complex_domain_tag>::grad_t ErfcFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFcnal<T>::value_t Erfc(T const& x){ return ErfcFcnal<T>::eval(x); }
@@ -922,7 +931,7 @@ namespace IvyMath{
     return value_t(Faddeeva(IvyComplexVariable(unpack_function_input_reduced<T>::get(x))));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ FaddeevaFcnal<T, real_domain_tag>::grad_t FaddeevaFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER FaddeevaFcnal<T, real_domain_tag>::grad_t FaddeevaFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return
       Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*Faddeeva(x);
@@ -932,7 +941,7 @@ namespace IvyMath{
     return IvyCerf::faddeeva(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ FaddeevaFcnal<T, complex_domain_tag>::grad_t FaddeevaFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER FaddeevaFcnal<T, complex_domain_tag>::grad_t FaddeevaFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return
       Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*Faddeeva(x);
@@ -1019,7 +1028,7 @@ namespace IvyMath{
     return value_t(ErfFast(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfFastFcnal<T, real_domain_tag>::grad_t ErfFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfFastFcnal<T, real_domain_tag>::grad_t ErfFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
@@ -1027,7 +1036,7 @@ namespace IvyMath{
     return IvyCerf::erf_fast(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfFastFcnal<T, complex_domain_tag>::grad_t ErfFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfFastFcnal<T, complex_domain_tag>::grad_t ErfFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfFastFcnal<T>::value_t ErfFast(T const& x){ return ErfFastFcnal<T>::eval(x); }
@@ -1055,7 +1064,7 @@ namespace IvyMath{
     return value_t(ErfcFast(unpack_function_input_reduced<T>::get(x)));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFastFcnal<T, real_domain_tag>::grad_t ErfcFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfcFastFcnal<T, real_domain_tag>::grad_t ErfcFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T>
@@ -1063,7 +1072,7 @@ namespace IvyMath{
     return IvyCerf::erfc_fast(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ ErfcFastFcnal<T, complex_domain_tag>::grad_t ErfcFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER ErfcFastFcnal<T, complex_domain_tag>::grad_t ErfcFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return -Exp(-x*x)*Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), TwoOverSqrtPi<fndtype_t>());
   }
   template<typename T, ENABLE_IF_BOOL_IMPL(!is_pointer_v<T>)> __HOST_DEVICE__ typename ErfcFastFcnal<T>::value_t ErfcFast(T const& x){ return ErfcFastFcnal<T>::eval(x); }
@@ -1091,7 +1100,7 @@ namespace IvyMath{
     return value_t(FaddeevaFast(IvyComplexVariable(unpack_function_input_reduced<T>::get(x))));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ FaddeevaFastFcnal<T, real_domain_tag>::grad_t FaddeevaFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER FaddeevaFastFcnal<T, real_domain_tag>::grad_t FaddeevaFastFcnal<T, real_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return
       Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*FaddeevaFast(x);
@@ -1101,7 +1110,7 @@ namespace IvyMath{
     return IvyCerf::faddeeva_fast(unpack_function_input_reduced<T>::get(x));
   }
   template<typename T> template<typename X_t>
-  __HOST_DEVICE__ FaddeevaFastFcnal<T, complex_domain_tag>::grad_t FaddeevaFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
+  IVY_MATH_GRAPH_QUALIFIER FaddeevaFastFcnal<T, complex_domain_tag>::grad_t FaddeevaFastFcnal<T, complex_domain_tag>::gradient(IvyThreadSafePtr_t<X_t> const& x){
     return
       Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Zero<fndtype_t>(), TwoOverSqrtPi<fndtype_t>())
       - Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), Two<fndtype_t>())*x*FaddeevaFast(x);
@@ -1134,7 +1143,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)+unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, real_domain_tag>::gradient( unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER AddFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, real_domain_tag>::gradient( unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1147,7 +1156,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x).Re()+unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x).Im()+unpack_function_input_reduced<U>::get(y).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1176,7 +1185,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)+unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<U>::get(y).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ AddFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER AddFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t AddFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1189,7 +1198,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x).Re()+unpack_function_input_reduced<U>::get(y), unpack_function_input_reduced<T>::get(x).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ AddFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER AddFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t AddFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1234,7 +1243,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)-unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ SubtractFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t SubtractFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER SubtractFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t SubtractFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1247,7 +1256,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x).Re()-unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x).Im()-unpack_function_input_reduced<U>::get(y).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ SubtractFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t SubtractFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER SubtractFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t SubtractFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1276,7 +1285,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)-unpack_function_input_reduced<U>::get(y).Re(), -unpack_function_input_reduced<U>::get(y).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ SubtractFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t SubtractFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER SubtractFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t SubtractFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1289,7 +1298,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x).Re()-unpack_function_input_reduced<U>::get(y), unpack_function_input_reduced<T>::get(x).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ SubtractFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t SubtractFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER SubtractFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t SubtractFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     auto mem_type = (ivar==0 ? x.get_memory_type() : y.get_memory_type());
     auto gpu_stream = (ivar==0 ? x.gpu_stream() : y.gpu_stream());
     return make_IvyThreadSafePtr<typename grad_t::element_type>(
@@ -1342,7 +1351,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)*unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using grad_type_T = std_ttraits::conditional_t<
       std_ttraits::is_base_of_v<constant_value_tag, get_operability_t<T>>,
       IvyConstant<fndtype_t>, IvyVariable<fndtype_t>
@@ -1367,7 +1376,7 @@ namespace IvyMath{
     return value_t(xr*yr - xi*yi, xr*yi + xi*yr);
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     switch (ivar){
     case 0:
       return Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) * y;
@@ -1396,7 +1405,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)*unpack_function_input_reduced<U>::get(y).Re(), unpack_function_input_reduced<T>::get(x)*unpack_function_input_reduced<U>::get(y).Im());
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t MultiplyFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using grad_type_T = std_ttraits::conditional_t<
       std_ttraits::is_base_of_v<constant_value_tag, get_operability_t<T>>,
       IvyConstant<fndtype_t>, IvyVariable<fndtype_t>
@@ -1413,7 +1422,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x).Re()*unpack_function_input_reduced<U>::get(y), unpack_function_input_reduced<T>::get(x).Im()*unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t MultiplyFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using grad_type_U = std_ttraits::conditional_t<
       std_ttraits::is_base_of_v<constant_value_tag, get_operability_t<U>>,
       IvyConstant<fndtype_t>, IvyVariable<fndtype_t>
@@ -1484,7 +1493,7 @@ namespace IvyMath{
     return value_t(unpack_function_input_reduced<T>::get(x)/unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ DivideFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t DivideFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER DivideFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t DivideFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using grad_type_T = std_ttraits::conditional_t<
       std_ttraits::is_base_of_v<constant_value_tag, get_operability_t<T>>,
       IvyConstant<fndtype_t>, IvyVariable<fndtype_t>
@@ -1501,7 +1510,7 @@ namespace IvyMath{
     return unpack_function_input_reduced<T>::get(x)*MultInverse(unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ DivideFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t DivideFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER DivideFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t DivideFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     switch (ivar){
     case 0:
       return Constant<fndtype_t>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) / y;
@@ -1530,7 +1539,7 @@ namespace IvyMath{
     return unpack_function_input_reduced<T>::get(x)*MultInverse(y);
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ DivideFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t DivideFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER DivideFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t DivideFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using grad_type_T = std_ttraits::conditional_t<
       std_ttraits::is_base_of_v<constant_value_tag, get_operability_t<T>>,
       IvyConstant<fndtype_t>, IvyVariable<fndtype_t>
@@ -1547,7 +1556,7 @@ namespace IvyMath{
     return unpack_function_input_reduced<T>::get(x)*MultInverse(y);
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ DivideFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t DivideFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER DivideFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t DivideFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     switch (ivar){
     case 0:
       return Complex<fndtype_t>(x.get_memory_type(), x.gpu_stream(), One<fndtype_t>()) / y;
@@ -1592,7 +1601,7 @@ namespace IvyMath{
     return Pow(unpack_function_input_reduced<T>::get(x), unpack_function_input_reduced<U>::get(y));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t PowFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER PowFcnal<T, U, real_domain_tag, real_domain_tag>::grad_t PowFcnal<T, U, real_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using ctype = fundamental_data_t<U>;
     switch (ivar){
     case 0:
@@ -1612,7 +1621,7 @@ namespace IvyMath{
     return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using ctype = fundamental_data_t<U>;
     switch (ivar){
     case 0:
@@ -1660,7 +1669,7 @@ namespace IvyMath{
     return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ PowFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER PowFcnal<T, U, real_domain_tag, complex_domain_tag>::grad_t PowFcnal<T, U, real_domain_tag, complex_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using ctype = fundamental_data_t<U>;
     switch (ivar){
     case 0:
@@ -1679,7 +1688,7 @@ namespace IvyMath{
     return value_t(res_norm*Cos(res_phase), res_norm*Sin(res_phase));
   }
   template<typename T, typename U> template<typename X_t, typename Y_t>
-  __HOST_DEVICE__ PowFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
+  IVY_MATH_GRAPH_QUALIFIER PowFcnal<T, U, complex_domain_tag, real_domain_tag>::grad_t PowFcnal<T, U, complex_domain_tag, real_domain_tag>::gradient(unsigned char ivar, IvyThreadSafePtr_t<X_t> const& x, IvyThreadSafePtr_t<Y_t> const& y){
     using ctype = fundamental_data_t<U>;
     switch (ivar){
     case 0:
